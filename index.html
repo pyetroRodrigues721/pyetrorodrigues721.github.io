@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-ink="paper">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- ══════════ 模板：站点标题与描述（改站点身份时同步改 data.js 的 site） ══════════ -->
+<title>ZeroPhix — 一个人的博客，几本分册</title>
+<meta name="description" content="ZeroPhix · 个人博客。按领域分成几册：我自己写的文章、一行行手写出来的 HTML 页面、小实验，以及少量对话留档。">
+<meta name="theme-color" content="#F2EFE8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23F2EFE8'/%3E%3Ctext x='16' y='23' font-family='Georgia,serif' font-size='21' font-weight='700' fill='%2323407A' text-anchor='middle'%3EZ%3C/text%3E%3C/svg%3E">
+<script>document.documentElement.classList.add('js');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700..900&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500&family=Noto+Serif+SC:wght@600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<!-- ══════════ 报头 ══════════ -->
+<header class="mast">
+  <div class="wrap mast-in">
+    <a class="brand" href="#top" data-site="aria" aria-label="ZeroPhix，回到顶部">
+      <b data-site="brand">ZeroPhix</b><span class="tag">Personal Blog</span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="主导航">
+      <a href="#fields">领域</a>
+      <a href="#archive">归档</a>
+      <a href="#about">关于</a>
+    </nav>
+
+    <div class="mast-right">
+      <button class="tbtn" id="inkBtn" type="button" aria-pressed="false">夜读</button>
+      <button class="tbtn menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="nav">菜单</button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ══════════ 开场 ══════════ -->
+  <section class="intro">
+    <div class="wrap">
+      <div class="intro-grid">
+
+        <div>
+          <div class="eyebrow">
+            <span class="ln" aria-hidden="true"></span>
+            <span class="mono" data-site="eyebrow">ZeroPhix · 一个人的博客 · 2023 —</span>
+          </div>
+
+          <h1>
+            <span class="ln"><i>一个人的博客，</i></span>
+            <span class="ln"><i>几本<span class="hand">分册<svg viewBox="0 0 140 12" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" d="M4 8 C 26 2, 52 11, 78 6 S 118 2, 136 7"/></svg></span>。</i></span>
+          </h1>
+
+          <p class="lead">
+            前端、设计、读书、工具、生活……<b>每个领域一册</b>。
+            册里是我写下的文章、一行行手写出来的 HTML 页面、小实验，也留了少量对话。
+            <b>册子随时能加，首页不用改。</b>
+          </p>
+
+          <div class="acts">
+            <a class="btn btn--fill" href="#fields">
+              浏览领域
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+            <a class="btn btn--ghost" href="#archive">看全部条目</a>
+          </div>
+        </div>
+
+        <aside>
+          <div class="porthole">
+            <div class="pw-frame" id="pwFrame">
+              <div class="tile"><div class="big">天气页：让温度退到角落</div></div>
+            </div>
+            <div class="pw-cap">
+              <span class="mono">活体小窗 · 自己写的页面</span>
+              <a href="works/01-weather.html" id="pwLink">打开 ↗</a>
+            </div>
+          </div>
+
+          <div class="recent">
+            <h2>最近更新 / Latest</h2>
+            <div id="recent"></div>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 领域墙 ══════════ -->
+  <section class="sec" id="fields">
+    <div class="wrap">
+      <div class="sec-h">
+        <div class="l">
+          <span class="mono">01 / Fields</span>
+          <h2>领域</h2>
+        </div>
+        <p class="note">
+          一册一领域。左边的书脊是编号，卡底那条是<b>条目构成</b>——
+          四种深浅依次是 写的 / 做的 / 试的 / 对话。
+        </p>
+      </div>
+      <div class="fields" id="fields-wall"></div>
+    </div>
+  </section>
+
+  <!-- ══════════ 归档 ══════════ -->
+  <section class="sec" id="archive">
+    <div class="wrap">
+      <div class="sec-h">
+        <div class="l">
+          <span class="mono">02 / Archive</span>
+          <h2>归档</h2>
+        </div>
+        <p class="note">全部条目按年份排。两条轴可以叠着用：<b>领域 × 形式</b>，再加一个关键词。</p>
+      </div>
+
+      <div class="controls">
+        <div class="crow">
+          <span class="lbl">领域</span>
+          <div class="chips" id="fieldChips" role="group" aria-label="按领域筛选"></div>
+        </div>
+        <div class="crow">
+          <span class="lbl">形式</span>
+          <div class="chips" id="typeChips" role="group" aria-label="按形式筛选"></div>
+          <div class="searchbox">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>
+            <label class="sr-only" for="q">搜索标题或说明</label>
+            <input id="q" type="search" placeholder="搜索" autocomplete="off">
+          </div>
+        </div>
+      </div>
+
+      <p class="counter" id="counter"></p>
+      <div id="archiveBody"></div>
+    </div>
+  </section>
+
+  <!-- ══════════ 关于 ══════════ -->
+  <section class="sec" id="about">
+    <div class="wrap">
+      <div class="sec-h">
+        <div class="l">
+          <span class="mono">03 / About</span>
+          <h2>关于</h2>
+        </div>
+        <p class="note">ZeroPhix 是我一个人在写的博客。没有排期，没有计划表，只有分册。</p>
+      </div>
+
+      <div class="about-grid">
+        <div class="about">
+          <p>我把这里当一套分册的笔记本，不是作品集。</p>
+          <p>
+            <b>大部分条目是我自己写出来的</b>——一篇文章、一个小页面、一次失败的配色、一段抄了十遍才记住的 path 命令。
+            有些东西是和 AI 一起想的，我会照实标成"对话"，但它只是其中一册，不是这个博客的主题。
+          </p>
+          <p>
+            分册的意义在于：今天写前端，明天可能开始记读书，后天又多一册摄影。
+            <b>新领域只需要开一册，不用重做首页。</b>这是我这次重构唯一想解决的事。
+          </p>
+          <p>如果你也在学东西，欢迎随便翻。<b>看到不好的地方，告诉我。</b></p>
+        </div>
+
+        <dl class="colophon">
+          <div><dt>博客 / Site</dt><dd><b data-site="brand">ZeroPhix</b><br><span data-site="since">个人博客 · 2023—</span><br>持续更新，没有排期</dd></div>
+          <div><dt>结构 / Structure</dt><dd>首页 → 领域 → 条目<br>领域 × 形式，两条正交轴</dd></div>
+          <div><dt>技术 / Stack</dt><dd>纯 HTML · CSS · JavaScript<br>无框架，无构建</dd></div>
+          <div><dt>字体 / Type</dt><dd>Fraunces · Noto Serif SC<br>Noto Sans SC · IBM Plex Mono</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-in">
+      <div class="foot-links">
+        <a href="#fields">领域 / Fields</a>
+        <a href="https://github.com/" target="_blank" rel="noopener" data-site-href="github">GitHub</a>
+        <a href="mailto:hello@example.com" data-site-href="email">联系 / Email</a>
+        <a href="#top">回到顶部 / Top</a>
+      </div>
+      <p class="mono" style="margin:0" data-site="brandline">ZeroPhix · 一个人的博客</p>
+    </div>
+    <p class="say">学到新的就往对应那册里放一件。不追求好看，只求下次翻的时候，还看得懂当时为什么这么做。</p>
+  </div>
+</footer>
+
+<!-- 数据层 → 行为层（模板 index.html 不含内容数据） -->
+<script src="data.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
