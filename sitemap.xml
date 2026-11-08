@@ -7,6 +7,12 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://zerophix.github.io/code.html</loc>
+    <lastmod>2026-11-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://zerophix.github.io/works/01-weather.html</loc>
     <lastmod>2026-11-08</lastmod>
     <changefreq>monthly</changefreq>
