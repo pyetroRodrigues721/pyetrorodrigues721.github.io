@@ -71,6 +71,9 @@ function setInk(v){
   root.setAttribute('data-ink', v);
   inkBtn.setAttribute('aria-pressed', v === 'night' ? 'true' : 'false');
   inkBtn.textContent = v === 'night' ? '纸张' : '夜读';
+  /* 同步手机浏览器地址栏颜色 */
+  var tc = $('themeColor');
+  if (tc) tc.setAttribute('content', v === 'night' ? '#16151A' : '#F2EFE8');
   try{ localStorage.setItem('zp-ink', v); }catch(e){}
 }
 var savedInk = null; try{ savedInk = localStorage.getItem('zp-ink'); }catch(e){}

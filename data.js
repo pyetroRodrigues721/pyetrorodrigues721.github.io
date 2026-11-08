@@ -15,7 +15,7 @@ window.ZP = {
     tagline: '一个人的博客',
     since:   '2023',
     github:  'https://github.com/zerophix',
-    email:   'hello@example.com'
+    email:   'zerophix@users.noreply.github.com'
   },
 
   /* ─────────────────────────────────────────────

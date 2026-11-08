@@ -6,7 +6,38 @@
 <!-- ══════════ 模板：站点标题与描述（改站点身份时同步改 data.js 的 site） ══════════ -->
 <title>ZeroPhix — 一个人的博客，几本分册</title>
 <meta name="description" content="ZeroPhix · 个人博客。按领域分成几册：我自己写的文章、一行行手写出来的 HTML 页面、小实验，以及少量对话留档。">
-<meta name="theme-color" content="#F2EFE8">
+<meta name="theme-color" content="#F2EFE8" id="themeColor">
+<link rel="canonical" href="https://zerophix.github.io/">
+<!-- 分享卡片（微信 / Twitter / Discord 等抓取 og:*） -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ZeroPhix">
+<meta property="og:title" content="ZeroPhix — 一个人的博客，几本分册">
+<meta property="og:description" content="ZeroPhix · 个人博客。按领域分成几册：我自己写的文章、一行行手写出来的 HTML 页面、小实验，以及少量对话留档。">
+<meta property="og:url" content="https://zerophix.github.io/">
+<meta property="og:image" content="https://zerophix.github.io/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ZeroPhix — 一个人的博客，几本分册">
+<meta name="twitter:description" content="ZeroPhix · 个人博客。按领域分成几册：我自己写的文章、一行行手写出来的 HTML 页面、小实验，以及少量对话留档。">
+<meta name="twitter:image" content="https://zerophix.github.io/og.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "ZeroPhix",
+  "alternateName": "一个人的博客，几本分册",
+  "url": "https://zerophix.github.io/",
+  "inLanguage": "zh-CN",
+  "description": "ZeroPhix · 个人博客。按领域分成几册：我自己写的文章、一行行手写出来的 HTML 页面、小实验，以及少量对话留档。",
+  "publisher": {
+    "@type": "Person",
+    "name": "ZeroPhix",
+    "url": "https://github.com/zerophix"
+  }
+}
+</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23F2EFE8'/%3E%3Ctext x='16' y='23' font-family='Georgia,serif' font-size='21' font-weight='700' fill='%2323407A' text-anchor='middle'%3EZ%3C/text%3E%3C/svg%3E">
 <script>document.documentElement.classList.add('js');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -41,6 +72,21 @@
 
 <main id="top">
 
+  <!-- 无 JS 降级：内容由脚本渲染，先给提示和静态导航 -->
+  <noscript>
+    <div class="wrap" style="padding-top:clamp(32px,5vw,64px)">
+      <p class="empty" style="border-top:1.5px solid var(--ink);padding-top:28px">
+        领域墙与归档由 JavaScript 渲染 · 请开启脚本后刷新
+      </p>
+      <p class="mono" style="text-align:center;margin:0 0 clamp(24px,4vw,48px)">
+        仍可直接前往：
+        <a class="ul" href="#fields" style="color:var(--blue)">领域</a> ·
+        <a class="ul" href="#archive" style="color:var(--blue)">归档</a> ·
+        <a class="ul" href="#about" style="color:var(--blue)">关于</a>
+      </p>
+    </div>
+  </noscript>
+
   <!-- ══════════ 开场 ══════════ -->
   <section class="intro">
     <div class="wrap">
@@ -72,7 +118,7 @@
           </div>
         </div>
 
-        <aside>
+        <div>
           <div class="porthole">
             <div class="pw-frame" id="pwFrame">
               <div class="tile"><div class="big">天气页：让温度退到角落</div></div>
@@ -87,7 +133,7 @@
             <h2>最近更新 / Latest</h2>
             <div id="recent"></div>
           </div>
-        </aside>
+        </div>
 
       </div>
     </div>
@@ -106,7 +152,7 @@
           四种深浅依次是 写的 / 做的 / 试的 / 对话。
         </p>
       </div>
-      <div class="fields" id="fields-wall"></div>
+      <div class="fields" id="fields-wall"><noscript><p class="empty">领域墙需要 JavaScript · 请开启脚本</p></noscript></div>
     </div>
   </section>
 
@@ -138,7 +184,7 @@
       </div>
 
       <p class="counter" id="counter"></p>
-      <div id="archiveBody"></div>
+      <div id="archiveBody"><noscript><p class="empty">归档列表需要 JavaScript · 请开启脚本</p></noscript></div>
     </div>
   </section>
 
