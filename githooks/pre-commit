@@ -17,12 +17,14 @@ node_modules/.bin/eleventy
 
 # 精确暂存生成物（不碰无关的未暂存改动）
 git add mounted.js sitemap.xml
+mounted=0
 for f in pages/*.html; do
   [ -f "$f" ] || continue
   base=$(basename "$f")
   case "$base" in _*) continue ;; esac
   name="${base%.html}"
   git add "$name"
+  mounted=$((mounted+1))
 done
 
-echo "[pre-commit] 挂载完成：$(ls -d */ 2>/dev/null | wc -l | tr -d ' ') 个输出目录已同步"
+echo "[pre-commit] 挂载完成：$mounted 个挂载页 + mounted.js + sitemap.xml 已同步"
