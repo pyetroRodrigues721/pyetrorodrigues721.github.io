@@ -29,6 +29,12 @@ for f in pages/*.html; do
   mounted=$((mounted+1))
 done
 
+# 资源指纹：引用被重写时连同样式/脚本一并暂存（保证 ?v= 与内容原子一致）
+if ! git diff --quiet -- index.html pages/_includes/layout.njk works 2>/dev/null; then
+  git add index.html pages/_includes/layout.njk works style.css app.js data.js
+  echo "[pre-commit] 资源指纹已更新（style.css/app.js/data.js 引用带上了 ?v= 哈希）"
+fi
+
 # 孤儿下架：源文件已删但输出还在
 for d in */; do
   name="${d%/}"

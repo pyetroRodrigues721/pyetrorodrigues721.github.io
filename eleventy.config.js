@@ -10,6 +10,7 @@
    ============================================================ */
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 /* data.js 是浏览器脚本：注入 window 后加载，拿到领域/类型注册表 */
 global.window = global.window || {};
@@ -32,6 +33,37 @@ function parseFrontMatter(src) {
     if (i > 0) data[line.slice(0, i).trim()] = line.slice(i + 1).trim();
   });
   return { data, body: src.slice(m[0].length) };
+}
+
+/* 资源指纹：给 style.css/app.js/data.js/mounted.js 的引用加 ?v=<内容哈希>。
+   GitHub Pages 对静态资源发 max-age=600，没有指纹时「新 HTML + 旧缓存 CSS/JS」
+   会让用户在部署后10分钟内看到错乱渲染（内容哈希让 URL 必变 → 必回源）。 */
+function stampAssets() {
+  const assets = ['style.css', 'app.js', 'data.js', 'mounted.js'];
+  const hashes = {};
+  assets.forEach(a => {
+    hashes[a] = crypto.createHash('sha256')
+      .update(fs.readFileSync(path.join(__dirname, a))).digest('hex').slice(0, 8);
+  });
+  const worksDir = path.join(__dirname, 'works');
+  const targets = ['index.html', 'pages/_includes/layout.njk',
+    ...(fs.existsSync(worksDir)
+      ? fs.readdirSync(worksDir).filter(f => f.endsWith('.html')).map(f => 'works/' + f)
+      : [])];
+  targets.forEach(t => {
+    const fp = path.join(__dirname, t);
+    if (!fs.existsSync(fp)) return;
+    let s = fs.readFileSync(fp, 'utf8');
+    const orig = s;
+    assets.forEach(a => {
+      const esc = a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      s = s.replace(
+        new RegExp('(href|src)="((?:\\.\\./|\\/)?' + esc + ')(\\?v=[0-9a-f]*)?"', 'g'),
+        (m, attr, ref) => `${attr}="${ref}?v=${hashes[a]}"`
+      );
+    });
+    if (s !== orig) fs.writeFileSync(fp, s);
+  });
 }
 
 module.exports = function (eleventyConfig) {
@@ -110,6 +142,8 @@ module.exports = function (eleventyConfig) {
       ).join('\n') +
       '\n</urlset>\n';
     fs.writeFileSync(path.join(__dirname, 'sitemap.xml'), xml);
+
+    stampAssets();
   });
 
   return {

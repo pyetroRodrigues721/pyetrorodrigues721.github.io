@@ -26,17 +26,21 @@ gh api repos/zerophix/zerophix.github.io/pages/builds/latest \
 
 ## 卡住/排障
 
-1. **`building` 超过 2 分钟**（尤其伴随新增 `pages/*.html`）→ 重新触发：
+1. **线上样式旧 / 新区块错乱（没样式、光谱条是空的、柱子点不开）**
+   = 访客端 `max-age=600` 缓存拿了「新 HTML + 旧 CSS/JS」。让对方硬刷新一次
+   （macOS ⌘⇧R / Windows Ctrl+Shift+R）。构建已自动给资源引用加 `?v=<内容哈希>`，
+   此后新部署的 URL 必变，不会再发生。
+2. **`building` 超过 2 分钟**（尤其伴随新增 `pages/*.html`）→ 重新触发：
    ```sh
    gh api repos/zerophix/zerophix.github.io/pages/builds -X POST
    ```
-2. **`.nojekyll` 绝不能删**：没有它 GitHub Pages 会跑 Jekyll，
+3. **`.nojekyll` 绝不能删**：没有它 GitHub Pages 会跑 Jekyll，
    处理 front matter 和正文 `{{` 时构建会永久卡死（历史故障，加 `.nojekyll` 后 5 秒构建）。
-3. 线上 404 一个已提交的页面 → 依次查：
+4. 线上 404 一个已提交的页面 → 依次查：
    - 构建状态是否 `built` 且 sha = 你的提交；
    - 输出目录 `<slug>/index.html` 是否在仓库里（`git ls-files <slug>`）；
    - 钩子日志是否有「挂载完成：N 个挂载页」。
-4. 仓库 Pages 配置（分支 `main` / 根 `/`）：
+5. 仓库 Pages 配置（分支 `main` / 根 `/`）：
    ```sh
    gh api repos/zerophix/zerophix.github.io/pages --jq '{status, source}'
    ```

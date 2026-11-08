@@ -72,6 +72,9 @@ BASE_URL=https://zerophix.github.io/ node tests/web-smoke-test.js   # 线上模�
 ## 部署
 
 - `git push origin main` → Pages 构建（有 `.nojekyll` 后约 5 秒）。
+- 资源指纹：构建自动给 `style.css`/`app.js`/`data.js`/`mounted.js` 的引用加
+  `?v=<内容哈希>`（Pages 资源缓存 `max-age=600`，指纹保证部署后 URL 必变、必回源）。
+  **不需要手动改版本号**；若访客看到旧样式/新区块错乱，是其本地600秒缓存，硬刷新一次即可。
 - 查构建：`gh api repos/zerophix/zerophix.github.io/pages/builds/latest --jq '.status'`
 - 构建卡在 `building` 超过 2 分钟 = 异常，重新触发：
   `gh api repos/zerophix/zerophix.github.io/pages/builds -X POST`
