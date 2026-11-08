@@ -1,2 +1,3 @@
 # opencode 会话缓存
 .cache/
+node_modules/

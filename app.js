@@ -8,7 +8,10 @@
 var ZP   = window.ZP || {};
 var SITE = ZP.site  || {};
 var FIELDS = ZP.fields || [];
-var ITEMS  = ZP.items  || [];
+/* 挂载页（pages/ 经 Eleventy 生成的 mounted.js）与手写条目合并，
+   归档、领域计数、最近更新、筛选器因此自动收录挂载页 */
+var MOUNT = (window.ZP_MOUNT && window.ZP_MOUNT.pages) || [];
+var ITEMS  = (ZP.items || []).concat(MOUNT);
 
 var TYPE = {
   w:{label:'我写的', short:'写', en:'Articles'},

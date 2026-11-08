@@ -1,0 +1,29 @@
+---
+title: 页面标题
+desc: 一句话说明，会显示在首页归档和分享卡片里
+field: web
+type: w
+published: 2026.11
+---
+<!--
+  ══════════ 挂载页模板 ══════════
+  本文件不参与构建（.njk 不在构建格式内），复制改名即可：
+    cp pages/_template.njk pages/my-page.html
+
+  1. 改上面 --- 之间的 front matter：
+     title     必填 · 归档标题
+     desc      必填 · 一句说明（归档 + 分享卡片）
+     field     必填 · 领域 id：web design tools lab books life photo
+     type      必填 · w=我写的  p=我做的  t=我试的  c=对话
+     published 必填 · YYYY.MM（注意：不能叫 date，那是 Eleventy 保留键）
+     og_image  可选 · 分享卡片配图，如 /og.png
+  2. 正文只写片段（不要 <html>/<body>，外壳由框架注入）
+  3. git add + git commit —— 提交时自动构建挂载，无需手动跑命令
+  4. 发布后地址：https://zerophix.github.io/<文件名>/
+-->
+<h1>页面标题</h1>
+
+<p>正文从这里开始。这段 HTML 会<strong>原样输出</strong>——写代码示例里的 <code>{{</code> 或 <code>{%</code> 都不会被吃掉。</p>
+
+<h2>二级标题</h2>
+<p>样式继承全站设计：衬线正文、纸墨配色、夜读模式、移动端适配都已就绪。</p>
