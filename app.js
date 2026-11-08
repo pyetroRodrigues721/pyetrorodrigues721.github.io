@@ -217,6 +217,49 @@ else { window.addEventListener('resize', scaleThumbs); }
   }).join('');
 })();
 
+/* ───────── 精选作品（items 里 type=p 且有链接） ───────── */
+(function buildWorks(){
+  var el = $('featlist'); if (!el) return;
+  var list = ITEMS.filter(function(x){ return x.type === 'p' && x.u; })
+    .sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+  el.innerHTML = list.map(function(it, i){
+    var f = fieldOf(it.f);
+    return '<a class="feat" data-reveal style="--d:' + ((i % 4) * 90) + 'ms" href="' + esc(it.u) + '">' +
+      '<span class="idx">/ ' + String(i + 1).padStart(2, '0') + '</span>' +
+      '<span class="ftitle"><h3>' + esc(it.t) + '</h3><p>' + esc(it.s) + '</p></span>' +
+      '<span class="fmeta">册 · <b>' + esc(f.name) + '</b><br>日期 · <b>' + esc(it.date) + '</b></span>' +
+      '<span class="go">打开 <i>→</i></span>' +
+    '</a>';
+  }).join('');
+})();
+
+/* ───────── 技术栈光谱：宽度与计数按支柱词条数自动计算 ───────── */
+(function fillSpectrum(){
+  var rows = document.querySelectorAll('.sp-row[data-p]');
+  if (!rows.length) return;
+  var counts = {}, max = 0;
+  Array.prototype.forEach.call(document.querySelectorAll('.pillar[data-p]'), function(p){
+    var n = p.querySelectorAll('li').length;
+    counts[p.getAttribute('data-p')] = n;
+    if (n > max) max = n;
+  });
+  Array.prototype.forEach.call(rows, function(r){
+    var n = counts[r.getAttribute('data-p')] || 0;
+    var bar = r.querySelector('.sp-bar i');
+    if (bar) bar.style.setProperty('--w', (max ? Math.round(n / max * 100) : 0) + '%');
+    var val = r.querySelector('.sp-val');
+    if (val) val.innerHTML = n + '<em> 项</em>';
+  });
+})();
+
+/* ───────── 支柱手风琴 ───────── */
+Array.prototype.forEach.call(document.querySelectorAll('.pillar-head'), function(h){
+  h.addEventListener('click', function(){
+    var open = h.closest('.pillar').classList.toggle('open');
+    h.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+});
+
 /* ───────── 归档：双重筛选 ───────── */
 var state = { f:'all', type:'all', q:'' };
 

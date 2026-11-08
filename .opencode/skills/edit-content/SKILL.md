@@ -29,10 +29,12 @@ window.ZP = {
 | 变更 | 需要改的断言 |
 |---|---|
 | 加/删条目 | `counter`、`filterCounter`、`searchCounter`（`共 N 条`）、`design.kindCount` |
+| 加/删 `type:p` 且有 `u` 的条目 | `sections.featRows`（精选作品行数）、`sections.featFirstHref`（若首行变化） |
 | 改条目顺序/日期 | `design.firstKind`（归档首行的类型药丸文案） |
 | 改 field 数量/结构 | `filterRows`（按领域筛选后的行数）、`fieldCards` |
-| 改 `site.*` | `brand` / `eyebrow` / `brandline` / `colophonSince` / `githubHref` / `emailHref` |
+| 改 `site.*` | `brand` / `eyebrow` / `brandline` / `colophonSince` / `githubHref` / `emailHref` / `sections.contactMail` / `sections.contactGitHub` |
 | 改领域册本身 | `fieldCards`（= fields 数量） |
+| 改 `index.html` 技术栈支柱词条 | `sections.pillarLis`、`sections.spectrumVals`、支柱 `p-meta` 计数 |
 
 `web-mount-test` 用动态基线，**不用改**；`web-design` 只比样式 token，内容无关。
 

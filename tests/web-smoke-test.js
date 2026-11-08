@@ -29,8 +29,8 @@ function expectCheck(list, name, actual, expected) {
   r.brandline = await page.locator('[data-site="brandline"]').textContent();
   r.colophonBrand = await page.locator('.colophon [data-site="brand"]').textContent();
   r.colophonSince = await page.locator('.colophon [data-site="since"]').textContent();
-  r.githubHref = await page.locator('[data-site-href="github"]').getAttribute('href');
-  r.emailHref = await page.locator('[data-site-href="email"]').getAttribute('href');
+  r.githubHref = await page.locator('.foot [data-site-href="github"]').getAttribute('href');
+  r.emailHref = await page.locator('.foot [data-site-href="email"]').getAttribute('href');
   r.ariaLabel = await page.locator('header .brand').getAttribute('aria-label');
   r.portholeLink = await page.locator('#pwLink').getAttribute('href');
   r.portholeIframe = await page.locator('#pwFrame iframe').count();
@@ -62,12 +62,34 @@ function expectCheck(list, name, actual, expected) {
   });
 
   // hover 动效：主按钮 → accent 底色；归档行 → accent-soft 底色
-  await page.locator('.btn--fill').hover();
+  await page.locator('.intro .btn--fill').hover();
   await page.waitForTimeout(450);
-  r.btnHoverBg = await page.locator('.btn--fill').evaluate(el => getComputedStyle(el).backgroundColor);
+  r.btnHoverBg = await page.locator('.intro .btn--fill').evaluate(el => getComputedStyle(el).backgroundColor);
   await page.locator('#archiveBody .row').first().hover();
   await page.waitForTimeout(450);
   r.rowHoverBg = await page.locator('#archiveBody .row').first().evaluate(el => getComputedStyle(el).backgroundColor);
+
+  // ── 补全区块（按 code.html 移植：作品/方法/技术栈/联系）──
+  r.sections = await page.evaluate(() => ({
+    featRows: document.querySelectorAll('#featlist .feat').length,
+    featFirstHref: (document.querySelector('#featlist .feat') || {}).getAttribute
+      ? document.querySelector('#featlist .feat').getAttribute('href') : null,
+    steps: document.querySelectorAll('.step').length,
+    pillars: document.querySelectorAll('.pillar').length,
+    pillarLis: document.querySelectorAll('.pillar li').length,
+    navLinks: document.querySelectorAll('.nav a').length,
+    contactMail: (document.querySelector('.contact-cta .btn--fill') || {}).href,
+    contactGitHub: (document.querySelector('.contact-cta a[target="_blank"]') || {}).href,
+    spectrumVals: [...document.querySelectorAll('.sp-val')].map(e => e.textContent.trim()),
+    foundationLis: document.querySelectorAll('.foundation li').length
+  }));
+  // 手风琴：P02 初始收起，点击展开
+  await page.locator('.pillar[data-p="p02"] .pillar-head').click();
+  await page.waitForTimeout(300);
+  r.pillarToggle = await page.locator('.pillar[data-p="p02"]').evaluate(el => ({
+    open: el.classList.contains('open'),
+    aria: el.querySelector('.pillar-head').getAttribute('aria-expanded')
+  }));
 
   // 筛选交互：点“前端”chip
   await page.locator('#fieldChips .chip[data-f="web"]').click();
@@ -106,7 +128,20 @@ function expectCheck(list, name, actual, expected) {
     searchCounter: '共 30 条 · 当前显示 1 条',
     inkMode: 'night',
     inkBtnText: '纸张',
-    themeColor: '#15140f'
+    themeColor: '#15140f',
+    sections: {
+      featRows: 6,
+      featFirstHref: 'works/01-weather.html',
+      steps: 4,
+      pillars: 4,
+      pillarLis: 44,
+      navLinks: 6,
+      contactMail: 'mailto:zerophix@users.noreply.github.com',
+      contactGitHub: 'https://github.com/zerophix',
+      spectrumVals: ['13 项', '9 项', '12 项', '10 项'],
+      foundationLis: 8
+    },
+    pillarToggle: { open: true, aria: 'true' }
   };
 
   // 设计体系断言（~ 前缀 = 包含）

@@ -53,8 +53,10 @@ BASE_URL=https://zerophix.github.io/ node tests/web-smoke-test.js   # 线上模�
 
 - 改条目/领域/站点信息 = 改 `data.js`；归档、领域计数、最近更新、筛选、计数全部自动更新。
 - **新增/删除条目后必须同步 `tests/web-smoke-test.js` 的计数断言**
-  （`counter`/`filterCounter`/`searchCounter`/`kindCount`/`firstKind`）；
-  `web-mount` 已用动态基线，不用改。
+  （`counter`/`filterCounter`/`searchCounter`/`kindCount`/`firstKind`，
+  以及 `sections.featRows`——精选作品行数 = `type:p` 且有 `u` 的条目数）；
+  改 `index.html` 技术栈支柱词条则同步 `sections.pillarLis`、`sections.spectrumVals`
+  与支柱头部的 `p-meta` 计数；`web-mount` 已用动态基线，不用改。
 - 设计基准是 `code.html`：配色/字体/组件与其对拍（`tests/web-design-test.js` 28 项）。
   `--ink-3` 与 `--muted` 统一为 `#6f675e`（WCAG 4.5:1 达标色，**勿改回 `#837c73`**）。
 - 夜读键是 `localStorage['zp-ink']`（`paper`/`night`），跨首页、作品页、挂载页共享。
