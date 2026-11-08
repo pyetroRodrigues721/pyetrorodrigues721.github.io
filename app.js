@@ -11,10 +11,10 @@ var FIELDS = ZP.fields || [];
 var ITEMS  = ZP.items  || [];
 
 var TYPE = {
-  w:{label:'我写的', short:'写', mark:'●'},
-  p:{label:'我做的', short:'做', mark:'■'},
-  t:{label:'我试的', short:'试', mark:'▲'},
-  c:{label:'对话',   short:'聊', mark:'✦'}
+  w:{label:'我写的', short:'写', en:'Articles'},
+  p:{label:'我做的', short:'做', en:'Projects'},
+  t:{label:'我试的', short:'试', en:'Experiments'},
+  c:{label:'对话',   short:'聊', en:'Dialogues'}
 };
 
 /* ─── helpers ─── */
@@ -73,7 +73,7 @@ function setInk(v){
   inkBtn.textContent = v === 'night' ? '纸张' : '夜读';
   /* 同步手机浏览器地址栏颜色 */
   var tc = $('themeColor');
-  if (tc) tc.setAttribute('content', v === 'night' ? '#16151A' : '#F2EFE8');
+  if (tc) tc.setAttribute('content', v === 'night' ? '#15140f' : '#f0ede6');
   try{ localStorage.setItem('zp-ink', v); }catch(e){}
 }
 var savedInk = null; try{ savedInk = localStorage.getItem('zp-ink'); }catch(e){}
@@ -153,6 +153,8 @@ else { window.addEventListener('resize', scaleThumbs); }
   var top = ITEMS.slice().sort(function(a,b){
     return (b.date||'').localeCompare(a.date||'');
   }).slice(0,4);
+  var rc = $('recentCount');
+  if (rc) rc.textContent = String(top.length).padStart(2,'0') + ' 条';
   $('recent').innerHTML = top.map(function(it){
     var f = fieldOf(it.f);
     var inner =
@@ -187,13 +189,8 @@ else { window.addEventListener('resize', scaleThumbs); }
       return counts[k] ? counts[k] + TYPE[k].short : null;
     }).filter(Boolean).join(' / ') || '暂无';
 
-    var mini = total
-      ? '<ul class="fmini">' + list.slice().sort(function(a,b){
-          return (b.date||'').localeCompare(a.date||'');
-        }).slice(0,3).map(function(it){
-          return '<li>' + esc(it.t) + '</li>';
-        }).join('') + '</ul>'
-      : '<p class="field-empty">已留好位置 · 还没放东西</p>';
+    var statLine = total + ' 条 · ' + stat +
+      (latest ? ' · 最近 ' + esc(latest.date) : '');
 
     return '<article class="field" data-reveal style="--d:' + ((i % 4) * 90) + 'ms">' +
       '<div class="spine"><span>' + esc(f.no) + '</span></div>' +
@@ -201,12 +198,19 @@ else { window.addEventListener('resize', scaleThumbs); }
         '<div class="fhead"><h3>' + esc(f.name) + '</h3>' +
           '<span class="en">' + esc(f.en) + '</span></div>' +
         '<p class="fdesc">' + esc(f.desc) + '</p>' +
+        '<div class="fstat">' + statLine + '</div>' +
         '<div class="fbar">' + bar + '</div>' +
-        '<div class="fstat"><span>' + total + ' 条 · ' + stat + '</span>' +
-          '<span>' + (latest ? '最近 ' + esc(latest.date) : '—') + '</span></div>' +
-        mini +
       '</div>' +
     '</article>';
+  }).join('');
+})();
+
+/* ───────── 图例（构成条四种颜色的说明） ───────── */
+(function buildLegend(){
+  var el = $('fields-legend'); if (!el) return;
+  el.innerHTML = ['w','p','t','c'].map(function(k){
+    return '<span><i class="' + k + '"></i>' +
+      esc(TYPE[k].label) + ' · ' + esc(TYPE[k].en) + '</span>';
   }).join('');
 })();
 
@@ -243,13 +247,17 @@ $('q').addEventListener('input', function(){ state.q = this.value; renderArchive
 
 function rowHTML(it, n){
   var ty = TYPE[it.type] || TYPE.w, f = fieldOf(it.f);
+  var kk = ({w:1, p:2, t:3, c:4})[it.type] || 1;
   var inner =
-    '<span class="mark" aria-hidden="true">' + ty.mark + '</span>' +
-    '<span class="no">' + String(n).padStart(3,'0') + '</span>' +
-    '<span class="dt">' + esc(it.date) + '</span>' +
-    '<span class="cat">' + esc(f.name) + ' / ' + esc(ty.short) + '</span>' +
-    '<span class="tt"><b>' + esc(it.t) + '</b><em>' + esc(it.s) + '</em></span>' +
-    '<span class="ar" aria-hidden="true">' + (it.u ? '↗' : '') + '</span>';
+    '<span class="when"><b>' + esc(it.date) + '</b>' +
+      '<em>№ ' + String(n).padStart(3,'0') + '</em></span>' +
+    '<span class="rmain">' +
+      '<span class="kind k' + kk + '">' + esc(ty.label) + '</span>' +
+      '<b>' + esc(it.t) + '</b>' +
+      '<em>' + esc(it.s) + '</em>' +
+    '</span>' +
+    '<span class="rtags"><span class="tag">' + esc(f.name) + '</span></span>' +
+    '<span class="go">' + (it.u ? '打开<i>→</i>' : '—') + '</span>';
   return '<li>' + (it.u
     ? '<a class="row" href="' + esc(it.u) + '">' + inner + '</a>'
     : '<div class="row row--plain">' + inner + '</div>') + '</li>';

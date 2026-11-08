@@ -6,7 +6,7 @@
 <!-- ══════════ 模板：站点标题与描述（改站点身份时同步改 data.js 的 site） ══════════ -->
 <title>ZeroPhix — 一个人的博客，几本分册</title>
 <meta name="description" content="ZeroPhix · 个人博客。按领域分成几册：我自己写的文章、一行行手写出来的 HTML 页面、小实验，以及少量对话留档。">
-<meta name="theme-color" content="#F2EFE8" id="themeColor">
+<meta name="theme-color" content="#f0ede6" id="themeColor">
 <link rel="canonical" href="https://zerophix.github.io/">
 <!-- 分享卡片（微信 / Twitter / Discord 等抓取 og:*） -->
 <meta property="og:type" content="website">
@@ -38,11 +38,11 @@
   }
 }
 </script>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23F2EFE8'/%3E%3Ctext x='16' y='23' font-family='Georgia,serif' font-size='21' font-weight='700' fill='%2323407A' text-anchor='middle'%3EZ%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23f0ede6'/%3E%3Ctext x='16' y='23' font-family='Georgia,serif' font-size='21' font-weight='700' fill='%2327457e' text-anchor='middle'%3EZ%3C/text%3E%3C/svg%3E">
 <script>document.documentElement.classList.add('js');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700..900&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500&family=Noto+Serif+SC:wght@600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Noto+Serif+SC:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -100,7 +100,7 @@
 
           <h1>
             <span class="ln"><i>一个人的博客，</i></span>
-            <span class="ln"><i>几本<span class="hand">分册<svg viewBox="0 0 140 12" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" d="M4 8 C 26 2, 52 11, 78 6 S 118 2, 136 7"/></svg></span>。</i></span>
+            <span class="ln"><i>几本<span class="uline">分册</span>。</i></span>
           </h1>
 
           <p class="lead">
@@ -130,7 +130,7 @@
           </div>
 
           <div class="recent">
-            <h2>最近更新 / Latest</h2>
+            <h2>最近更新 / Latest<span class="r" id="recentCount"></span></h2>
             <div id="recent"></div>
           </div>
         </div>
@@ -153,6 +153,7 @@
         </p>
       </div>
       <div class="fields" id="fields-wall"><noscript><p class="empty">领域墙需要 JavaScript · 请开启脚本</p></noscript></div>
+      <div class="legend" id="fields-legend"></div>
     </div>
   </section>
 
