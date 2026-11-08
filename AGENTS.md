@@ -1,26 +1,32 @@
 # ZeroPhix 站点 · 项目指令
 
-静态博客 + 作品页，发布为用户站点 https://zerophix.github.io/ （GitHub Pages，主分支根目录）。
+个人站点，发布为 https://zerophix.github.io/ （GitHub Pages，主分支根目录）。
 纯 HTML/CSS/JS；唯一的构建环节是 Eleventy 挂载框架（见下）。无打包器、无运行时框架。
 
-## 文件地图
+## 目录划分
 
-| 路径 | 角色 | 规则 |
-|---|---|---|
-| `index.html` | 首页模板（结构+文案） | 不含内容数据 |
-| `data.js` | 站点数据唯一来源：`site` / `fields` / `items` | **改内容改这里** |
-| `app.js` | 首页渲染与交互；`ITEMS = ZP.items + ZP_MOUNT.pages` | |
-| `style.css` | 全站样式；`main.page` 段是挂载页正文样式 | |
-| `code.html` | 作品页，**自包含内联样式** | 不要给它挂 `style.css`（`.chip`/`.row` 等选择器语义冲突） |
-| `works/*.html` | 手写占位内容页（无 JS） | 由 `scripts/gen-works.js` 重生成 |
-| `pages/*.html` | **挂载源**：front matter + 正文片段 | 加页面只改这里 |
-| `pages/_template.njk` | 挂载页模板（`cp` 起步） | 不参与构建 |
-| `pages/_includes/layout.njk` | 挂载页外壳（导航/页脚/夜读/SEO） | |
-| `mounted.js`、`sitemap.xml`、`<slug>/` | **Eleventy 生成物** | **禁止手改**，改了下次构建覆盖；改源：`pages/`、`data.js` |
-| `.nojekyll` | 关闭 GitHub Pages 的 Jekyll | **不可删除**（Jekyll 会处理 front matter 和 `{{`，构建会卡死） |
-| `githooks/pre-commit` | 提交时自动构建挂载 | 钩子路径由 `npm install` 的 `postinstall` 设置（`core.hooksPath`） |
-| `tests/` | 六套 Playwright 测试（见「验证」） | 用系统 Chrome（`channel:'chrome'`），无需下载浏览器 |
-| `scripts/` | 资产生成脚本（works 占位页、OG 分享图） | |
+```
+pages/                       ✏️ 内容源：站长写 HTML 的地方
+  <领域>/*.html               一个目录 = 一个领域；目录里每个 html = 一个完整独立页面
+  _template.njk               起步模板（_ 前缀不发布），cp 后改成完整文档
+index.html                   首页模板（结构 + 留白位，不含内容数据）
+data.js                      站点事实数据（brand / since / github / email）
+app.js                       首页渲染：读 mounted.js → 领域墙 + 分组页面列表
+theme.js                     主题切换（全站唯一实现，localStorage zp-ink）
+style.css                    全站样式
+eleventy.config.js           挂载框架：扫描 / 校验 / 清单 / sitemap / 资源指纹
+githooks/pre-commit          提交即挂载（构建 → 校验 → 暂存 → 孤儿下架）
+
+── 以下为生成物，禁止手改（改源会在下次构建覆盖）──
+mounted.js                   挂载清单：fields → pages[{t,u,d}]
+sitemap.xml                  站点地图
+<领域>/<页面>/                 挂载页输出（原样复制的独立页面）
+<领域>/<页面>/ 里的附属 css/js/图   同目录源文件一并复制
+
+.nojekyll                    关闭 Jekyll（不可删除，见「部署」）
+tests/                       三套 Playwright 测试（见「验证」）
+scripts/gen-og.js            OG 分享卡生成
+```
 
 ## 常用命令
 
@@ -28,61 +34,65 @@
 npm install                 # 首次：装依赖 + 自动接上提交钩子
 npm run build               # Eleventy 构建（= node_modules/.bin/eleventy）
 python3 -m http.server 8765 # 本地预览：在仓库根启动，http://127.0.0.1:8765/
-node tests/web-smoke-test.js          # 六套测试之一，其余见下
+node tests/web-smoke-test.js          # 三套测试之一，其余见下
 BASE_URL=https://zerophix.github.io/ node tests/web-smoke-test.js   # 线上模式
 ```
 
-测试套件：`web-smoke`（首页 39 断言+设计）、`web-audit`（axe/SEO/无 JS/移动端）、
-`web-code`（作品页 23 断言）、`web-works`（6 占位页）、`web-design`（与 code.html 设计对拍）、
-`web-mount`（挂载框架 19 项，自建临时页并清理，本地专有）。
-除 `web-mount` 外都支持 `BASE_URL` 切线上；`web-design` 仅本地（要读 code.html 对拍）。
+测试套件（三套，均用系统 Chrome `channel:'chrome'`，无需下载浏览器）：
+
+- `web-smoke`：首页动态基线断言 + 设计 12 项 + **文案守卫**（AI 编造句不得再出现）
+- `web-mount`：框架验收 24 项（门禁 / 原样发布 / 收录 / 点开可达 / 孤儿下架 / 清理）
+- `web-audit`：质量报告（axe / SEO / 无 JS / 移动端 / 性能），**默认打线上**，`BASE_URL` 切本地
+
+`web-smoke`、`web-mount` 需要本地服务；断言全部动态基线，**加页面不用改测试**。
 
 ## 挂载框架规则（Eleventy）
 
-1. 新页面：`cp pages/_template.njk pages/my-post.html`，front matter 必填
-   `title` / `desc` / `field`（web design tools lab books life photo）/
-   `type`（w 写 / p 做 / t 试 / c 聊）/ `published`（YYYY.MM）。
-2. **日期键必须叫 `published`，不能叫 `date`**（Eleventy 保留键，YAML 数字直接 fatal）。
-3. 正文只写片段，**不要 `<html>`/`<body>`**（外壳由 layout 注入）；正文里 `{{`、`{%`
-   原样输出（`htmlTemplateEngine:false`），写代码示例无需转义。
-4. 提交即挂载：pre-commit 跑构建 → 校验（领域 id/类型/日期/防覆盖，不过就拦提交）→
-   生成 `mounted.js`+`sitemap.xml` 并暂存 → 源文件删除时自动下架孤儿输出。
-   **不要用 `--no-verify` 绕过**；克隆新环境若找不到 eleventy，先 `npm install`。
+1. 结构：`pages/<领域>/<页面>.html` —— **一个目录一个领域**（目录名 = 领域名，新建用 ASCII）。
+2. 页面必须是**完整独立 HTML 文档**：自带 `<html>`、`<title>`、自己的 `<style>`/`<script>`。
+   **没有 front matter，不注入任何外壳，原样发布**（输出 `<领域>/<页面>/`，URL 同名目录）。
+3. 元数据自动提取：首页标题 = 页面 `<title>`；日期 = 该文件最后一次 git 提交日
+   （未跟踪文件回退文件修改时间 → `YYYY.MM.DD`）。
+4. 校验（不过就拦提交，报错点名文件）：散装在 `pages/` 根、缺 `<html>`、缺 `<title>`、
+   领域目录里没有任何页面。
+5. 提交即挂载：pre-commit 跑构建 → 校验 → 暂存 `mounted.js`/`sitemap.xml` 与各领域输出目录
+   → 源目录删除时自动下架孤儿输出。**不要用 `--no-verify` 绕过**；新环境先 `npm install`。
 
 ## 内容与设计约定
 
-- 改条目/领域/站点信息 = 改 `data.js`；归档、领域计数、最近更新、筛选、计数全部自动更新。
-- **新增/删除条目后必须同步 `tests/web-smoke-test.js` 的计数断言**
-  （`counter`/`filterCounter`/`searchCounter`/`kindCount`/`firstKind`，
-  以及 `sections.featRows`——精选作品行数 = `type:p` 且有 `u` 的条目数）；
-  改 `index.html` 技术栈支柱词条则同步 `sections.pillarLis`、`sections.spectrumVals`
-  与支柱头部的 `p-meta` 计数；`web-mount` 已用动态基线，不用改。
-- 设计基准是 `code.html`：配色/字体/组件与其对拍（`tests/web-design-test.js` 28 项）。
-  `--ink-3` 与 `--muted` 统一为 `#6f675e`（WCAG 4.5:1 达标色，**勿改回 `#837c73`**）。
-- 夜读键是 `localStorage['zp-ink']`（`paper`/`night`），跨首页、作品页、挂载页共享。
-- 文件名只用 ASCII；提交信息走 `<type>(<scope>): <subject>`（英文，主题 ≤72 字符）。
-- **不要用 `git add -A`**：曾把草稿 `code.html` 误发布；逐个列出本次要提交的路径。
+- **文案红线：首页不放表述性散文。** title / meta description / lead / 区块注释 / 关于正文 /
+  页脚语等文案位一律**留白**，只保留品牌、结构标签、功能按钮。
+  页面上的字只出自站长本人——AI 不得代写内容文案（曾整站编造，已全部清除，冒烟测试有守卫断言）。
+- 站点事实（品牌 / 年份 / 链接）= `data.js` 的 `site`；首页计数与列表全部来自 `mounted.js`；
+  **加内容 = 往 `pages/<领域>/` 丢文件**，归档、计数、日期全部自动。
+- `--ink-3` 与 `--muted` 统一为 `#6f675e`（WCAG 4.5:1 达标色，**勿改回 `#837c73`**）。
+- 夜读键是 `localStorage['zp-ink']`（`paper`/`night`），首页与挂载页共享（`theme.js`）。
+- 新建文件名用 ASCII；站长已有的中文文件名**不改名**。
+- 提交信息走 `<type>(<scope>): <subject>`（英文，主题 ≤72 字符）。
+- **不要用 `git add -A`**：曾把草稿误发布；逐个列出本次要提交的路径。
 
 ## 验证（完成任何改动前必须跑）
 
-1. 起本地服务（仓库根，8765 端口），跑受影响的测试套件；**改首页相关逻辑 = 六套全跑**。
+1. 起本地服务（仓库根，8765 端口），跑 `web-smoke` + `web-mount`；`web-audit` 出报告看 axe。
 2. 全绿才算完成；测试有断言失败就先修测试或修代码，不许跳过。
-3. 涉及发布的行为（挂载/删除页面）额外跑 `node tests/web-mount-test.js`。
+3. 涉及发布的行为（挂载 / 删除页面）必跑 `node tests/web-mount-test.js`。
 
 ## 部署
 
 - `git push origin main` → Pages 构建（有 `.nojekyll` 后约 5 秒）。
-- 资源指纹：构建自动给 `style.css`/`app.js`/`data.js`/`mounted.js` 的引用加
+- 资源指纹：构建自动给 `style.css`/`app.js`/`data.js`/`mounted.js`/`theme.js` 的引用加
   `?v=<内容哈希>`（Pages 资源缓存 `max-age=600`，指纹保证部署后 URL 必变、必回源）。
-  **不需要手动改版本号**；若访客看到旧样式/新区块错乱，是其本地600秒缓存，硬刷新一次即可。
+  **不需要手动改版本号**；若访客看到旧样式，是其本地 600 秒缓存，硬刷新一次即可。
 - 查构建：`gh api repos/zerophix/zerophix.github.io/pages/builds/latest --jq '.status'`
 - 构建卡在 `building` 超过 2 分钟 = 异常，重新触发：
   `gh api repos/zerophix/zerophix.github.io/pages/builds -X POST`
 - 上线后抽查：`curl -s -o /dev/null -w '%{http_code}' https://zerophix.github.io/<path>/`
+- `.nojekyll` 绝不能删：没有它 GitHub Pages 会跑 Jekyll，正文里的 `{{` 会被当 Liquid
+  处理，构建会卡死（历史故障）。
 
 ## 项目 Skills（按需加载）
 
 - `@add-page`：挂载一个新页面的完整流程与坑
-- `@edit-content`：改 `data.js` 内容与连带的测试期望
+- `@edit-content`：改 `data.js` 站点信息
 - `@site-verify`：本地/线上验证套件的跑法与判读
 - `@site-deploy`：推送、Pages 构建监控与排障

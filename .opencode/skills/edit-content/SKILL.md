@@ -1,55 +1,59 @@
 ---
 name: 改站点内容
-description: 编辑 data.js（站点信息/领域/条目）并同步受影响的测试断言。触发：加条目、加文章、改标题、改领域、改站点信息、改邮箱/链接、data.js、归档内容。
+description: 改 data.js 站点事实（品牌/年份/链接）或调整首页结构文案位。触发：改站点信息、改邮箱/链接、改品牌、data.js、首页结构。
 ---
 
-# 改站点内容（data.js 是唯一数据源）
+# 改站点内容
 
-首页所有内容数据都在 `data.js` 的 `window.ZP` 里，**不要把内容写进 `index.html`**。
+## 数据分工（先分清改哪里）
 
-## 结构
+| 要改什么 | 改哪里 |
+|---|---|
+| **页面内容**（文章 / 笔记 / 任何正文） | `pages/<领域>/*.html` —— 见 `@add-page`，加完自动挂载，这里不用动 |
+| 站点事实：品牌、年份、GitHub、邮箱 | `data.js` 的 `window.ZP.site` |
+| 首页结构、导航、留白位 | `index.html`（**只放结构，不放散文**，见下方红线） |
+| 首页如何渲染清单 | `app.js`（读 `window.ZP_MOUNT`） |
+
+`data.js` 现在只有 `site` 一个块：
 
 ```js
 window.ZP = {
-  site:   { brand, tagline, since, github, email },   // 站点信息 → 填充 data-site 占位
-  fields: [{ id, no, name, en, desc }],               // 领域册（id 必须唯一）
-  items:  [{ f, type, date, t, s, u?, live? }]        // 归档条目
-}
+  site: {
+    brand:   'ZeroPhix',
+    since:   '2023',
+    github:  'https://github.com/zerophix',
+    email:   'zerophix@users.noreply.github.com'
+  }
+};
 ```
 
-- `items[].f` = 领域 id；`type` = `w|p|t|c`；`date` = `YYYY.MM`（倒序排列用）。
-- `u`：有链接才可点；不写 = 归档中灰色不可点行。
-- `live: 1`：可作首页活体小窗（iframe 预览）的候选，取第一条带 `live` 且有 `u` 的条目。
-- 领域卡的构成条/计数、归档筛选、最近更新、总数全部**自动派生**，不用手动维护。
+- `email` 存裸地址，`app.js` 自动补 `mailto:`。
+- 邮箱/链接别退回占位符（`hello@example.com`、`https://github.com/`）——曾是被修掉的缺陷。
+- 首页计数、领域卡、页面列表全部来自 `mounted.js`（构建生成），**没有任何手写内容数据**。
+
+## 文案红线
+
+首页文案位（title / meta description / lead / 区块注释 / 关于正文 / 页脚语）一律**留白**，
+只保留品牌、结构标签、功能按钮。**AI 不得代写内容文案**——曾整站编造后被全部清除，
+`web-smoke` 有 `fabricated` 守卫断言，编造句一旦回流测试即 FAIL。
 
 ## 改完必须同步的测试
 
-`tests/web-smoke-test.js` 写死了计数类期望，条目数变化会直接 FAIL：
-
-| 变更 | 需要改的断言 |
-|---|---|
-| 加/删条目 | `counter`、`filterCounter`、`searchCounter`（`共 N 条`）、`design.kindCount` |
-| 加/删 `type:p` 且有 `u` 的条目 | `sections.featRows`（精选作品行数）、`sections.featFirstHref`（若首行变化） |
-| 改条目顺序/日期 | `design.firstKind`（归档首行的类型药丸文案） |
-| 改 field 数量/结构 | `filterRows`（按领域筛选后的行数）、`fieldCards` |
-| 改 `site.*` | `brand` / `eyebrow` / `brandline` / `colophonSince` / `githubHref` / `emailHref` / `sections.contactMail` / `sections.contactGitHub` |
-| 改领域册本身 | `fieldCards`（= fields 数量） |
-| 改 `index.html` 技术栈支柱词条 | `sections.pillarLis`、`sections.spectrumVals`、支柱 `p-meta` 计数 |
-
-`web-mount-test` 用动态基线，**不用改**；`web-design` 只比样式 token，内容无关。
+- 改 `site.*` → `web-smoke` 的 `brand` / `eyebrow` / `brandline` /
+  `colophonBrand` / `colophonSince` / `githubHref` / `emailHref` / `ariaLabel` 断言。
+- 加删页面 / 领域 → **不用改**（动态基线，从 `ZP_MOUNT` 推导期望值）。
+- 改首页结构（增删区块、导航项）→ 同步 `navLinks`、`h1`、`cardOrder` 等结构断言。
 
 ## 注意
 
-- `email` 存裸地址（如 `zerophix@users.noreply.github.com`），`app.js` 自动补 `mailto:`。
-- 邮箱/链接别退回占位符（`hello@example.com`、`https://github.com/`）——曾是被修掉的缺陷。
-- 设计色 token 勿动：`--ink-3: #6f675e` 是 WCAG 4.5:1 达标色（与 code.html 统一），
-  axe 会拦 133 个节点的对比度违规。
+- 设计色 token 勿动：`--ink-3: #6f675e` 是 WCAG 4.5:1 达标色，改回旧色 axe 会报对比度违规。
+- `mounted.js` / `sitemap.xml` 是生成物，禁止手改（改 `pages/` 源）。
 
 ## 验证
 
 ```sh
 python3 -m http.server 8765 &          # 仓库根
-node tests/web-smoke-test.js           # 计数/填充/筛选/主题
-node tests/web-audit.js                # axe、SEO、无 JS、移动端（默认打本地）
-node tests/web-mount-test.js           # 归档收录基线
+node tests/web-smoke-test.js           # 填充 / 结构 / 设计 / 文案守卫
+node tests/web-mount-test.js           # 挂载框架
+BASE_URL=http://127.0.0.1:8765/ node tests/web-audit.js   # axe 报告（不带则打线上）
 ```
