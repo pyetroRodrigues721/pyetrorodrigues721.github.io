@@ -17,13 +17,24 @@ function expectCheck(list, name, actual, expected) {
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   page.on('response', r => { if (r.status() >= 400) httpFails.push(r.status() + ' ' + r.url()); });
 
-  await page.goto(process.env.BASE_URL || 'http://127.0.0.1:8765/index.html', { waitUntil: 'networkidle' });
+  await page.goto(process.env.BASE_URL || 'http://127.0.0.1:8765/index.html',
+    { waitUntil: 'domcontentloaded' });
+  /* 字体 CDN（gstatic 中文分片）在境内常挂起，不等 networkidle；
+     等挂载清单渲染进 DOM 即可 */
+  await page.waitForFunction(() => {
+    const m = window.ZP_MOUNT;
+    return !!m && document.querySelectorAll('#fields-wall .field').length === m.fields.length;
+  }, { timeout: 15000 });
 
   const r = {};
+  // 动态基线：挂载清单是唯一真相
+  r.mount = await page.evaluate(() => {
+    const m = window.ZP_MOUNT || { fields: [] };
+    return { fields: m.fields.length, pages: m.fields.reduce((s, f) => s + f.pages.length, 0) };
+  });
   r.fieldCards = await page.locator('#fields-wall .field').count();
-  r.archiveRows = await page.locator('#archiveBody .row').count();
-  r.recentRows = await page.locator('#recent .rrow').count();
-  r.counter = await page.locator('#counter').textContent();
+  r.pageRows = await page.locator('#pageList .row').count();
+  r.groupCount = await page.locator('#pageList .year').count();
   r.brand = await page.locator('header .brand b').textContent();
   r.eyebrow = await page.locator('[data-site="eyebrow"]').textContent();
   r.brandline = await page.locator('[data-site="brandline"]').textContent();
@@ -32,13 +43,38 @@ function expectCheck(list, name, actual, expected) {
   r.githubHref = await page.locator('.foot [data-site-href="github"]').getAttribute('href');
   r.emailHref = await page.locator('.foot [data-site-href="email"]').getAttribute('href');
   r.ariaLabel = await page.locator('header .brand').getAttribute('aria-label');
-  r.portholeLink = await page.locator('#pwLink').getAttribute('href');
-  r.portholeIframe = await page.locator('#pwFrame iframe').count();
+  r.h1 = (await page.locator('h1').textContent()).trim();
+  r.navLinks = await page.locator('.nav a').count();
+  r.title = await page.title();
+  r.descLen = await page.evaluate(() => {
+    const e = document.querySelector('meta[name="description"]');
+    return e ? (e.content || '').length : null;
+  });
 
-  // searchbox 样式是否真的生效（验证 .search\boxed 转义 bug 已修）
-  r.searchboxDisplay = await page.locator('.searchbox').evaluate(el => getComputedStyle(el).display);
+  // 墙卡与页面列表的领域顺序必须与清单一致
+  r.cardOrder = await page.evaluate(() => {
+    const m = window.ZP_MOUNT || { fields: [] };
+    const expected = m.fields.map(f => f.id).join(',');
+    const cards = [...document.querySelectorAll('#fields-wall .field h3')].map(h => h.textContent).join(',');
+    const groups = [...document.querySelectorAll('#pageList .year-h .yn')].map(h => h.textContent).join(',');
+    return cards === expected && groups === expected;
+  });
 
-  // ── 设计体系断言（对齐 code.html）──
+  // 首行链接必须指向真实挂载页（/领域/页面/）
+  r.firstRowHrefOk = await page.evaluate(() => {
+    const a = document.querySelector('#pageList .row');
+    return !!a && /^\/[^/]+\/.+\/$/.test(a.getAttribute('href'));
+  });
+
+  // ── 文案守卫：AI 编造的句子不得再出现 ──
+  r.fabricated = await page.evaluate(() => {
+    const t = document.body.innerText;
+    return ['几本分册', '往目录里丢', '自动长出来', '失败的配色', '没有排期',
+            '抄了十遍', '多一册摄影', '一个人的博客']
+      .filter(s => t.includes(s));
+  });
+
+  // ── 设计体系断言 ──
   r.design = await page.evaluate(() => {
     const cs = s => getComputedStyle(document.querySelector(s));
     return {
@@ -46,12 +82,6 @@ function expectCheck(list, name, actual, expected) {
       bodyBg: cs('body').backgroundColor,
       navFont: cs('.nav a').fontFamily,
       h1Weight: cs('h1').fontWeight,
-      uline: document.querySelectorAll('h1 .uline').length,
-      squiggle: document.querySelectorAll('h1 .hand').length,
-      legendSpans: document.querySelectorAll('#fields-legend span').length,
-      recentCount: document.getElementById('recentCount').textContent,
-      kindCount: document.querySelectorAll('#archiveBody .kind').length,
-      firstKind: (document.querySelector('#archiveBody .kind') || {}).textContent,
       accentVar: getComputedStyle(document.documentElement).getPropertyValue('--blue').trim(),
       grainOpacity: cs('.grain').opacity,
       fieldBorder: cs('.field').borderTopColor,
@@ -61,48 +91,15 @@ function expectCheck(list, name, actual, expected) {
     };
   });
 
-  // hover 动效：主按钮 → accent 底色；归档行 → accent-soft 底色
+  // hover 动效：主按钮 → accent 底色；页面行 → accent-soft 底色
   await page.locator('.intro .btn--fill').hover();
   await page.waitForTimeout(450);
   r.btnHoverBg = await page.locator('.intro .btn--fill').evaluate(el => getComputedStyle(el).backgroundColor);
-  await page.locator('#archiveBody .row').first().hover();
+  await page.locator('#pageList .row').first().hover();
   await page.waitForTimeout(450);
-  r.rowHoverBg = await page.locator('#archiveBody .row').first().evaluate(el => getComputedStyle(el).backgroundColor);
-
-  // ── 补全区块（按 code.html 移植：作品/方法/技术栈/联系）──
-  r.sections = await page.evaluate(() => ({
-    featRows: document.querySelectorAll('#featlist .feat').length,
-    featFirstHref: (document.querySelector('#featlist .feat') || {}).getAttribute
-      ? document.querySelector('#featlist .feat').getAttribute('href') : null,
-    steps: document.querySelectorAll('.step').length,
-    pillars: document.querySelectorAll('.pillar').length,
-    pillarLis: document.querySelectorAll('.pillar li').length,
-    navLinks: document.querySelectorAll('.nav a').length,
-    contactMail: (document.querySelector('.contact-cta .btn--fill') || {}).href,
-    contactGitHub: (document.querySelector('.contact-cta a[target="_blank"]') || {}).href,
-    spectrumVals: [...document.querySelectorAll('.sp-val')].map(e => e.textContent.trim()),
-    foundationLis: document.querySelectorAll('.foundation li').length
-  }));
-  // 手风琴：P02 初始收起，点击展开
-  await page.locator('.pillar[data-p="p02"] .pillar-head').click();
-  await page.waitForTimeout(300);
-  r.pillarToggle = await page.locator('.pillar[data-p="p02"]').evaluate(el => ({
-    open: el.classList.contains('open'),
-    aria: el.querySelector('.pillar-head').getAttribute('aria-expanded')
-  }));
-
-  // 筛选交互：点“前端”chip
-  await page.locator('#fieldChips .chip[data-f="web"]').click();
-  r.filterCounter = await page.locator('#counter').textContent();
-  r.filterRows = await page.locator('#archiveBody .row').count();
-
-  // 搜索交互
-  await page.locator('#fieldChips .chip[data-f="all"]').click();
-  await page.locator('#q').fill('path');
-  r.searchCounter = await page.locator('#counter').textContent();
+  r.rowHoverBg = await page.locator('#pageList .row').first().evaluate(el => getComputedStyle(el).backgroundColor);
 
   // 主题切换
-  await page.locator('#q').fill('');
   await page.locator('#inkBtn').click();
   r.inkMode = await page.locator('html').getAttribute('data-ink');
   r.inkBtnText = await page.locator('#inkBtn').textContent();
@@ -111,37 +108,27 @@ function expectCheck(list, name, actual, expected) {
   await browser.close();
 
   const expect = {
-    fieldCards: 7, recentRows: 4, portholeIframe: 1,
-    counter: '共 30 条 · 当前显示 30 条',
+    fieldCards: r.mount.fields,
+    pageRows: r.mount.pages,
+    groupCount: r.mount.fields,
     brand: 'ZeroPhix',
-    eyebrow: 'ZeroPhix · 一个人的博客 · 2023 —',
-    brandline: 'ZeroPhix · 一个人的博客',
+    eyebrow: 'ZeroPhix · 2023 —',
+    brandline: 'ZeroPhix',
     colophonBrand: 'ZeroPhix',
-    colophonSince: '一个人的博客 · 2023—',
+    colophonSince: '2023—',
     githubHref: 'https://github.com/zerophix',
     emailHref: 'mailto:zerophix@users.noreply.github.com',
     ariaLabel: 'ZeroPhix，回到顶部',
-    portholeLink: 'works/01-weather.html',
-    searchboxDisplay: 'flex',
-    filterCounter: '共 30 条 · 当前显示 7 条',
-    filterRows: 7,
-    searchCounter: '共 30 条 · 当前显示 1 条',
+    h1: 'ZeroPhix',
+    navLinks: 3,
+    title: 'ZeroPhix',
+    descLen: 0,
+    cardOrder: true,
+    firstRowHrefOk: true,
+    fabricated: [],
     inkMode: 'night',
     inkBtnText: '纸张',
-    themeColor: '#15140f',
-    sections: {
-      featRows: 6,
-      featFirstHref: 'works/01-weather.html',
-      steps: 4,
-      pillars: 4,
-      pillarLis: 44,
-      navLinks: 6,
-      contactMail: 'mailto:zerophix@users.noreply.github.com',
-      contactGitHub: 'https://github.com/zerophix',
-      spectrumVals: ['13 项', '9 项', '12 项', '10 项'],
-      foundationLis: 8
-    },
-    pillarToggle: { open: true, aria: 'true' }
+    themeColor: '#15140f'
   };
 
   // 设计体系断言（~ 前缀 = 包含）
@@ -151,12 +138,6 @@ function expectCheck(list, name, actual, expected) {
   expectCheck(designFails, 'navFont', r.design.navFont, '~JetBrains Mono');
   expectCheck(designFails, 'btnFont', r.design.btnFont, '~JetBrains Mono');
   expectCheck(designFails, 'h1Weight', r.design.h1Weight, '900');
-  expectCheck(designFails, 'uline', r.design.uline, 1);
-  expectCheck(designFails, 'squiggle-removed', r.design.squiggle, 0);
-  expectCheck(designFails, 'legendSpans', r.design.legendSpans, 4);
-  expectCheck(designFails, 'recentCount', r.design.recentCount, '04 条');
-  expectCheck(designFails, 'kindCount', r.design.kindCount, 30);
-  expectCheck(designFails, 'firstKind', r.design.firstKind, '我写的');
   expectCheck(designFails, 'accentVar', r.design.accentVar, '#27457e');
   expectCheck(designFails, 'grainOpacity', r.design.grainOpacity, '0.05');
   expectCheck(designFails, 'fieldBorder', r.design.fieldBorder, 'rgb(214, 208, 196)');
@@ -164,8 +145,6 @@ function expectCheck(list, name, actual, expected) {
   expectCheck(designFails, 'secBorder', r.design.secBorder, 'rgb(27, 25, 23)');
   expectCheck(designFails, 'btnHoverBg', r.btnHoverBg, 'rgb(39, 69, 126)');
   expectCheck(designFails, 'rowHoverBg', r.rowHoverBg, 'rgba(39, 69, 126, 0.1)');
-  r.designFails = designFails;
-  expect.designFails = [];
 
   let pass = true;
   console.log('=== 实测 ===');
@@ -181,23 +160,18 @@ function expectCheck(list, name, actual, expected) {
     console.log('=== 设计断言失败 ===');
     designFails.forEach(f => console.log('  FAIL ' + f));
   } else {
-    console.log(`  PASS designChecks: 18 项全部通过`);
+    console.log(`  PASS designChecks: 12 项全部通过`);
   }
 
-  // works/* 若缺失记为已知缺口，不算代码失败
-  const known = [], fatal = [];
-  errors.forEach(e => {
-    if (/Failed to load resource.*404/.test(e)) known.push(e);
-    else fatal.push(e);
-  });
-  httpFails.forEach(u => {
-    if (/\/works\//.test(u)) known.push('404 known-gap: ' + u);
-    else fatal.push('http fail: ' + u);
-  });
-
+  const isFont = e => /fonts\.(gstatic|googleapis)\.com/.test(e);
+  const fatal = [
+    ...errors.filter(e => !isFont(e)),
+    ...httpFails.filter(u => !isFont(u)).map(u => 'http fail: ' + u)
+  ];
+  const fontGap = [...errors, ...httpFails].filter(isFont);
   if (fatal.length) { pass = false; console.log('=== 运行时错误 ==='); fatal.forEach(e => console.log('  ' + e)); }
   else console.log('=== 无运行时错误 ===');
-  if (known.length) { console.log('=== 已知缺口 ==='); known.forEach(e => console.log('  ' + e)); }
+  if (fontGap.length) console.log(`=== 已知环境项（字体 CDN，${fontGap.length} 条，不计失败） ===`);
   console.log(pass ? '\nALL PASS' : '\nFAILED');
   process.exit(pass ? 0 : 1);
 })();

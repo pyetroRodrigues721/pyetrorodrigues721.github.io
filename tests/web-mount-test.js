@@ -1,7 +1,13 @@
-/* 挂载框架验收：pages/ 丢文件 → 自动构建 → 全站收录
-   覆盖：门禁拦截、外壳注入、raw 正文、首页归档/领域/最近更新收录、
-   sitemap、挂载页本体（axe/theme/console）、清理还原
-   断言用动态基线：站点条目数随内容演进，不写死 */
+/* 挂载框架验收（pages/<领域>/*.html 完整独立页模型）
+   覆盖：
+     1. 门禁：散装文件 / 缺 <html> / 缺 <title> → 构建失败（拦提交）
+     2. 原样发布：字节内容保留、不注入任何外壳
+     3. 清单与站点地图收录（标题取 <title>）
+     4. 首页收录：领域卡 +1、页面行 +1、链接可达
+     5. 挂载页本体：200、无站点外壳、自己的脚本正常执行
+     6. 孤儿下架：删源 → 输出目录随构建消失
+     7. 清理还原：首页回到基线
+   断言用动态基线：站点领域/页面数随内容演进，不写死 */
 const { chromium } = require('playwright');
 const { execFileSync } = require('child_process');
 const fs = require('fs');
@@ -9,127 +15,166 @@ const path = require('path');
 
 const ROOT = '/Users/mingxilv/vibecoding/web';
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:8765';
-const FIXTURE = 'mount-e2e-fixture';
+const FIXFIELD = 'zz-fixture';
+const FIELDDIR = path.join(ROOT, 'pages', FIXFIELD);
+const OUTDIR = path.join(ROOT, FIXFIELD);
+const LOOSE = path.join(ROOT, 'pages', 'loose-fixture.html');
 
 const fails = [];
 const ck = (n, ok, d) => { if (!ok) fails.push(`${n}${d ? ' → ' + d : ''}`); };
 const build = () => execFileSync(path.join(ROOT, 'node_modules/.bin/eleventy'),
   { cwd: ROOT, encoding: 'utf8' });
-const writePage = (name, fm, body) =>
-  fs.writeFileSync(path.join(ROOT, 'pages', name), `---\n${fm}\n---\n${body}\n`);
 const cleanup = () => {
-  for (const p of [path.join(ROOT, 'pages', FIXTURE + '.html'), path.join(ROOT, FIXTURE)]) {
+  for (const p of [FIELDDIR, OUTDIR, LOOSE]) {
     if (fs.existsSync(p)) fs.rmSync(p, { recursive: true, force: true });
   }
 };
-const snap = page => page.evaluate(() => ({
-  counterN: parseInt((document.getElementById('counter').textContent.match(/共 (\d+) 条/) || [])[1] || '0', 10),
-  toolsN: parseInt((((document.querySelectorAll('.fstat')[2] || {}).textContent || '').match(/^(\d+) 条/) || [])[1] || '0', 10),
-  links: [...document.querySelectorAll('#archiveBody a.row')].map(a => a.getAttribute('href')),
-  recentFirst: (document.querySelector('#recent .rrow .t') || {}).textContent || ''
-}));
+/* 完整独立页夹具：自带 style/script，无 front matter */
+const COMPLETE = title => `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>${title}</title>
+<style>.probe{color:#27457e}</style>
+</head>
+<body>
+<h1>${title}</h1>
+<p>raw-kept: {{ not-rendered }}</p>
+<script>window.__probeRan = true;</script>
+</body>
+</html>`;
+
+/* 打开首页：字体 CDN（gstatic 中文分片）常挂起，不等 networkidle，
+   等挂载清单渲染进 DOM 即可 */
+const openHome = async page => {
+  await page.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => {
+    const m = window.ZP_MOUNT;
+    return !!m && document.querySelectorAll('#fields-wall .field').length === m.fields.length;
+  }, { timeout: 15000 });
+};
+const isFont = e => /fonts\.(gstatic|googleapis)\.com/.test(e);
 
 (async () => {
-  /* ── 1. 门禁：非法 front matter 必须让构建失败（拦截提交） ── */
-  writePage('bad-gate-fixture.html',
-    'title: x\ndesc: y\nfield: nope\ntype: zz\npublished: 2026.13',
-    '<p>bad</p>');
+  cleanup();
+
+  /* ── 1. 门禁：三类非法结构必须让构建失败 ── */
+  fs.mkdirSync(FIELDDIR, { recursive: true });
+  fs.writeFileSync(LOOSE, COMPLETE('散装文件'));
+  fs.writeFileSync(path.join(FIELDDIR, 'no-title.html'),
+    '<!DOCTYPE html>\n<html lang="zh-CN"><head><meta charset="UTF-8"></head><body>x</body></html>');
+  fs.writeFileSync(path.join(FIELDDIR, 'fragment.html'), '<p>just a fragment</p>');
   let gateBlocked = false, gateMsg = '';
   try { build(); } catch (e) { gateBlocked = true; gateMsg = String(e.stderr || e.message); }
-  ck('validation-gate-blocks-bad-page', gateBlocked);
-  ck('gate-msg-names-file', /bad-gate-fixture/.test(gateMsg), gateMsg.slice(0, 300));
-  fs.rmSync(path.join(ROOT, 'pages', 'bad-gate-fixture.html'), { force: true });
+  ck('gate-blocks-invalid-structure', gateBlocked, gateMsg.slice(0, 200));
+  ck('gate-msg-loose-file', /loose-fixture\.html[^\n]*领域目录/.test(gateMsg), gateMsg.slice(0, 400));
+  ck('gate-msg-missing-title', /no-title\.html[^\n]*<title>/.test(gateMsg), gateMsg.slice(0, 400));
+  ck('gate-msg-fragment', /fragment\.html[^\n]*<html>/.test(gateMsg), gateMsg.slice(0, 400));
+  cleanup();
 
   const b = await chromium.launch({ channel: 'chrome' });
 
-  /* ── 2. 基线：干净状态下的首页计数 ── */
+  /* ── 2. 基线：真实内容下的首页计数 ── */
   const home0 = await b.newPage();
-  await home0.goto(BASE + '/index.html', { waitUntil: 'networkidle' });
-  const base = await snap(home0);
+  const baseErr = [];
+  home0.on('pageerror', e => baseErr.push(e.message));
+  home0.on('console', m => { if (m.type() === 'error') baseErr.push(m.text()); });
+  await openHome(home0);
+  const base = await home0.evaluate(() => {
+    const m = window.ZP_MOUNT || { fields: [] };
+    return {
+      fields: m.fields.length,
+      pages: m.fields.reduce((s, f) => s + f.pages.length, 0),
+      cards: document.querySelectorAll('#fields-wall .field').length,
+      rows: document.querySelectorAll('#pageList .row').length
+    };
+  });
+  ck('baseline-mounts', base.fields > 0 && base.cards === base.fields && base.rows === base.pages,
+    JSON.stringify(base));
+  ck('baseline-no-console-error', baseErr.filter(e => !isFont(e)).length === 0,
+    JSON.stringify(baseErr));
   await home0.close();
-  ck('baseline-has-entries', base.counterN > 0, JSON.stringify(base));
 
-  /* ── 3. 挂载：构建 + 生成物 ── */
-  writePage(FIXTURE + '.html',
-    'title: 挂载E2E夹具\ndesc: 框架端到端验证\nfield: tools\ntype: p\npublished: 2026.12',
-    '<h1>挂载E2E夹具</h1>\n<p>raw-kept: {{ not-rendered }} and {% raw %}x{% endraw %}</p>');
+  /* ── 3. 挂载完整独立页 → 构建 → 生成物 ── */
+  fs.mkdirSync(FIELDDIR, { recursive: true });
+  fs.writeFileSync(path.join(FIELDDIR, 'probe.html'), COMPLETE('挂载E2E夹具'));
   build();
 
-  const outFile = path.join(ROOT, FIXTURE, 'index.html');
-  ck('output-exists', fs.existsSync(outFile));
-  const out = fs.readFileSync(outFile, 'utf8');
-  ck('layout-banner', out.includes('GENERATED by Eleventy'));
-  ck('layout-title', out.includes('<title>挂载E2E夹具 · ZeroPhix</title>'));
-  ck('layout-styles', out.includes('href="/style.css'));
-  ck('asset-fingerprint', /href="\/style\.css\?v=[0-9a-f]{8}"/.test(out), '生成页样式引用应带 ?v= 内容指纹');
-  ck('layout-mast', out.includes('class="mast"'));
-  ck('raw-body-kept', out.includes('{{ not-rendered }}'));
-  ck('sitemap-has', fs.readFileSync(path.join(ROOT, 'sitemap.xml'), 'utf8').includes(`/${FIXTURE}/`));
-  ck('mounted-js-has', fs.readFileSync(path.join(ROOT, 'mounted.js'), 'utf8').includes(FIXTURE));
+  const outFile = path.join(OUTDIR, 'probe', 'index.html');
+  ck('output-exists', fs.existsSync(outFile), outFile);
+  const out = fs.existsSync(outFile) ? fs.readFileSync(outFile, 'utf8') : '';
+  ck('raw-kept', out.includes('{{ not-rendered }}'));
+  ck('own-style-kept', out.includes('.probe{color:#27457e}'));
+  ck('own-script-kept', out.includes('window.__probeRan'));
+  ck('title-kept', out.includes('<title>挂载E2E夹具</title>'));
+  ck('no-shell-injected', !out.includes('class="mast"') && !out.includes('GENERATED by Eleventy'));
+  ck('sitemap-has', fs.readFileSync(path.join(ROOT, 'sitemap.xml'), 'utf8')
+    .includes(`/${FIXFIELD}/probe/`));
+  const mf = fs.readFileSync(path.join(ROOT, 'mounted.js'), 'utf8');
+  ck('mounted-has-field', mf.includes(`"${FIXFIELD}"`));
+  ck('mounted-has-title', mf.includes('挂载E2E夹具'));
 
-  /* ── 4. 首页收录：归档 / 领域计数 / 最近更新 ── */
+  /* ── 4. 首页收录：卡 +1、行 +1、链接指向挂载页 ── */
   const home = await b.newPage();
-  const homeErr = [];
-  home.on('pageerror', e => homeErr.push(e.message));
-  home.on('console', m => { if (m.type() === 'error') homeErr.push(m.text()); });
-  await home.goto(BASE + '/index.html', { waitUntil: 'networkidle' });
-  const h = await snap(home);
-  ck('home-counter-plus-one', h.counterN === base.counterN + 1, `${base.counterN} → ${h.counterN}`);
-  ck('home-row-links-mounted', h.links.includes('/' + FIXTURE + '/'), JSON.stringify(h.links.slice(0, 3)));
-  ck('home-fields-count-increment', h.toolsN === base.toolsN + 1, `${base.toolsN} → ${h.toolsN}`);
-  ck('home-recent-first', h.recentFirst.includes('挂载E2E夹具'), h.recentFirst);
-  ck('home-no-console-error', homeErr.length === 0, JSON.stringify(homeErr));
-
-  /* ── 5. 筛选器联动：点「工具」应含挂载页 ── */
-  await home.locator('#fieldChips .chip[data-f="tools"]').click();
-  const filtered = await home.evaluate(() =>
-    [...document.querySelectorAll('#archiveBody a.row')].map(a => a.getAttribute('href')));
-  ck('filter-includes-mounted', filtered.includes('/' + FIXTURE + '/'), JSON.stringify(filtered));
+  const herr = [];
+  home.on('pageerror', e => herr.push(e.message));
+  home.on('console', m => { if (m.type() === 'error') herr.push(m.text()); });
+  await openHome(home);
+  const h = await home.evaluate(() => ({
+    cards: document.querySelectorAll('#fields-wall .field').length,
+    rows: document.querySelectorAll('#pageList .row').length,
+    hrefs: [...document.querySelectorAll('#pageList .row')].map(a => a.getAttribute('href'))
+  }));
+  ck('home-card-plus-one', h.cards === base.fields + 1, `${base.fields} → ${h.cards}`);
+  ck('home-row-plus-one', h.rows === base.pages + 1, `${base.pages} → ${h.rows}`);
+  ck('home-link-mounted', h.hrefs.includes('/' + FIXFIELD + '/probe/'),
+    JSON.stringify(h.hrefs.slice(-2)));
+  ck('home-no-console-error', herr.filter(e => !isFont(e)).length === 0, JSON.stringify(herr));
   await home.close();
 
-  /* ── 6. 挂载页本体：200 / 主题 / axe / 无错误 ── */
+  /* ── 5. 挂载页本体：200 / 无外壳 / 自己的脚本执行 ── */
   const pg = await b.newPage();
   const perr = [], pbad = [];
   pg.on('pageerror', e => perr.push(e.message));
   pg.on('console', m => { if (m.type() === 'error') perr.push(m.text()); });
   pg.on('response', r => { if (r.status() >= 400) pbad.push(r.status() + ' ' + r.url()); });
-  const resp = await pg.goto(BASE + '/' + FIXTURE + '/', { waitUntil: 'networkidle' });
+  const resp = await pg.goto(BASE + '/' + FIXFIELD + '/probe/', { waitUntil: 'load' });
   ck('page-200', resp.status() === 200, resp.status());
-  await pg.locator('#pageInkBtn').click();
-  await pg.waitForTimeout(200);
-  const ink = await pg.evaluate(() => ({
-    mode: document.documentElement.getAttribute('data-ink'),
-    stored: localStorage.getItem('zp-ink'),
-    btn: document.getElementById('pageInkBtn').textContent
+  const body = await pg.evaluate(() => ({
+    probeRan: window.__probeRan === true,
+    hasMast: !!document.querySelector('.mast'),
+    title: document.title
   }));
-  ck('page-theme-toggle', ink.mode === 'night' && ink.stored === 'night' && ink.btn === '纸张', JSON.stringify(ink));
-  let axeV = 'inject failed';
-  try {
-    await pg.addScriptTag({ url: 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.10.2/axe.min.js' });
-    await pg.waitForFunction(() => !!window.axe);
-    axeV = await pg.evaluate(async () =>
-      (await window.axe.run(document, { resultTypes: ['violations'] })).violations.map(v => v.id));
-  } catch (e) { axeV = 'axe error: ' + e.message; }
-  ck('page-axe-0', Array.isArray(axeV) && axeV.length === 0, JSON.stringify(axeV));
+  ck('page-own-script-runs', body.probeRan, JSON.stringify(body));
+  ck('page-no-site-shell', !body.hasMast);
+  ck('page-title', body.title === '挂载E2E夹具', body.title);
   ck('page-no-console-error', perr.length === 0, JSON.stringify(perr));
   ck('page-no-bad-response', pbad.length === 0, JSON.stringify(pbad));
   await pg.close();
 
-  /* ── 7. 清理：删除夹具并重建，首页回到基线 ── */
-  cleanup();
+  /* ── 6. 孤儿下架：删源 → 输出目录随构建消失、清单回退 ── */
+  fs.rmSync(FIELDDIR, { recursive: true, force: true });
   build();
+  ck('orphan-output-removed', !fs.existsSync(OUTDIR), OUTDIR);
+  ck('orphan-manifest-removed',
+    !fs.readFileSync(path.join(ROOT, 'mounted.js'), 'utf8').includes(FIXFIELD));
+
+  /* ── 7. 清理还原：首页回到基线 ── */
   const home2 = await b.newPage();
-  await home2.goto(BASE + '/index.html', { waitUntil: 'networkidle' });
-  const after = await snap(home2);
-  ck('cleanup-counter-back', after.counterN === base.counterN, `${base.counterN} ← ${after.counterN}`);
-  ck('cleanup-no-fixture', !after.links.includes('/' + FIXTURE + '/'));
+  await openHome(home2);
+  const after = await home2.evaluate(() => ({
+    fields: (window.ZP_MOUNT || { fields: [] }).fields.length,
+    rows: document.querySelectorAll('#pageList .row').length
+  }));
+  ck('baseline-restored', after.fields === base.fields && after.rows === base.pages,
+    JSON.stringify({ base, after }));
   await home2.close();
   await b.close();
 
   console.log('=== 断言 ===');
-  console.log(`  基线：${base.counterN} 条 / 工具册 ${base.toolsN} 条`);
+  console.log(`  基线：${base.fields} 领域 / ${base.pages} 页面`);
   if (fails.length) { fails.forEach(f => console.log('  FAIL ' + f)); console.log('\nFAILED'); }
-  else console.log('  ALL PASS (19 checks)');
+  else console.log('  ALL PASS (24 checks)');
   console.log(fails.length ? '' : '\nMOUNT FRAMEWORK: ALL PASS');
   process.exit(fails.length ? 1 : 0);
 })();

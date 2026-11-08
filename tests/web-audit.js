@@ -11,7 +11,8 @@ const BASE = process.env.BASE_URL || 'https://zerophix.github.io/';
   p.on('requestfailed', r => failedReqs.push(r.url() + ' :: ' + ((r.failure() || {}).errorText || '')));
 
   const t0 = Date.now();
-  await p.goto(BASE, { waitUntil: 'networkidle' });
+  await p.goto(BASE, { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(2500);   /* 字体 CDN 常挂起，不等 networkidle */
   const loadMs = Date.now() - t0;
 
   const R = {};

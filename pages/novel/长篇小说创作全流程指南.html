@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>长篇小说创作作战地图 · 工作流 × 素材组件 × 专业资料站</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Serif+SC:wght@400;600;900&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f4efe4;
+  --paper-deep:#ece3d0;
+  --paper-dark:#e2d6bd;
+  --ink:#1e1a15;
+  --ink-soft:#4c4339;
+  --muted:#8c8071;
+  --line:#cfc2a8;
+  --vermilion:#b23a2b;
+  --vermilion-deep:#8e2b1f;
+  --indigo:#2d4658;
+  --gold:#a8802f;
+  --moss:#4d6247;
+  --plum:#6b3a4e;
+  --radius:3px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Noto Serif SC","Songti SC",serif;
+  font-size:16px;
+  line-height:1.85;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  opacity:.05;mix-blend-mode:multiply;
+}
+::selection{background:var(--vermilion);color:var(--paper);}
+
+/* ---------- progress + top bar ---------- */
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--vermilion);z-index:1000;}
+.mono{font-family:"DM Mono",monospace;letter-spacing:.06em;}
+
+/* ---------- layout shell ---------- */
+.shell{display:grid;grid-template-columns:230px minmax(0,1fr);max-width:1420px;margin:0 auto;}
+.rail{
+  position:sticky;top:0;height:100vh;padding:38px 26px;
+  border-right:1px solid var(--line);
+  display:flex;flex-direction:column;gap:0;
+  background:linear-gradient(180deg,rgba(236,227,208,.5),rgba(244,239,228,.1));
+}
+.brand{writing-mode:vertical-rl;position:absolute;right:18px;top:40px;font-family:"ZCOOL XiaoWei",serif;font-size:13px;letter-spacing:.5em;color:var(--muted);opacity:.7;}
+.rail-title{font-family:"ZCOOL XiaoWei",serif;font-size:19px;line-height:1.45;margin-bottom:6px;}
+.rail-sub{font-size:11px;color:var(--muted);margin-bottom:34px;}
+.rail nav{display:flex;flex-direction:column;gap:2px;}
+.rail nav a{
+  display:flex;align-items:baseline;gap:10px;text-decoration:none;color:var(--ink-soft);
+  font-size:13.5px;padding:8px 10px 8px 0;border-left:2px solid transparent;padding-left:12px;
+  transition:color .25s ease,border-color .25s ease,padding-left .3s ease;
+}
+.rail nav a .idx{font-family:"DM Mono",monospace;font-size:10.5px;color:var(--muted);}
+.rail nav a:hover{color:var(--vermilion);padding-left:16px;}
+.rail nav a.active{color:var(--vermilion);border-left-color:var(--vermilion);font-weight:600;}
+.rail-foot{margin-top:auto;font-size:10.5px;color:var(--muted);line-height:1.7;border-top:1px solid var(--line);padding-top:16px;}
+.seal{
+  width:52px;height:52px;border:2px solid var(--vermilion);color:var(--vermilion);
+  display:flex;align-items:center;justify-content:center;font-family:"ZCOOL XiaoWei",serif;
+  font-size:15px;line-height:1.15;text-align:center;transform:rotate(-4deg);
+  border-radius:2px;letter-spacing:.1em;
+}
+main{padding:0 clamp(22px,5vw,86px) 120px;min-width:0;}
+
+/* ---------- hero ---------- */
+.hero{padding:76px 0 30px;position:relative;}
+.hero-kicker{display:flex;align-items:center;gap:14px;font-size:11px;color:var(--vermilion);margin-bottom:26px;}
+.hero-kicker .rule{height:1px;width:74px;background:var(--vermilion);}
+.hero h1{
+  font-family:"ZCOOL XiaoWei",serif;font-weight:400;
+  font-size:clamp(42px,7.2vw,104px);line-height:1.02;letter-spacing:.01em;
+  max-width:15em;
+}
+.hero h1 em{font-style:normal;color:var(--vermilion);position:relative;}
+.hero h1 .thin{color:var(--ink-soft);}
+.hero-lead{
+  margin-top:34px;max-width:46em;font-size:clamp(15.5px,1.5vw,18.5px);
+  color:var(--ink-soft);line-height:2;
+}
+.hero-grid{display:grid;grid-template-columns:1.35fr .95fr;gap:48px;align-items:end;margin-top:56px;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--ink);border-bottom:1px solid var(--line);}
+.stat{padding:22px 14px 20px 0;border-right:1px dashed var(--line);}
+.stat:last-child{border-right:none;}
+.stat b{display:block;font-family:"DM Mono",monospace;font-size:clamp(28px,3.6vw,44px);line-height:1;font-weight:500;}
+.stat span{display:block;font-size:11.5px;color:var(--muted);margin-top:10px;letter-spacing:.14em;}
+.manuscript{
+  background:
+    repeating-linear-gradient(to right,transparent 0 27px,rgba(45,70,88,.13) 27px 28px),
+    repeating-linear-gradient(to bottom,transparent 0 27px,rgba(45,70,88,.13) 27px 28px),
+    var(--paper-deep);
+  border:1px solid var(--line);padding:30px 28px;transform:rotate(-1.1deg);
+  box-shadow:14px 16px 0 rgba(178,58,43,.1);
+}
+.manuscript h4{font-family:"ZCOOL XiaoWei",serif;font-size:15px;letter-spacing:.32em;margin-bottom:18px;color:var(--indigo);}
+.manuscript ol{list-style:none;}
+.manuscript li{
+  display:flex;gap:14px;font-size:13.2px;padding:7px 0;border-bottom:1px dashed rgba(45,70,88,.2);
+  color:var(--ink-soft);
+}
+.manuscript li:last-child{border-bottom:none;}
+.manuscript li i{font-style:normal;font-family:"DM Mono",monospace;color:var(--vermilion);font-size:11px;padding-top:3px;}
+
+/* ---------- section head ---------- */
+section{padding-top:110px;}
+.sec-head{display:flex;align-items:flex-start;gap:clamp(18px,3vw,48px);margin-bottom:52px;position:relative;}
+.sec-num{
+  font-family:"DM Mono",monospace;font-size:clamp(52px,8vw,110px);line-height:.82;
+  color:transparent;-webkit-text-stroke:1.4px var(--vermilion);flex-shrink:0;
+}
+.sec-head h2{font-family:"ZCOOL XiaoWei",serif;font-size:clamp(27px,3.6vw,46px);line-height:1.24;font-weight:400;}
+.sec-head p{margin-top:16px;max-width:44em;color:var(--ink-soft);font-size:15.4px;}
+.sec-tag{
+  display:inline-block;font-family:"DM Mono",monospace;font-size:10.5px;letter-spacing:.24em;
+  color:var(--paper);background:var(--ink);padding:5px 12px;margin-bottom:14px;
+}
+
+/* ---------- timeline / workflow ---------- */
+.timeline{position:relative;padding-left:clamp(20px,4vw,58px);}
+.timeline::before{content:"";position:absolute;left:6px;top:8px;bottom:8px;width:1px;background:linear-gradient(180deg,var(--vermilion),var(--line) 78%,transparent);}
+.phase{position:relative;padding:0 0 58px;}
+.phase::before{
+  content:"";position:absolute;left:calc(-1*clamp(20px,4vw,58px) + 1px);top:9px;
+  width:11px;height:11px;background:var(--paper);border:2px solid var(--vermilion);border-radius:50%;
+}
+.phase-top{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;}
+.phase-id{font-family:"DM Mono",monospace;font-size:12px;color:var(--vermilion);letter-spacing:.22em;}
+.phase h3{font-family:"ZCOOL XiaoWei",serif;font-size:clamp(21px,2.5vw,29px);font-weight:400;}
+.phase .dur{font-family:"DM Mono",monospace;font-size:10.5px;color:var(--muted);border:1px solid var(--line);padding:3px 9px;}
+.phase>p{margin:14px 0 20px;color:var(--ink-soft);max-width:52em;font-size:15px;}
+.tasks{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:12px;}
+.task{
+  background:rgba(255,253,247,.6);border:1px solid var(--line);padding:16px 18px;
+  transition:transform .3s cubic-bezier(.2,.7,.3,1),border-color .3s ease,box-shadow .3s ease;
+}
+.task:hover{transform:translateY(-4px);border-color:var(--vermilion);box-shadow:8px 8px 0 rgba(178,58,43,.1);}
+.task h5{font-size:14.6px;margin-bottom:7px;display:flex;gap:9px;align-items:baseline;}
+.task h5 i{font-style:normal;font-family:"DM Mono",monospace;font-size:10px;color:var(--paper);background:var(--indigo);padding:2px 6px;}
+.task p{font-size:12.8px;color:var(--muted);line-height:1.8;}
+.deliver{
+  margin-top:18px;display:flex;flex-wrap:wrap;gap:9px;align-items:center;
+}
+.deliver .lbl{font-family:"DM Mono",monospace;font-size:10px;letter-spacing:.22em;color:var(--vermilion-deep);}
+.chip{
+  font-size:12px;padding:5px 13px;border:1px solid var(--vermilion);color:var(--vermilion-deep);
+  border-radius:40px;background:rgba(178,58,43,.05);
+}
+
+/* ---------- assets (稿纸 style) ---------- */
+.assets-wrap{
+  background:
+    repeating-linear-gradient(to right,transparent 0 31px,rgba(45,70,88,.09) 31px 32px),
+    repeating-linear-gradient(to bottom,transparent 0 31px,rgba(45,70,88,.09) 31px 32px),
+    rgba(236,227,208,.4);
+  border:1px solid var(--line);padding:clamp(24px,4vw,52px);
+}
+.assets{display:grid;grid-template-columns:repeat(auto-fill,minmax(292px,1fr));gap:20px;}
+.asset{
+  background:var(--paper);border:1px solid var(--ink);padding:22px 22px 20px;position:relative;
+  transition:transform .35s cubic-bezier(.2,.7,.3,1),box-shadow .35s ease;
+}
+.asset:hover{transform:translateY(-6px) rotate(-.5deg);box-shadow:12px 12px 0 rgba(29,26,21,.14);}
+.asset .no{
+  position:absolute;top:-11px;right:14px;font-family:"DM Mono",monospace;font-size:10.5px;
+  background:var(--vermilion);color:var(--paper);padding:3px 9px;letter-spacing:.16em;
+}
+.asset h4{font-family:"ZCOOL XiaoWei",serif;font-size:19px;font-weight:400;margin-bottom:8px;}
+.asset .use{font-size:12.6px;color:var(--muted);margin-bottom:14px;line-height:1.75;}
+.asset ul{list-style:none;border-top:1px dashed var(--line);padding-top:12px;}
+.asset ul li{font-size:12.4px;color:var(--ink-soft);padding:3.5px 0 3.5px 15px;position:relative;}
+.asset ul li::before{content:"—";position:absolute;left:0;color:var(--vermilion);}
+.asset .stage{
+  margin-top:13px;font-family:"DM Mono",monospace;font-size:9.5px;letter-spacing:.18em;
+  color:var(--indigo);border-top:1px solid var(--line);padding-top:11px;
+}
+
+/* ---------- sources ---------- */
+.filters{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:34px;}
+.filter{
+  font-size:12.4px;padding:8px 18px;border:1px solid var(--line);background:transparent;
+  color:var(--ink-soft);cursor:pointer;font-family:"Noto Serif SC",serif;
+  transition:all .25s ease;border-radius:40px;
+}
+.filter:hover{border-color:var(--vermilion);color:var(--vermilion);}
+.filter.on{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.domains{display:flex;flex-direction:column;gap:56px;}
+.domain{scroll-margin-top:30px;}
+.domain-head{display:flex;align-items:center;gap:16px;margin-bottom:22px;}
+.domain-head .stamp{
+  width:40px;height:40px;flex-shrink:0;background:var(--vermilion);color:var(--paper);
+  display:flex;align-items:center;justify-content:center;font-family:"ZCOOL XiaoWei",serif;font-size:16px;
+  transform:rotate(-3deg);border-radius:2px;
+}
+.domain-head h3{font-family:"ZCOOL XiaoWei",serif;font-size:23px;font-weight:400;}
+.domain-head .line{flex:1;height:1px;background:var(--line);}
+.domain-head .cnt{font-family:"DM Mono",monospace;font-size:10.5px;color:var(--muted);letter-spacing:.16em;}
+.sites{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:15px;}
+.site{
+  border:1px solid var(--line);background:rgba(255,253,247,.55);padding:19px 20px 17px;
+  display:flex;flex-direction:column;gap:9px;text-decoration:none;color:inherit;position:relative;
+  transition:border-color .3s ease,transform .3s ease,background .3s ease;
+}
+.site:hover{border-color:var(--ink);transform:translateY(-3px);background:#fffdf7;}
+.site .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+.site h4{font-size:15.6px;font-weight:600;}
+.site .cat{
+  font-family:"DM Mono",monospace;font-size:9px;letter-spacing:.14em;color:var(--paper);
+  padding:3px 8px;flex-shrink:0;
+}
+.cat[data-c="历史"]{background:var(--plum);}
+.cat[data-c="法律"]{background:var(--indigo);}
+.cat[data-c="医学"]{background:var(--moss);}
+.cat[data-c="军事"]{background:var(--vermilion-deep);}
+.cat[data-c="商业"]{background:var(--gold);}
+.cat[data-c="科技"]{background:#3a5a6c;}
+.cat[data-c="心理"]{background:#7a4b6e;}
+.cat[data-c="地理"]{background:#2f6152;}
+.cat[data-c="语言"]{background:#8a5a22;}
+.cat[data-c="艺术"]{background:#9c4438;}
+.cat[data-c="生活"]{background:#5c6a3c;}
+.cat[data-c="工具"]{background:var(--ink);}
+.site p{font-size:12.7px;color:var(--ink-soft);line-height:1.82;}
+.site .url{
+  font-family:"DM Mono",monospace;font-size:10.5px;color:var(--muted);margin-top:auto;
+  padding-top:10px;border-top:1px dashed var(--line);display:flex;justify-content:space-between;
+}
+.site .url .arrow{color:var(--vermilion);transition:transform .3s ease;}
+.site:hover .url .arrow{transform:translateX(6px);}
+.gap-note{
+  margin-top:26px;padding:18px 22px;border-left:3px solid var(--vermilion);
+  background:rgba(178,58,43,.05);font-size:13.4px;color:var(--ink-soft);
+}
+.gap-note b{color:var(--vermilion-deep);}
+
+/* ---------- tools ---------- */
+.tools{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:22px;}
+.tool-col h3{
+  font-family:"DM Mono",monospace;font-size:11px;letter-spacing:.26em;color:var(--vermilion);
+  padding-bottom:12px;border-bottom:1px solid var(--ink);margin-bottom:6px;
+}
+.tool-col li{
+  list-style:none;padding:13px 0;border-bottom:1px dashed var(--line);
+  display:flex;justify-content:space-between;gap:12px;align-items:baseline;
+}
+.tool-col li b{font-size:14.4px;font-weight:600;}
+.tool-col li span{font-size:11.8px;color:var(--muted);text-align:right;line-height:1.65;}
+
+/* ---------- checklist ---------- */
+.check-panel{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.check-card{border:1px solid var(--ink);padding:26px 26px 20px;background:rgba(255,253,247,.5);}
+.check-card h3{font-family:"ZCOOL XiaoWei",serif;font-size:20px;font-weight:400;margin-bottom:6px;}
+.check-card .sub{font-size:12px;color:var(--muted);margin-bottom:18px;}
+.check{
+  display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-bottom:1px dashed var(--line);
+  cursor:pointer;user-select:none;transition:opacity .25s ease;
+}
+.check:last-child{border-bottom:none;}
+.check .\boxed{
+  width:16px;height:16px;flex-shrink:0;border:1.5px solid var(--ink);margin-top:4px;
+  position:relative;transition:background .25s ease,border-color .25s ease;
+}
+.check .box::after{
+  content:"";position:absolute;left:4px;top:.5px;width:5px;height:9px;
+  border:solid var(--paper);border-width:0 2px 2px 0;transform:rotate(45deg) scale(0);
+  transition:transform .25s cubic-bezier(.2,1.4,.4,1);
+}
+.check span{font-size:13.4px;line-height:1.75;color:var(--ink-soft);}
+.check.done{opacity:.5;}
+.check.done .\boxed{background:var(--vermilion);border-color:var(--vermilion);}
+.check.done .box::after{transform:rotate(45deg) scale(1);}
+.check.done span{text-decoration:line-through;}
+
+/* ---------- footer ---------- */
+footer{
+  margin-top:120px;border-top:1px solid var(--ink);padding:56px 0 20px;
+  display:grid;grid-template-columns:1.3fr .9fr;gap:40px;
+}
+footer .big{font-family:"ZCOOL XiaoWei",serif;font-size:clamp(22px,3vw,34px);line-height:1.6;}
+footer .big em{font-style:normal;color:var(--vermilion);}
+footer p{font-size:13px;color:var(--muted);line-height:2;}
+footer .meta{font-family:"DM Mono",monospace;font-size:10px;letter-spacing:.22em;color:var(--muted);margin-top:30px;}
+
+/* ---------- reveal animation ---------- */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .8s cubic-bezier(.2,.7,.3,1),transform .8s cubic-bezier(.2,.7,.3,1);}
+.rv.in{opacity:1;transform:none;}
+
+/* ---------- responsive ---------- */
+@media(max-width:1080px){
+  .shell{grid-template-columns:1fr;}
+  .rail{
+    position:sticky;top:0;height:auto;flex-direction:row;align-items:center;gap:18px;
+    padding:14px 20px;border-right:none;border-bottom:1px solid var(--line);
+    overflow-x:auto;z-index:800;backdrop-filter:blur(8px);background:rgba(244,239,228,.92);
+  }
+  .rail-title{font-size:15px;margin:0;flex-shrink:0;}
+  .rail-sub,.rail-foot,.brand{display:none;}
+  .rail nav{flex-direction:row;gap:2px;}
+  .rail nav a{border-left:none;border-bottom:2px solid transparent;padding:6px 10px;white-space:nowrap;}
+  .rail nav a.active{border-left:none;border-bottom-color:var(--vermilion);}
+  .rail nav a:hover{padding-left:10px;}
+  .hero-grid{grid-template-columns:1fr;}
+  .stats{grid-template-columns:repeat(2,1fr);}
+  .stat:nth-child(2){border-right:none;}
+  .check-panel{grid-template-columns:1fr;}
+  footer{grid-template-columns:1fr;}
+}
+@media(max-width:640px){
+  main{padding:0 20px 90px;}
+  .sec-head{flex-direction:column;gap:12px;}
+  .manuscript{transform:none;}
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<div class="shell">
+
+  <!-- ============ RAIL ============ -->
+  <aside class="rail">
+    <div class="brand">长篇创作作战地图</div>
+    <div class="rail-title">小说工程<br>作战地图</div>
+    <div class="rail-sub mono">WORKFLOW / ASSETS / SOURCES</div>
+    <nav id="nav">
+      <a href="#overview"><span class="idx">00</span>导览</a>
+      <a href="#workflow"><span class="idx">01</span>六大工作流</a>
+      <a href="#assets"><span class="idx">02</span>素材组件库</a>
+      <a href="#sources"><span class="idx">03</span>知识缺口 → 资料站</a>
+      <a href="#tools"><span class="idx">04</span>创作工具箱</a>
+      <a href="#checklist"><span class="idx">05</span>验收清单</a>
+    </nav>
+    <div class="rail-foot">
+      <div class="seal">落笔<br>生根</div>
+      <p style="margin-top:14px;">一页读完<br>一部书的全部工程</p>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main>
+
+    <!-- HERO -->
+    <header class="hero" id="overview">
+      <div class="hero-kicker mono"><span class="rule"></span> NOVEL ENGINEERING · 全流程导航</div>
+      <h1>把一百个念头，<br>建成<em>一部小说</em>。</h1>
+      <p class="hero-lead">
+        长篇是一场工程，不是一次灵感。这一页把<strong>六大阶段工作流</strong>、<strong>十二类基础素材组件</strong>，
+        与按「知识缺口」分类的<strong>专业资料网站</strong>并置在一起——你缺哪块知识，就去哪块补；
+        写到哪一步，就看哪一段。左栏永远是你的坐标。
+      </p>
+
+      <div class="hero-grid">
+        <div>
+          <div class="stats">
+            <div class="stat"><b>6</b><span>PHASES 阶段</span></div>
+            <div class="stat"><b>24</b><span>TASKS 任务节点</span></div>
+            <div class="stat"><b>12</b><span>ASSETS 素材组件</span></div>
+            <div class="stat"><b>40+</b><span>SOURCES 资料站</span></div>
+          </div>
+        </div>
+        <div class="manuscript">
+          <h4>全 程 一 览</h4>
+          <ol>
+            <li><i>01</i>孕育期 —— 种子 · 主题 · 定位</li>
+            <li><i>02</i>准备期 —— 世界观 · 人物 · 关系</li>
+            <li><i>03</i>细化期 —— 结构 · 大纲 · 伏笔</li>
+            <li><i>04</i>创作期 —— 开篇 · 日更 · 节奏</li>
+            <li><i>05</i>修稿期 —— 五层修改 · 外部反馈</li>
+            <li><i>06</i>面世期 —— 投稿 · 签约 · 运营</li>
+          </ol>
+        </div>
+      </div>
+    </header>
+
+    <!-- WORKFLOW -->
+    <section id="workflow">
+      <div class="sec-head rv">
+        <div class="sec-num">01</div>
+        <div>
+          <div class="sec-tag">WORKFLOW</div>
+          <h2>六大阶段工作流<br>从种子到面世的完整链路</h2>
+          <p>每个阶段都有明确的<b>任务</b>和必须落地的<b>产出物</b>。产出物没做出来，就不算过这一步——这是防止长篇中途崩盘的唯一硬性纪律。</p>
+        </div>
+      </div>
+
+      <div class="timeline">
+
+        <div class="phase rv">
+          <div class="phase-top">
+            <div class="phase-id">PHASE 01</div>
+            <h3>孕育期 · 找到那颗种子</h3>
+            <div class="dur mono">约 1–2 周</div>
+          </div>
+          <p>先把「为什么写」想清楚。一句话讲不清的故事，二十万字只会更讲不清。</p>
+          <div class="tasks">
+            <div class="task"><h5><i>1.1</i>核心创意 Premise</h5><p>一句话包含人物 + 困境 + 张力。写不出这一句，先别动笔。</p></div>
+            <div class="task"><h5><i>1.2</i>主题 Theme</h5><p>全书真正追问的问题。主题是长篇唯一的锚，散了就靠它收。</p></div>
+            <div class="task"><h5><i>1.3</i>类型与读者定位</h5><p>题材、目标读者、阅读场景、对标作品清单（至少列 3 部）。</p></div>
+            <div class="task"><h5><i>1.4</i>体量与终点</h5><p>预计字数、结局大方向。先定终点，才能倒推路径。</p></div>
+          </div>
+          <div class="deliver"><span class="lbl">产出物</span>
+            <span class="chip">一句话故事</span><span class="chip">主题陈述</span><span class="chip">对标书单</span><span class="chip">结局雏形</span>
+          </div>
+        </div>
+
+        <div class="phase rv">
+          <div class="phase-top">
+            <div class="phase-id">PHASE 02</div>
+            <h3>准备期 · 搭建世界与人物</h3>
+            <div class="dur mono">约 2–6 周</div>
+          </div>
+          <p>设定服务于冲突：用不上的设定进资料库，别塞进正文。这一步也是「专业知识缺口」集中暴露的地方。</p>
+          <div class="tasks">
+            <div class="task"><h5><i>2.1</i>世界观设定</h5><p>时代、地理、社会结构、行业规则、力量体系。现实题材同样需要。</p></div>
+            <div class="task"><h5><i>2.2</i>主角三件套</h5><p>欲望（要什么）+ 缺陷（缺什么）+ 弧光（如何改变）。</p></div>
+            <div class="task"><h5><i>2.3</i>对手与配角</h5><p>反派要有自洽逻辑；配角一人一个记忆点。</p></div>
+            <div class="task"><h5><i>2.4</i>专业知识考证</h5><p>医、法、军、商、史……到第 03 部分按缺口补课，避免硬伤。</p></div>
+          </div>
+          <div class="deliver"><span class="lbl">产出物</span>
+            <span class="chip">设定集</span><span class="chip">人物小传 ×N</span><span class="chip">关系图</span><span class="chip">考证笔记</span>
+          </div>
+        </div>
+
+        <div class="phase rv">
+          <div class="phase-top">
+            <div class="phase-id">PHASE 03</div>
+            <h3>细化期 · 设计骨架</h3>
+            <div class="dur mono">约 2–4 周</div>
+          </div>
+          <p>长篇最危险的翻车点：埋了伏笔忘了收、支线越写越散、中期塌陷。全部在这一步预防。</p>
+          <div class="tasks">
+            <div class="task"><h5><i>3.1</i>选择结构</h5><p>三幕式 / 起承转合 / 英雄之旅。可以打破，但要知道自己打破的是什么。</p></div>
+            <div class="task"><h5><i>3.2</i>三级大纲</h5><p>粗纲（全书起承转合）→ 章纲（每章推进什么）→ 细纲（场景走向）。</p></div>
+            <div class="task"><h5><i>3.3</i>伏笔与线索表</h5><p>埋设位置 → 回收位置 → 状态。全程滚动更新。</p></div>
+            <div class="task"><h5><i>3.4</i>多线时间线</h5><p>主/支/暗线交错时，单独建时间线文档防止穿帮。</p></div>
+          </div>
+          <div class="deliver"><span class="lbl">产出物</span>
+            <span class="chip">粗纲 + 章纲 + 细纲</span><span class="chip">伏笔追踪表</span><span class="chip">时间线</span><span class="chip">节奏曲线</span>
+          </div>
+        </div>
+
+        <div class="phase rv">
+          <div class="phase-top">
+            <div class="phase-id">PHASE 04</div>
+            <h3>创作期 · 把字写出来</h3>
+            <div class="dur mono">3 个月 – 2 年+</div>
+          </div>
+          <p>长篇是体力活，靠流程与习惯，不靠灵感。先写后改，是进度停滞的头号解药。</p>
+          <div class="tasks">
+            <div class="task"><h5><i>4.1</i>强开局</h5><p>开头 1–3 章反复重写：抓注意力、立世界观、抛核心悬念。</p></div>
+            <div class="task"><h5><i>4.2</i>日常节奏</h5><p>固定时间 + 固定字数（日 2000–3000）。写完留「起笔提示」给明天。</p></div>
+            <div class="task"><h5><i>4.3</i>结构巡查</h5><p>每 10–15 万字设一个中型高潮；每 5 万字回看大纲查偏航。</p></div>
+            <div class="task"><h5><i>4.4</i>状态维护</h5><p>卡文先跳写；松紧交替；用写作社群互相监督。</p></div>
+          </div>
+          <div class="deliver"><span class="lbl">产出物</span>
+            <span class="chip">初稿全本</span><span class="chip">写作日志</span><span class="chip">章节数据库</span>
+          </div>
+        </div>
+
+        <div class="phase rv">
+          <div class="phase-top">
+            <div class="phase-id">PHASE 05</div>
+            <h3>修稿期 · 好文章是改出来的</h3>
+            <div class="dur mono">约 1–3 个月</div>
+          </div>
+          <p>先冷却一到两周，消灭「作者盲区」。修改必须分层，绝不混着改。</p>
+          <div class="tasks">
+            <div class="task"><h5><i>5.1</i>结构层</h5><p>情节完整吗？支线冗余吗？高潮够高吗？大刀阔斧删。</p></div>
+            <div class="task"><h5><i>5.2</i>人物 + 逻辑层</h5><p>行为符合动机？弧光完成？前后矛盾？伏笔全收？</p></div>
+            <div class="task"><h5><i>5.3</i>场景 + 文字层</h5><p>场景必须推进情节或揭示人物，否则删；再修对话与节奏。</p></div>
+            <div class="task"><h5><i>5.4</i>外部反馈</h5><p>找 2–3 位目标读者通读，关注他们在哪里走神、在哪里困惑。</p></div>
+          </div>
+          <div class="deliver"><span class="lbl">产出物</span>
+            <span class="chip">二稿 / 三稿</span><span class="chip">读者反馈报告</span><span class="chip">校对稿</span>
+          </div>
+        </div>
+
+        <div class="phase rv">
+          <div class="phase-top">
+            <div class="phase-id">PHASE 06</div>
+            <h3>面世期 · 让它到达读者</h3>
+            <div class="dur mono">持续进行</div>
+          </div>
+          <p>书名、简介、封面是你的「第一产品」。但作品本身，永远排第一位。</p>
+          <div class="tasks">
+            <div class="task"><h5><i>6.1</i>网文路线</h5><p>选平台 → 研究调性与签约规则 → 稳定更新 → 与编辑沟通。</p></div>
+            <div class="task"><h5><i>6.2</i>出版路线</h5><p>定稿 → 投稿出版社/期刊或找经纪人 → 签约 → 三审三校 → 上市。</p></div>
+            <div class="task"><h5><i>6.3</i>自出版路线</h5><p>电子书平台、众筹出版、独立发行；自己负责排版与封面。</p></div>
+            <div class="task"><h5><i>6.4</i>长期运营</h5><p>建立与读者的连接、维护作品资料、规划系列与下一步。</p></div>
+          </div>
+          <div class="deliver"><span class="lbl">产出物</span>
+            <span class="chip">投稿包</span><span class="chip">书名 + 简介 + 封面</span><span class="chip">更新计划</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ASSETS -->
+    <section id="assets">
+      <div class="sec-head rv">
+        <div class="sec-num">02</div>
+        <div>
+          <div class="sec-tag">ASSET LIBRARY</div>
+          <h2>基础材料组件库<br>十二份必须维护的文档</h2>
+          <p>长篇的稳定，取决于这些文档的<b>滚动更新</b>。它们既是写作时的速查表，也是防止设定穿帮、伏笔遗失的保险丝。</p>
+        </div>
+      </div>
+
+      <div class="assets-wrap rv">
+        <div class="assets">
+
+          <div class="asset"><div class="no mono">A-01</div>
+            <h4>一句话故事卡</h4>
+            <div class="use">全书的压缩锚点，任何时候都能快速对齐方向。</div>
+            <ul><li>主角身份</li><li>核心困境</li><li>关键行动</li><li>赌注与张力</li></ul>
+            <div class="stage mono">PHASE 01 建立 · 全程引用</div>
+          </div>
+
+          <div class="asset"><div class="no mono">A-02</div>
+            <h4>主题陈述表</h4>
+            <div class="use">把模糊的“想表达什么”变成可操作的判断标准。</div>
+            <ul><li>核心问题</li><li>正/反观点</li><li>通过哪条人物线呈现</li><li>结尾立场</li></ul>
+            <div class="stage mono">PHASE 01 建立 · 修改期校验</div>
+          </div>
+
+          <div class="asset"><div class="no mono">A-03</div>
+            <h4>世界观设定集</h4>
+            <div class="use">唯一的“官方真相”，所有设定以此为准，实时更新。</div>
+            <ul><li>时代 / 地理 / 社会结构</li><li>规则体系（力量、行业、制度）</li><li>禁忌与边界</li><li>未采用设定存档</li></ul>
+            <div class="stage mono">PHASE 02 建立 · 滚动更新</div>
+          </div>
+
+          <div class="asset"><div class="no mono">A-04</div>
+            <h4>人物小传卡</h4>
+            <div class="use">写对话和行为前先查卡，保证言行一致。</div>
+            <ul><li>姓名 / 年龄 / 外貌 / 口癖</li><li>成长史与关键创伤</li><li>欲望 · 恐惧 · 价值观</li><li>弧光起点与终点</li></ul>
+            <div class="stage mono">PHASE 02 建立 · 全程引用</div>
+          </div>
+
+          <div class="asset"><div class="no mono">A-05</div>
+            <h4>人物关系图</h4>
+            <div class="use">关系一多就乱，图比记忆可靠。</div>
+            <ul><li>联盟 / 对立 / 血缘 / 情感</li><li>关系变化节点</li><li>隐藏关系标注</li><li>每章推进的关系事件</li></ul>
+            <div class="stage mono">PHASE 02 建立 · 滚动更新</div>
+          </div>
+
+          <div class="asset"><div class="no mono">A-06</div>
+            <h4>三级大纲</h4>
+            <div class="use">粗纲定骨架、章纲定推进、细纲定场景。</div>
+            <ul><li>粗纲：起承转合与大高潮位置</li><li>章纲：每章一句话 + 悬念收尾</li><li>细纲：场景清单与关键对话走向</li><li>留弹性，不锁死</li></ul>
+            <div class="stage mono">PHASE 03 建立 · 创作期执行</div>
+          </div>
+
+          <div class="asset"><div class="no mono">A-07</div>
+            <h4>伏笔追踪表</h4>
+            <div class="use">长篇第一杀手是“埋了不收”，这张表是唯一解药。</div>
+            <ul><li>伏笔内容</li><li>埋设章节</li><li>计划回收章节</li><li>状态：未埋 / 已埋 / 已收 / 已废弃</li></ul>
+            <div class="stage mono">PHASE 03 建立 · 每周核对</div>
+          </div>
+
+          <div class="asset"><div class="no mono">A-08</div>
+            <h4>时间线文档</h4>
+            <div class="use">跨度大、多线叙事时防止时间穿帮。</div>
+            <ul><li>全局纪年 / 季节</li><li>各线并行节点</li><li>角色年龄推算</li><li>与历史事件的对应</li></ul>
+            <div class="stage mono">PHASE 03 建立 · 滚动更新</div>
+          </div>
+
+          <div class="asset"><div class="no mono">A-09</div>
+            <h4>章节数据库</h4>
+            <div class="use">写到第八十万字还能秒查“那把刀是哪来的”。</div>
+            <ul><li>章节摘要</li><li>出场人物</li><li>新出现设定 / 物件</li><li>字数与状态</li></ul>
+            <div class="stage mono">PHASE 04 建立 · 每章更新</div>
+          </div>
+
+          <div class="asset"><div class="no mono">A-10</div>
+            <h4>风格与文字规范</h4>
+            <div class="use">统一叙事腔调、称谓、数字与专有名词写法。</div>
+            <ul><li>叙述视角与时态</li><li>人名 / 地名 / 专有名词表</li><li>禁用词与偏好句式</li><li>对话标点规范</li></ul>
+            <div class="stage mono">PHASE 03 建立 · 校对期执行</div>
+          </div>
+
+          <div class="asset"><div class="no mono">A-11</div>
+            <h4>素材与考证笔记</h4>
+            <div class="use">专业知识的“外挂硬盘”，写到哪查到哪，注明出处。</div>
+            <ul><li>按领域分类的摘录</li><li>来源链接与书目</li><li>可化用的真实细节</li><li>存疑待核清单</li></ul>
+            <div class="stage mono">PHASE 02 起 · 全程积累</div>
+          </div>
+
+          <div class="asset"><div class="no mono">A-12</div>
+            <h4>灵感与弃稿库</h4>
+            <div class="use">好点子不会消失，只是暂时用不上。</div>
+            <ul><li>碎片灵感速记</li><li>被删场景与理由</li><li>备用转折方案</li><li>下一部书的种子</li></ul>
+            <div class="stage mono">全程维护</div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- SOURCES -->
+    <section id="sources">
+      <div class="sec-head rv">
+        <div class="sec-num">03</div>
+        <div>
+          <div class="sec-tag">KNOWLEDGE GAP MAP</div>
+          <h2>知识缺口 → 专业资料站<br>用对网站，专业硬伤少一半</h2>
+          <p>读者最容易出戏的，是<b>常识性硬伤</b>：错误的伤口描写、荒腔走板的庭审、对不上号的年代称谓。下面按知识缺口分类整理了专业站点，点击标签筛选。</p>
+        </div>
+      </div>
+
+      <div class="filters rv" id="filters">
+        <button class="filter on" data-f="all">全部</button>
+        <button class="filter" data-f="历史">历史 · 文化</button>
+        <button class="filter" data-f="语言">语言 · 文字</button>
+        <button class="filter" data-f="法律">法律 · 刑侦</button>
+        <button class="filter" data-f="医学">医学 · 急救</button>
+        <button class="filter" data-f="军事">军事 · 武器</button>
+        <button class="filter" data-f="商业">商业 · 职场</button>
+        <button class="filter" data-f="科技">科技 · 科幻</button>
+        <button class="filter" data-f="心理">心理 · 行为</button>
+        <button class="filter" data-f="地理">地理 · 地图</button>
+        <button class="filter" data-f="艺术">艺术 · 器物</button>
+        <button class="filter" data-f="生活">生活 · 百科</button>
+      </div>
+
+      <div class="domains" id="domains">
+
+        <!-- 历史 -->
+        <div class="domain" data-c="历史">
+          <div class="domain-head">
+            <div class="stamp">史</div>
+            <h3>历史 · 文化 · 古籍</h3>
+            <div class="line"></div>
+            <div class="cnt mono">GAP 01</div>
+          </div>
+          <div class="sites">
+            <a class="site" href="https://ctext.org" target="_blank" rel="noopener">
+              <div class="top"><h4>中国哲学书电子化计划</h4><span class="cat" data-c="历史">历史</span></div>
+              <p>先秦至清的古籍原文检索，写古代背景对台词、引经据典的第一站。可直接查原句，避免“伪古文”。</p>
+              <div class="url"><span>ctext.org</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://zh.wikisource.org" target="_blank" rel="noopener">
+              <div class="top"><h4>维基文库</h4><span class="cat" data-c="历史">历史</span></div>
+              <p>公版古籍与史料全文，二十四史、地方志、笔记小说俱全，适合做时代风俗与物价考证。</p>
+              <div class="url"><span>zh.wikisource.org</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.gushiwen.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>古诗文网</h4><span class="cat" data-c="历史">历史</span></div>
+              <p>带注释与白话译文的诗文库，人物题诗、匾额对联、章回体回目都可在此找灵感。</p>
+              <div class="url"><span>gushiwen.cn</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.allhistory.com" target="_blank" rel="noopener">
+              <div class="top"><h4>全历史</h4><span class="cat" data-c="历史">历史</span></div>
+              <p>时间轴 + 地图 + 人物关系图谱，用来核对“这一年世界上还发生了什么”，多线叙事防穿帮。</p>
+              <div class="url"><span>allhistory.com</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.nlc.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>中国国家图书馆</h4><span class="cat" data-c="历史">历史</span></div>
+              <p>古籍善本、民国期刊、方志资源，深挖冷门史料时的正途入口；部分资源需注册。</p>
+              <div class="url"><span>nlc.cn</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.dpm.org.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>故宫博物院</h4><span class="cat" data-c="历史">历史</span></div>
+              <p>宫廷器物、典章制度、服饰陈设的高清图与解说，写权谋/宫廷题材的“视觉取材库”。</p>
+              <div class="url"><span>dpm.org.cn</span><span class="arrow">→</span></div>
+            </a>
+          </div>
+          <div class="gap-note"><b>常见硬伤：</b>朝代称谓错位、银两购买力失真、官职名称张冠李戴。写官制与货币前，先查原典与专门工具书，不要靠电视剧记忆。</div>
+        </div>
+
+        <!-- 语言 -->
+        <div class="domain" data-c="语言">
+          <div class="domain-head">
+            <div class="stamp">文</div>
+            <h3>语言 · 文字 · 命名</h3>
+            <div class="line"></div>
+            <div class="cnt mono">GAP 02</div>
+          </div>
+          <div class="sites">
+            <a class="site" href="https://www.zdic.net" target="_blank" rel="noopener">
+              <div class="top"><h4>汉典</h4><span class="cat" data-c="语言">语言</span></div>
+              <p>字形、字义、古义、组词一站式查询。给人物起名、核实冷僻字读音含义的必备工具。</p>
+              <div class="url"><span>zdic.net</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.sou-yun.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>搜韵</h4><span class="cat" data-c="语言">语言</span></div>
+              <p>韵书、格律、对仗检索。角色写诗、匾额题词时不露怯的底气来源。</p>
+              <div class="url"><span>sou-yun.cn</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://humanum.arts.cuhk.edu.hk/Lexis/lexi" target="_blank" rel="noopener">
+              <div class="top"><h4>汉语多功能字库</h4><span class="cat" data-c="语言">语言</span></div>
+              <p>港中大制作，含字形演变与古文字资料，为名字与造字梗提供学术级考据。</p>
+              <div class="url"><span>humanum.arts.cuhk.edu.hk</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://baike.baidu.com" target="_blank" rel="noopener">
+              <div class="top"><h4>百度百科 · 词条核查</h4><span class="cat" data-c="语言">语言</span></div>
+              <p>快速入门某冷门名词（民俗、器物、术语），适合搭框架，关键事实务必再回到原始资料交叉验证。</p>
+              <div class="url"><span>baike.baidu.com</span><span class="arrow">→</span></div>
+            </a>
+          </div>
+        </div>
+
+        <!-- 法律 -->
+        <div class="domain" data-c="法律">
+          <div class="domain-head">
+            <div class="stamp">法</div>
+            <h3>法律 · 刑侦 · 犯罪</h3>
+            <div class="line"></div>
+            <div class="cnt mono">GAP 03</div>
+          </div>
+          <div class="sites">
+            <a class="site" href="https://flk.npc.gov.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>国家法律法规数据库</h4><span class="cat" data-c="法律">法律</span></div>
+              <p>官方权威法条原文。写罪名、量刑、程序流程时以这里为准，别照搬律政剧。</p>
+              <div class="url"><span>flk.npc.gov.cn</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://wenshu.court.gov.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>中国裁判文书网</h4><span class="cat" data-c="法律">法律</span></div>
+              <p>真实判决书库。庭审怎么开、证据怎么质证、判决书怎么写，读十份胜过看十部剧。</p>
+              <div class="url"><span>wenshu.court.gov.cn</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.pkulaw.com" target="_blank" rel="noopener">
+              <div class="top"><h4>北大法宝</h4><span class="cat" data-c="法律">法律</span></div>
+              <p>专业法律检索，含案例、法理与实务解读，深挖程序细节（拘留期限、侦查流程）最可靠。</p>
+              <div class="url"><span>pkulaw.com</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.spp.gov.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>最高人民检察院</h4><span class="cat" data-c="法律">法律</span></div>
+              <p>检察机关职能、批捕起诉流程、典型案例通报，写检察官视角的官方素材源。</p>
+              <div class="url"><span>spp.gov.cn</span><span class="arrow">→</span></div>
+            </a>
+          </div>
+          <div class="gap-note"><b>常见硬伤：</b>“警察直接定罪”“律师当庭抓人”“拘留随便关几个月”。程序正义是律政题材的命门，写之前先把侦查—批捕—起诉—审判的流程图画出来。</div>
+        </div>
+
+        <!-- 医学 -->
+        <div class="domain" data-c="医学">
+          <div class="domain-head">
+            <div class="stamp">医</div>
+            <h3>医学 · 急救 · 病理</h3>
+            <div class="line"></div>
+            <div class="cnt mono">GAP 04</div>
+          </div>
+          <div class="sites">
+            <a class="site" href="https://www.msdmanuals.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>默沙东诊疗手册</h4><span class="cat" data-c="医学">医学</span></div>
+              <p>免费的权威医学百科，分专业版与大众版。伤口、中毒、症状与病程的黄金标准参考。</p>
+              <div class="url"><span>msdmanuals.cn</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.dxy.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>丁香园</h4><span class="cat" data-c="医学">医学</span></div>
+              <p>医生社区与临床讨论，了解医院真实运转、医患对话语气、科室日常的第一手窗口。</p>
+              <div class="url"><span>dxy.cn</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.who.int/zh" target="_blank" rel="noopener">
+              <div class="top"><h4>世界卫生组织</h4><span class="cat" data-c="医学">医学</span></div>
+              <p>公共卫生、疫情、流行病学数据。写瘟疫、医疗体系、全球危机题材的宏观事实来源。</p>
+              <div class="url"><span>who.int</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://medlineplus.gov" target="_blank" rel="noopener">
+              <div class="top"><h4>MedlinePlus</h4><span class="cat" data-c="医学">医学</span></div>
+              <p>美国国立医学图书馆的大众健康库，症状与药物信息通俗准确，适合核实细节走向。</p>
+              <div class="url"><span>medlineplus.gov</span><span class="arrow">→</span></div>
+            </a>
+          </div>
+          <div class="gap-note"><b>常见硬伤：</b>“中枪后聊十分钟天”“失血过多脸色只是苍白”“心肺复苏按两下就醒”。写死亡、重伤、急救前，把时间线和生理反应表列出来。</div>
+        </div>
+
+        <!-- 军事 -->
+        <div class="domain" data-c="军事">
+          <div class="domain-head">
+            <div class="stamp">兵</div>
+            <h3>军事 · 武器 · 战术</h3>
+            <div class="line"></div>
+            <div class="cnt mono">GAP 05</div>
+          </div>
+          <div class="sites">
+            <a class="site" href="https://www.81.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>中国军网</h4><span class="cat" data-c="军事">军事</span></div>
+              <p>编制、训练、日常与公开装备信息，写现代军旅题材了解组织结构与军人语汇的官方窗口。</p>
+              <div class="url"><span>81.cn</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.mod.gov.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>国防部网</h4><span class="cat" data-c="军事">军事</span></div>
+              <p>权威新闻发布与国防白皮书，涉及现代军事背景时的规范表述来源。</p>
+              <div class="url"><span>mod.gov.cn</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://zh.wikipedia.org" target="_blank" rel="noopener">
+              <div class="top"><h4>维基百科 · 军事条目</h4><span class="cat" data-c="军事">军事</span></div>
+              <p>武器参数、战役过程、编制沿革的快速入门，附完整引文可顺藤摸瓜到专业资料。</p>
+              <div class="url"><span>zh.wikipedia.org</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.bilibili.com" target="_blank" rel="noopener">
+              <div class="top"><h4>B站 · 纪录片专区</h4><span class="cat" data-c="军事">军事</span></div>
+              <p>装备操作、战术动作、战场环境的可视化补充——动作场面写不出画面感时，先看再写。</p>
+              <div class="url"><span>bilibili.com</span><span class="arrow">→</span></div>
+            </a>
+          </div>
+        </div>
+
+        <!-- 商业 -->
+        <div class="domain" data-c="商业">
+          <div class="domain-head">
+            <div class="stamp">商</div>
+            <h3>商业 · 金融 · 职场</h3>
+            <div class="line"></div>
+            <div class="cnt mono">GAP 06</div>
+          </div>
+          <div class="sites">
+            <a class="site" href="https://www.cninfo.com.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>巨潮资讯网</h4><span class="cat" data-c="商业">商业</span></div>
+              <p>上市公司公告与年报全文。写商战、并购、资本戏时，真实合同语言与流程都在这里。</p>
+              <div class="url"><span>cninfo.com.cn</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.stats.gov.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>国家统计局</h4><span class="cat" data-c="商业">商业</span></div>
+              <p>收入、物价、人口、行业数据。为故事里的“生活质感”提供可信的数字锚点。</p>
+              <div class="url"><span>stats.gov.cn</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.eastmoney.com" target="_blank" rel="noopener">
+              <div class="top"><h4>东方财富</h4><span class="cat" data-c="商业">商业</span></div>
+              <p>行情、财报解读与财经新闻，熟悉市场话语体系，写金融背景不至于术语露怯。</p>
+              <div class="url"><span>eastmoney.com</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.zhihu.com" target="_blank" rel="noopener">
+              <div class="top"><h4>知乎 · 行业话题</h4><span class="cat" data-c="商业">商业</span></div>
+              <p>“在投行/医院/警队工作是怎样的体验”类回答，是职业黑话与日常细节的富矿，注意甄别真实性。</p>
+              <div class="url"><span>zhihu.com</span><span class="arrow">→</span></div>
+            </a>
+          </div>
+        </div>
+
+        <!-- 科技 -->
+        <div class="domain" data-c="科技">
+          <div class="domain-head">
+            <div class="stamp">科</div>
+            <h3>科技 · 科幻 · 前沿</h3>
+            <div class="line"></div>
+            <div class="cnt mono">GAP 07</div>
+          </div>
+          <div class="sites">
+            <a class="site" href="https://www.cas.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>中国科学院</h4><span class="cat" data-c="科技">科技</span></div>
+              <p>各研究所动态与科普文章，硬科幻设定的可信理论来源，也是科研职场的观察窗口。</p>
+              <div class="url"><span>cas.cn</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://arxiv.org" target="_blank" rel="noopener">
+              <div class="top"><h4>arXiv</h4><span class="cat" data-c="科技">科技</span></div>
+              <p>前沿论文预印本。哪怕只读摘要，也能让你的设定比“随手编的科学”扎实一个量级。</p>
+              <div class="url"><span>arxiv.org</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.guokr.com" target="_blank" rel="noopener">
+              <div class="top"><h4>果壳</h4><span class="cat" data-c="科技">科技</span></div>
+              <p>把复杂科学讲成人话，适合快速弄懂某个原理能不能支撑你的情节设计。</p>
+              <div class="url"><span>guokr.com</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.nasa.gov" target="_blank" rel="noopener">
+              <div class="top"><h4>NASA</h4><span class="cat" data-c="科技">科技</span></div>
+              <p>航天、天文、深空探测的图像与资料库，太空题材的视觉与事实底座。</p>
+              <div class="url"><span>nasa.gov</span><span class="arrow">→</span></div>
+            </a>
+          </div>
+        </div>
+
+        <!-- 心理 -->
+        <div class="domain" data-c="心理">
+          <div class="domain-head">
+            <div class="stamp">心</div>
+            <h3>心理 · 行为 · 动机</h3>
+            <div class="line"></div>
+            <div class="cnt mono">GAP 08</div>
+          </div>
+          <div class="sites">
+            <a class="site" href="https://www.xinli001.com" target="_blank" rel="noopener">
+              <div class="top"><h4>壹心理</h4><span class="cat" data-c="心理">心理</span></div>
+              <p>心理科普与咨询实务文章，理解创伤、依恋、防御机制如何真实地影响人的行为。</p>
+              <div class="url"><span>xinli001.com</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://psych.ac.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>中科院心理研究所</h4><span class="cat" data-c="心理">心理</span></div>
+              <p>学术级心理学研究动态，写高智商角色、心理战、审讯博弈时的理论后盾。</p>
+              <div class="url"><span>psych.ac.cn</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.apa.org" target="_blank" rel="noopener">
+              <div class="top"><h4>美国心理学会 APA</h4><span class="cat" data-c="心理">心理</span></div>
+              <p>权威心理学主题综述与研究摘要，涉及心理障碍与治疗描写时的可靠依据。</p>
+              <div class="url"><span>apa.org</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://book.douban.com" target="_blank" rel="noopener">
+              <div class="top"><h4>豆瓣读书</h4><span class="cat" data-c="心理">心理</span></div>
+              <p>心理学与社科好书的书评与书单，快速定位“该读哪一本”来补人物动机的知识。</p>
+              <div class="url"><span>book.douban.com</span><span class="arrow">→</span></div>
+            </a>
+          </div>
+          <div class="gap-note"><b>提醒：</b>心理描写最忌“贴标签”——不要写“他患了抑郁症所以……”，要写具体的失眠、回避、躯体化。行为来自机制，不来自名词。</div>
+        </div>
+
+        <!-- 地理 -->
+        <div class="domain" data-c="地理">
+          <div class="domain-head">
+            <div class="stamp">地</div>
+            <h3>地理 · 地图 · 气候</h3>
+            <div class="line"></div>
+            <div class="cnt mono">GAP 09</div>
+          </div>
+          <div class="sites">
+            <a class="site" href="https://www.tianditu.gov.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>天地图</h4><span class="cat" data-c="地理">地理</span></div>
+              <p>官方地图服务，街道、地标、地形俱全。写现实城市场景前先走一遍“纸上街景”。</p>
+              <div class="url"><span>tianditu.gov.cn</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.openstreetmap.org" target="_blank" rel="noopener">
+              <div class="top"><h4>OpenStreetMap</h4><span class="cat" data-c="地理">地理</span></div>
+              <p>开源世界地图，可自由标注与导出，制作架空世界地图时也常用作底图参照。</p>
+              <div class="url"><span>openstreetmap.org</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.cng.com.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>中国国家地理</h4><span class="cat" data-c="地理">地理</span></div>
+              <p>地貌、气候、风物的深度图文，环境描写从“堆形容词”升级为有质感的现场。</p>
+              <div class="url"><span>cng.com.cn</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://earth.google.com" target="_blank" rel="noopener">
+              <div class="top"><h4>Google Earth</h4><span class="cat" data-c="地理">地理</span></div>
+              <p>三维实景漫游，异国场景、路线距离、日落方位都能实地“踩点”，写追逐戏尤其有用。</p>
+              <div class="url"><span>earth.google.com</span><span class="arrow">→</span></div>
+            </a>
+          </div>
+        </div>
+
+        <!-- 艺术 -->
+        <div class="domain" data-c="艺术">
+          <div class="domain-head">
+            <div class="stamp">艺</div>
+            <h3>艺术 · 器物 · 服饰</h3>
+            <div class="line"></div>
+            <div class="cnt mono">GAP 10</div>
+          </div>
+          <div class="sites">
+            <a class="site" href="https://chnmuseum.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>中国国家博物馆</h4><span class="cat" data-c="艺术">艺术</span></div>
+              <p>器物、服饰、书画的高清藏品与年代信息，为细节描写提供“看得见”的依据。</p>
+              <div class="url"><span>chnmuseum.cn</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.dpm.org.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>故宫名画记 · 数字文物库</h4><span class="cat" data-c="艺术">艺术</span></div>
+              <p>超高清文物影像，服饰纹样、器物形制、室内陈设可放大细看。</p>
+              <div class="url"><span>dpm.org.cn</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.metmuseum.org" target="_blank" rel="noopener">
+              <div class="top"><h4>大都会艺术博物馆</h4><span class="cat" data-c="艺术">艺术</span></div>
+              <p>开放获取的全球藏品图库，跨文化题材（欧洲、中东、日本）的器物与服饰参考。</p>
+              <div class="url"><span>metmuseum.org</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.unesco.org" target="_blank" rel="noopener">
+              <div class="top"><h4>联合国教科文组织</h4><span class="cat" data-c="艺术">艺术</span></div>
+              <p>世界遗产名录与文化专题，写异地异国风物时的权威背景资料。</p>
+              <div class="url"><span>unesco.org</span><span class="arrow">→</span></div>
+            </a>
+          </div>
+        </div>
+
+        <!-- 生活 -->
+        <div class="domain" data-c="生活">
+          <div class="domain-head">
+            <div class="stamp">常</div>
+            <h3>生活 · 百科 · 市井</h3>
+            <div class="line"></div>
+            <div class="cnt mono">GAP 11</div>
+          </div>
+          <div class="sites">
+            <a class="site" href="https://zh.wikipedia.org" target="_blank" rel="noopener">
+              <div class="top"><h4>维基百科</h4><span class="cat" data-c="生活">生活</span></div>
+              <p>通用百科第一站：制度、习俗、器物、地名，读条目记得顺引文栏下钻到原始来源。</p>
+              <div class="url"><span>zh.wikipedia.org</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.douban.com" target="_blank" rel="noopener">
+              <div class="top"><h4>豆瓣小组 · 话题</h4><span class="cat" data-c="生活">生活</span></div>
+              <p>真实生活切片：职业吐槽、地方风俗、消费细节。人物“怎么说话、怎么花钱”的素材库。</p>
+              <div class="url"><span>douban.com</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.bilibili.com" target="_blank" rel="noopener">
+              <div class="top"><h4>B站 · 纪录片 / Vlog</h4><span class="cat" data-c="生活">生活</span></div>
+              <p>市井百业的影像记录：菜市场、急诊室、夜班司机。写不出生活质感时，先看两小时。</p>
+              <div class="url"><span>bilibili.com</span><span class="arrow">→</span></div>
+            </a>
+            <a class="site" href="https://www.gov.cn" target="_blank" rel="noopener">
+              <div class="top"><h4>中国政府网</h4><span class="cat" data-c="生活">生活</span></div>
+              <p>政策原文与政务流程：落户、办学、社保、审批。涉及制度性情节时以官方表述为准。</p>
+              <div class="url"><span>gov.cn</span><span class="arrow">→</span></div>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TOOLS -->
+    <section id="tools">
+      <div class="sec-head rv">
+        <div class="sec-num">04</div>
+        <div>
+          <div class="sec-tag">TOOLBOX</div>
+          <h2>创作工具箱<br>把流程固化到工具里</h2>
+          <p>工具的选择标准只有一个：<b>能不能帮你维护上面那十二份文档</b>。按用途分四类，各取所需。</p>
+        </div>
+      </div>
+
+      <div class="tools rv">
+        <div class="tool-col">
+          <h3>长篇写作软件</h3>
+          <ul>
+            <li><b>Scrivener</b><span>长稿管理鼻祖<br>大纲 / 卡片 / 手稿箱</span></li>
+            <li><b>作家助手</b><span>阅文系平台直连<br>大纲设定 / 纠错 / 版本</span></li>
+            <li><b>云庐</b><span>中文小说创作工具<br>界面清爽 / 高度自定义</span></li>
+            <li><b>墨星写作</b><span>老牌素材 + 写作辅助<br>模板与技巧库丰富</span></li>
+            <li><b>VS Code / Obsidian</b><span>纯文本 + 双链笔记<br>适合自建设定知识库</span></li>
+          </ul>
+        </div>
+
+        <div class="tool-col">
+          <h3>知识管理</h3>
+          <ul>
+            <li><b>Obsidian</b><span>本地双链笔记<br>人物卡互链 / 伏笔图谱</span></li>
+            <li><b>Notion</b><span>数据库视图<br>章节表 / 伏笔表 / 看板</span></li>
+            <li><b>幕布</b><span>大纲脑图一体<br>快速搭三级大纲</span></li>
+            <li><b>语雀 / 飞书文档</b><span>结构化知识库<br>设定集协作与版本</span></li>
+            <li><b>Excel / 表格工具</b><span>时间线与伏笔表<br>最朴素也最可靠</span></li>
+          </ul>
+        </div>
+
+        <div class="tool-col">
+          <h3>AI 辅助（按场景）</h3>
+          <ul>
+            <li><b>DeepSeek</b><span>逻辑推演 / 世界观架构<br>伏笔梳理与剧情破局</span></li>
+            <li><b>Kimi</b><span>长文本理解<br>资料速读与考证摘要</span></li>
+            <li><b>豆包 / 文心一言</b><span>中文语感与素材发散<br>取名 / 对话灵感</span></li>
+            <li><b>笔灵 AI 小说</b><span>网文向<br>大纲 / 素材库 / 拆书</span></li>
+            <li><b>通用大模型</b><span>头脑风暴 / 角色动机推演<br>正文需大幅人工润色</span></li>
+          </ul>
+        </div>
+
+        <div class="tool-col">
+          <h3>发表与运营</h3>
+          <ul>
+            <li><b>起点 / 晋江 / 番茄</b><span>主流网文平台<br>先研究调性再开书</span></li>
+            <li><b>微信读书 / 豆瓣阅读</b><span>电子出版与连载<br>文艺向读者聚集</span></li>
+            <li><b>各出版社投稿渠道</b><span>选题表 + 三章样稿<br>查官网投稿邮箱</span></li>
+            <li><b>封面 / 排版工具</b><span>Canva / InDesign<br>自出版必备</span></li>
+            <li><b>社交媒体</b><span>建立读者连接<br>作品第一，运营第二</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHECKLIST -->
+    <section id="checklist">
+      <div class="sec-head rv">
+        <div class="sec-num">05</div>
+        <div>
+          <div class="sec-tag">CHECKLIST</div>
+          <h2>验收清单<br>点开勾选，看见进度</h2>
+          <p>写长篇最怕“感觉写了很多，但不知道完成到哪”。用这两张清单给每个阶段打勾——<b>勾不完，不进下一阶段。</b></p>
+        </div>
+      </div>
+
+      <div class="check-panel rv">
+        <div class="check-card">
+          <h3>开工前 · 立项自检</h3>
+          <div class="sub mono">BEFORE YOU WRITE</div>
+          <div class="check"><div class="box"></div><span>一句话能讲清故事：人物 + 困境 + 张力</span></div>
+          <div class="check"><div class="box"></div><span>主题写成一个明确的问题，并有初步立场</span></div>
+          <div class="check"><div class="box"></div><span>读过至少 3 部同类型对标作品并做过拆解</span></div>
+          <div class="check"><div class="box"></div><span>结局大方向已定（可以改，但不能没有）</span></div>
+          <div class="check"><div class="box"></div><span>主要人物小传写完，动机与缺陷清晰</span></div>
+          <div class="check"><div class="box"></div><span>世界观设定集建立，且每条设定对应冲突</span></div>
+          <div class="check"><div class="box"></div><span>专业知识缺口列成清单，逐项找到靠谱来源</span></div>
+          <div class="check"><div class="box"></div><span>粗纲完成：起承转合与三个大高潮位置明确</span></div>
+          <div class="check"><div class="box"></div><span>章纲至少覆盖前 30 章</span></div>
+          <div class="check"><div class="box"></div><span>伏笔追踪表建立（哪怕只有三行）</span></div>
+        </div>
+
+        <div class="check-card">
+          <h3>完稿后 · 交付自检</h3>
+          <div class="sub mono">BEFORE YOU SUBMIT</div>
+          <div class="check"><div class="box"></div><span>冷却两周以上再通读第一遍</span></div>
+          <div class="check"><div class="box"></div><span>结构层：支线已删冗，高潮高于前文</span></div>
+          <div class="check"><div class="box"></div><span>人物层：每个关键行为都能对应动机</span></div>
+          <div class="check"><div class="box"></div><span>伏笔表全部状态为「已收」或「明确废弃」</span></div>
+          <div class="check"><div class="box"></div><span>时间线与设定集交叉核对，无穿帮</span></div>
+          <div class="check"><div class="box"></div><span>专业知识硬伤请至少 1 位内行过目</span></div>
+          <div class="check"><div class="box"></div><span>至少 2 位目标读者反馈已回收并处理</span></div>
+          <div class="check"><div class="box"></div><span>开篇三章单独打磨过 3 遍以上</span></div>
+          <div class="check"><div class="box"></div><span>书名、简介、封面按「第一产品」标准打磨</span></div>
+          <div class="check"><div class="box"></div><span>错别字与标点完成一轮机械校对</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="rv">
+      <div>
+        <div class="big">
+          构思定方向 → 设定搭舞台 → 大纲建骨架<br>
+          习惯成正文 → 分层改到死 → <em>送达读者</em>。
+        </div>
+        <div class="meta">NOVEL ENGINEERING MAP · 工作流 × 素材组件 × 知识缺口</div>
+      </div>
+      <div>
+        <p>
+          这一页不是让你全部读完才动笔，而是让你在<b>任何一步卡住时</b>，都能找到对应的产出物与资料来源。<br><br>
+          最后一条建议：先把 A-01（一句话故事）写出来。写不出来之前，其余的一切都还只是收藏夹里的幻觉。
+        </p>
+      </div>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+/* progress bar */
+const progress=document.getElementById('progress');
+function updateProgress(){
+  const h=document.documentElement.scrollHeight-window.innerHeight;
+  progress.style.width=(h>0?(window.scrollY/h)*100:0)+'%';
+}
+window.addEventListener('scroll',updateProgress,{passive:true});
+updateProgress();
+
+/* scroll spy */
+const navLinks=[...document.querySelectorAll('#nav a')];
+const sections=navLinks.map(a=>document.querySelector(a.getAttribute('href')));
+function updateSpy(){
+  let current=sections[0];
+  const y=window.scrollY+window.innerHeight*0.28;
+  sections.forEach(s=>{if(s&&s.offsetTop<=y)current=s;});
+  navLinks.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+current.id));
+}
+window.addEventListener('scroll',updateSpy,{passive:true});
+updateSpy();
+
+/* reveal on scroll */
+const io=new IntersectionObserver((entries)=>{
+  entries.forEach((e,i)=>{
+    if(e.isIntersecting){
+      e.target.style.transitionDelay=(Math.min(i,4)*70)+'ms';
+      e.target.classList.add('in');
+      io.unobserve(e.target);
+    }
+  });
+},{threshold:.12,rootMargin:'0px 0px -8% 0px'});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+
+/* staggered reveal for grids */
+const gridIO=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      [...e.target.children].forEach((c,i)=>{
+        c.style.opacity=0;c.style.transform='translateY(22px)';
+        c.style.transition='opacity .6s cubic-bezier(.2,.7,.3,1),transform .6s cubic-bezier(.2,.7,.3,1)';
+        c.style.transitionDelay=(i*55)+'ms';
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{c.style.opacity=1;c.style.transform='none';}));
+      });
+      gridIO.unobserve(e.target);
+    }
+  });
+},{threshold:.08});
+document.querySelectorAll('.tasks,.assets,.sites,.tools').forEach(g=>gridIO.observe(g));
+
+/* filter */
+const filters=document.getElementById('filters');
+filters.addEventListener('click',(e)=>{
+  const btn=e.target.closest('.filter');
+  if(!btn)return;
+  filters.querySelectorAll('.filter').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const f=btn.dataset.f;
+  document.querySelectorAll('.domain').forEach(d=>{
+    const show=(f==='all'||d.dataset.c===f);
+    d.style.display=show?'':'none';
+    if(show){d.style.opacity=0;d.style.transform='translateY(14px)';
+      requestAnimationFrame(()=>{d.style.transition='opacity .5s ease,transform .5s ease';d.style.opacity=1;d.style.transform='none';});}
+  });
+});
+
+/* checklist toggle + persistence */
+document.querySelectorAll('.check').forEach((c,i)=>{
+  const key='novel-check-'+i;
+  if(localStorage.getItem(key)==='1')c.classList.add('done');
+  c.addEventListener('click',()=>{
+    c.classList.toggle('done');
+    localStorage.setItem(key,c.classList.contains('done')?'1':'0');
+  });
+});
+</script>
+</body>
+</html>

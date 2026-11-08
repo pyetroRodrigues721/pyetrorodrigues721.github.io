@@ -1,3 +1,6 @@
-# opencode 会话缓存
+# opencode 会话缓存 / 构建记录
 .cache/
+# 依赖
 node_modules/
+# macOS
+.DS_Store

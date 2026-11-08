@@ -21,18 +21,9 @@ const html = `<!DOCTYPE html>
   .tag{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.32em;
     color:#837c73;text-transform:uppercase}
   .mid{flex:1;display:flex;flex-direction:column;justify-content:center;padding:24px 0}
-  h1{font-weight:900;font-size:76px;line-height:1.22;letter-spacing:-.01em}
-  .uline{position:relative;display:inline-block}
-  .uline::after{content:"";position:absolute;left:-2%;right:-2%;bottom:.14em;height:.14em;
-    background:#27457e;border-radius:2px}
-  .desc{margin-top:26px;font-size:21px;font-weight:300;line-height:2.15;color:#4a453f;
-    max-width:900px}
-  .desc b{color:#1b1917;font-weight:700}
   .foot{display:flex;justify-content:space-between;align-items:baseline;
     padding-top:22px;border-top:1px solid #d6d0c4}
   .url{font-family:'JetBrains Mono',monospace;font-size:16px;letter-spacing:.14em;color:#27457e}
-  .fields{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.2em;
-    color:#837c73;text-transform:uppercase}
   .grain{position:absolute;inset:0;pointer-events:none;opacity:.05;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 </style>
@@ -44,13 +35,9 @@ const html = `<!DOCTYPE html>
     <span class="tag">Personal Blog · 2023 —</span>
   </div>
   <div class="rule"></div>
-  <div class="mid">
-    <h1>一个人的博客，<br>几本<span class="uline">分册</span>。</h1>
-    <p class="desc">前端、设计、读书、工具、生活……<b>每个领域一册</b>。册里是我写下的文章、一行行手写出来的 HTML 页面、小实验。</p>
-  </div>
+  <div class="mid"></div>
   <div class="foot">
     <span class="url">zerophix.github.io</span>
-    <span class="fields">前端 · 设计 · 工具 · 实验 · 读书 · 生活 · 影像</span>
   </div>
 </body>
 </html>`;

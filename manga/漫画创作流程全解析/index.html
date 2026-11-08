@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>漫画制作全流程 · 素材补给地图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f2ece0;
+  --paper-2:#e9e0cf;
+  --paper-3:#ded2bd;
+  --ink:#171310;
+  --ink-soft:#413830;
+  --muted:#8b8073;
+  --verm:#c33f27;
+  --verm-deep:#8f2413;
+  --line:rgba(23,19,16,.15);
+  --line-strong:rgba(23,19,16,.32);
+  --maxw:1280px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Noto Sans SC",sans-serif;
+  font-weight:300;
+  line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.055;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+::selection{background:var(--verm);color:var(--paper)}
+
+/* ---------- 网点纹理 ---------- */
+.tone{
+  background-image:radial-gradient(var(--line-strong) 1px, transparent 1.1px);
+  background-size:6px 6px;
+}
+
+/* ---------- 排版基元 ---------- */
+.mono{font-family:"DM Mono",monospace;letter-spacing:.14em;text-transform:uppercase;font-size:.68rem;font-weight:400}
+.serif{font-family:"Noto Serif SC",serif}
+.num{font-family:"Bebas Neue",sans-serif;letter-spacing:.02em;line-height:.82}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 40px}
+a{color:inherit;text-decoration:none}
+
+/* ---------- 顶栏 ---------- */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:900;
+  background:rgba(242,236,224,.82);
+  backdrop-filter:blur(14px) saturate(1.3);
+  border-bottom:1px solid var(--line);
+}
+.nav{max-width:var(--maxw);margin:0 auto;padding:0 40px;height:58px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand .mark{
+  width:26px;height:26px;background:var(--verm);color:var(--paper);
+  display:grid;place-items:center;font-family:"Noto Serif SC",serif;font-weight:900;font-size:.85rem;
+}
+.brand b{font-family:"Noto Serif SC",serif;font-weight:900;font-size:.95rem;letter-spacing:.12em}
+.nav ul{display:flex;gap:26px;list-style:none}
+.nav ul a{position:relative;padding:4px 0;color:var(--ink-soft);transition:color .25s}
+.nav ul a::after{content:"";position:absolute;left:0;bottom:0;width:0;height:1.5px;background:var(--verm);transition:width .3s cubic-bezier(.2,.8,.2,1)}
+.nav ul a:hover{color:var(--ink)}
+.nav ul a:hover::after{width:100%}
+.progress{position:absolute;bottom:-1px;left:0;height:2px;background:var(--verm);width:0}
+
+/* ---------- HERO ---------- */
+.hero{padding:150px 0 70px;position:relative;overflow:hidden}
+.hero .kicker{display:flex;align-items:center;gap:14px;color:var(--verm);margin-bottom:26px}
+.hero .kicker .rule{width:64px;height:1px;background:var(--verm)}
+.hero h1{
+  font-family:"Noto Serif SC",serif;font-weight:900;
+  font-size:clamp(3rem,8.6vw,7.4rem);line-height:.94;letter-spacing:-.02em;
+}
+.hero h1 em{font-style:normal;color:var(--verm);position:relative;display:inline-block}
+.hero h1 em::after{
+  content:"";position:absolute;left:-2%;bottom:.07em;width:104%;height:.11em;background:var(--verm);opacity:.22;
+}
+.hero .sub{
+  margin-top:34px;max-width:600px;font-size:1.06rem;color:var(--ink-soft);line-height:2;
+}
+.hero-grid{display:grid;grid-template-columns:1.35fr .65fr;gap:56px;align-items:end}
+.stats{display:grid;gap:2px;border:1px solid var(--line-strong);background:var(--line)}
+.stat{background:var(--paper);padding:18px 22px;display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.stat .num{font-size:2.6rem;color:var(--ink)}
+.stat span{color:var(--muted);font-size:.78rem;letter-spacing:.12em}
+
+/* 生产流水线 ticker */
+.pipeline{
+  margin-top:74px;border-top:1px solid var(--line-strong);border-bottom:1px solid var(--line-strong);
+  overflow:hidden;position:relative;background:var(--paper-2);
+}
+.pipeline-track{display:flex;width:max-content;animation:slide 46s linear infinite}
+.pipeline:hover .pipeline-track{animation-play-state:paused}
+.pipe-item{display:flex;align-items:center;gap:18px;padding:17px 34px;white-space:nowrap}
+.pipe-item .num{font-size:1.55rem;color:var(--verm)}
+.pipe-item b{font-family:"Noto Serif SC",serif;font-size:1.12rem;font-weight:700;letter-spacing:.06em}
+.pipe-item i{font-style:normal;color:var(--muted);font-family:"DM Mono",monospace;font-size:.68rem;letter-spacing:.16em}
+.pipe-item .arw{color:var(--line-strong);font-size:1.2rem}
+@keyframes slide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ---------- 区块标题 ---------- */
+.sec{padding:104px 0}
+.sec-head{display:grid;grid-template-columns:auto 1fr;gap:30px;align-items:start;margin-bottom:58px}
+.sec-head .idx{
+  font-family:"Bebas Neue",sans-serif;font-size:5.2rem;line-height:.8;color:transparent;
+  -webkit-text-stroke:1.4px var(--verm);
+}
+.sec-head h2{font-family:"Noto Serif SC",serif;font-weight:900;font-size:clamp(1.85rem,3.4vw,2.9rem);line-height:1.18;letter-spacing:.01em}
+.sec-head p{margin-top:14px;max-width:620px;color:var(--ink-soft);font-size:.98rem}
+
+/* ---------- 全景流程 ---------- */
+.flow{display:grid;grid-template-columns:repeat(6,1fr);border-left:1px solid var(--line);border-top:1px solid var(--line)}
+.flow-card{
+  border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:28px 22px 26px;position:relative;background:var(--paper);
+  transition:background .35s ease, transform .35s ease;cursor:pointer;
+}
+.flow-card:hover{background:var(--paper-2);transform:translateY(-5px)}
+.flow-card .num{font-size:3.4rem;color:var(--verm);opacity:.85}
+.flow-card h3{font-family:"Noto Serif SC",serif;font-size:1.16rem;font-weight:700;margin:10px 0 8px;letter-spacing:.04em}
+.flow-card p{font-size:.83rem;color:var(--muted);line-height:1.85}
+.flow-card .out{
+  margin-top:18px;padding-top:13px;border-top:1px dashed var(--line-strong);
+  font-family:"DM Mono",monospace;font-size:.66rem;letter-spacing:.11em;color:var(--ink-soft);
+}
+.flow-card .bar{margin-top:14px;height:3px;background:var(--paper-3);position:relative;overflow:hidden}
+.flow-card .bar i{position:absolute;inset:0;width:0;background:var(--verm);transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.flow-card.in .bar i{width:var(--w)}
+
+/* ---------- 阶段详解 ---------- */
+.stage{
+  display:grid;grid-template-columns:.85fr 1.15fr;gap:0;
+  border-top:1px solid var(--line-strong);position:relative;
+}
+.stage:last-child{border-bottom:1px solid var(--line-strong)}
+.stage-left{padding:52px 46px 52px 0;position:relative}
+.stage-left .huge{
+  font-family:"Bebas Neue",sans-serif;font-size:clamp(5.2rem,11vw,9.6rem);line-height:.78;
+  color:var(--paper-3);letter-spacing:-.01em;
+}
+.stage-left h3{
+  font-family:"Noto Serif SC",serif;font-weight:900;font-size:1.92rem;line-height:1.3;
+  margin-top:-14px;position:relative;letter-spacing:.03em;
+}
+.stage-left h3 .tag{
+  display:inline-block;vertical-align:middle;margin-left:12px;padding:3px 11px;
+  background:var(--verm);color:var(--paper);font-family:"DM Mono",monospace;
+  font-size:.62rem;letter-spacing:.16em;font-weight:400;
+}
+.stage-left .goal{
+  margin-top:22px;padding-left:18px;border-left:2px solid var(--verm);
+  color:var(--ink-soft);font-size:.95rem;line-height:2;
+}
+.stage-right{
+  padding:52px 0 52px 52px;border-left:1px solid var(--line);
+  display:grid;gap:30px;align-content:start;
+}
+.blk h4{
+  font-family:"DM Mono",monospace;font-size:.68rem;letter-spacing:.2em;
+  color:var(--verm);margin-bottom:13px;display:flex;align-items:center;gap:11px;
+}
+.blk h4::after{content:"";flex:1;height:1px;background:var(--line)}
+.blk ul{list-style:none;display:grid;gap:8px}
+.blk li{font-size:.92rem;color:var(--ink-soft);padding-left:19px;position:relative;line-height:1.8}
+.blk li::before{content:"";position:absolute;left:0;top:.72em;width:7px;height:1.5px;background:var(--ink)}
+.comps{display:flex;flex-wrap:wrap;gap:8px}
+.comp{
+  padding:7px 14px;border:1px solid var(--line-strong);font-size:.8rem;color:var(--ink-soft);
+  background:var(--paper);transition:.25s;
+}
+.comp:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.pain{
+  background:var(--paper-2);padding:20px 22px;border-left:3px solid var(--verm);
+}
+.pain strong{font-family:"Noto Serif SC",serif;font-size:.95rem;display:block;margin-bottom:6px}
+.pain p{font-size:.87rem;color:var(--ink-soft);line-height:1.9}
+.pain .fix{margin-top:11px;display:flex;flex-wrap:wrap;gap:7px}
+.pain .fix a{
+  font-family:"DM Mono",monospace;font-size:.66rem;letter-spacing:.09em;
+  padding:5px 11px;background:var(--paper);border:1px dashed var(--line-strong);
+  transition:.22s;
+}
+.pain .fix a:hover{background:var(--verm);color:var(--paper);border-color:var(--verm);border-style:solid}
+
+/* ---------- 素材组件矩阵 ---------- */
+.matrix{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line)}
+.mx{background:var(--paper);padding:32px 26px;position:relative;overflow:hidden;transition:.35s}
+.mx:hover{background:var(--ink);color:var(--paper)}
+.mx:hover .mx-n{color:var(--verm)}
+.mx:hover .mx-d{color:rgba(242,236,224,.62)}
+.mx-n{font-family:"Bebas Neue",sans-serif;font-size:2.3rem;color:var(--paper-3);transition:.35s}
+.mx h4{font-family:"Noto Serif SC",serif;font-size:1.12rem;font-weight:700;margin:6px 0 10px;letter-spacing:.05em}
+.mx-d{font-size:.83rem;color:var(--muted);line-height:1.9;transition:.35s}
+.mx ul{margin-top:15px;list-style:none;display:grid;gap:5px}
+.mx ul li{font-family:"DM Mono",monospace;font-size:.65rem;letter-spacing:.08em;opacity:.72}
+
+/* ---------- 资源索引 ---------- */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:30px}
+.filters button{
+  font-family:"DM Mono",monospace;font-size:.68rem;letter-spacing:.13em;
+  padding:9px 17px;border:1px solid var(--line-strong);background:transparent;
+  color:var(--ink-soft);cursor:pointer;transition:.22s;
+}
+.filters button:hover{border-color:var(--ink);color:var(--ink)}
+.filters button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.res-count{font-family:"DM Mono",monospace;font-size:.68rem;letter-spacing:.14em;color:var(--muted);margin-bottom:18px}
+.res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line)}
+.res{
+  background:var(--paper);padding:24px 24px 22px;display:flex;flex-direction:column;gap:9px;
+  transition:.3s;position:relative;
+}
+.res:hover{background:var(--paper-2);transform:translateY(-3px);z-index:2;box-shadow:0 16px 34px -22px rgba(23,19,16,.45)}
+.res .top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.res h5{font-family:"Noto Serif SC",serif;font-size:1.06rem;font-weight:700;letter-spacing:.02em;line-height:1.4}
+.res .price{
+  font-family:"DM Mono",monospace;font-size:.6rem;letter-spacing:.12em;padding:3px 8px;
+  border:1px solid var(--line-strong);color:var(--muted);white-space:nowrap;flex-shrink:0;
+}
+.res .price.free{background:var(--verm);color:var(--paper);border-color:var(--verm)}
+.res .d{font-size:.83rem;color:var(--ink-soft);line-height:1.82;flex:1}
+.res .u{font-family:"DM Mono",monospace;font-size:.66rem;letter-spacing:.06em;color:var(--verm);word-break:break-all}
+.res .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.res .tags span{font-family:"DM Mono",monospace;font-size:.6rem;letter-spacing:.11em;color:var(--muted);padding:2px 8px;background:var(--paper-2);border:1px solid var(--line)}
+.res.hide{display:none}
+
+/* ---------- 路径清单 ---------- */
+.path{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line)}
+.ph{background:var(--paper);padding:30px 24px}
+.ph .wk{font-family:"Bebas Neue",sans-serif;font-size:2.15rem;color:var(--verm);line-height:.9}
+.ph h4{font-family:"Noto Serif SC",serif;font-size:1.04rem;font-weight:700;margin:8px 0 12px;letter-spacing:.04em}
+.ph ol{list-style:none;display:grid;gap:9px}
+.ph li{font-size:.83rem;color:var(--ink-soft);line-height:1.8;padding-left:26px;position:relative}
+.ph li::before{
+  content:counter(li,decimal-leading-zero);counter-increment:li;
+  position:absolute;left:0;top:.12em;font-family:"DM Mono",monospace;font-size:.64rem;
+  letter-spacing:.08em;color:var(--verm);
+}
+.ph ol{counter-reset:li}
+
+/* ---------- 底部 ---------- */
+footer{background:var(--ink);color:var(--paper);padding:78px 0 40px;position:relative;overflow:hidden}
+footer::before{
+  content:"";position:absolute;inset:0;opacity:.1;
+  background-image:radial-gradient(rgba(242,236,224,.9) 1px,transparent 1.1px);
+  background-size:7px 7px;
+}
+.foot-top{display:grid;grid-template-columns:1.3fr 1fr;gap:50px;align-items:start;position:relative}
+.foot-top h3{font-family:"Noto Serif SC",serif;font-size:clamp(1.75rem,3.3vw,2.65rem);font-weight:900;line-height:1.32}
+.foot-top h3 em{font-style:normal;color:var(--verm)}
+.foot-note{color:rgba(242,236,224,.58);font-size:.88rem;line-height:2.05}
+.foot-bar{
+  margin-top:58px;padding-top:22px;border-top:1px solid rgba(242,236,224,.18);
+  display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  font-family:"DM Mono",monospace;font-size:.66rem;letter-spacing:.15em;
+  color:rgba(242,236,224,.5);position:relative;
+}
+
+/* ---------- 动效 ---------- */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .75s cubic-bezier(.2,.8,.2,1),transform .75s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* ---------- 响应式 ---------- */
+@media(max-width:1080px){
+  .flow{grid-template-columns:repeat(3,1fr)}
+  .matrix{grid-template-columns:repeat(2,1fr)}
+  .res-grid{grid-template-columns:repeat(2,1fr)}
+  .path{grid-template-columns:repeat(2,1fr)}
+  .hero-grid{grid-template-columns:1fr;gap:38px}
+}
+@media(max-width:760px){
+  .wrap{padding:0 22px}
+  .nav{padding:0 22px}
+  .nav ul{display:none}
+  .hero{padding:118px 0 52px}
+  .sec{padding:70px 0}
+  .sec-head{grid-template-columns:1fr;gap:12px}
+  .sec-head .idx{font-size:3.6rem}
+  .flow{grid-template-columns:1fr}
+  .stage{grid-template-columns:1fr}
+  .stage-left{padding:38px 0 26px}
+  .stage-right{padding:0 0 42px;border-left:none}
+  .matrix,.res-grid,.path{grid-template-columns:1fr}
+  .foot-top{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="brand">
+      <div class="mark">漫</div>
+      <b>制作全流程 · 素材地图</b>
+    </div>
+    <ul>
+      <li><a href="#flow">全景流程</a></li>
+      <li><a href="#stages">阶段详解</a></li>
+      <li><a href="#matrix">素材组件</a></li>
+      <li><a href="#res">资源索引</a></li>
+      <li><a href="#path">上手路径</a></li>
+    </ul>
+    <div class="progress" id="progress"></div>
+  </div>
+</header>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="kicker">
+          <span class="rule"></span>
+          <span class="mono">Comic Production Workflow / 素材补给地图</span>
+        </div>
+        <h1>
+          把<em>故事</em>拆成<br>
+          一格一格的<br>
+          制作工序。
+        </h1>
+        <p class="sub">
+          一份写给半路出家者的作战地图。左边是漫画从想法到成稿的六道工序、每道工序需要的基础组件，以及最容易卡住的地方；右边是可以立刻拿来补短板的专业素材网站——人体、构图、背景、网点、笔刷、字体、色彩，全部对号入座。
+        </p>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="num">06</span><span class="mono">道核心工序</span></div>
+        <div class="stat"><span class="num">12</span><span class="mono">类基础组件</span></div>
+        <div class="stat"><span class="num">38</span><span class="mono">个专业资源站</span></div>
+        <div class="stat"><span class="num">04</span><span class="mono">周补基计划</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipeline">
+    <div class="pipeline-track" id="track">
+      <!-- JS 复制两遍 -->
+    </div>
+  </div>
+</section>
+
+<!-- ================= 全景流程 ================= -->
+<section class="sec" id="flow">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="idx">01</div>
+      <div>
+        <h2>全景工作流：从一句话到一本成书</h2>
+        <p>漫画不是"画得好"就够了，它是一条工序链。每道工序解决一类问题，上一道偷的懒，下一道都会加倍还回来。下方的条形代表该阶段在整部作品中所占的精力比重。</p>
+      </div>
+    </div>
+
+    <div class="flow" id="flowGrid"></div>
+  </div>
+</section>
+
+<!-- ================= 阶段详解 ================= -->
+<section class="sec" id="stages" style="padding-top:20px">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="idx">02</div>
+      <div>
+        <h2>阶段详解：每道工序的产出物、组件与短板</h2>
+        <p>短板是最值钱的信息。知道自己缺什么，才知道该去哪里补。</p>
+      </div>
+    </div>
+
+    <!-- 阶段 1 -->
+    <article class="stage reveal">
+      <div class="stage-left">
+        <div class="huge">01</div>
+        <h3>策划 · 剧本<span class="tag">STORY</span></h3>
+        <div class="goal">目标：把"想画点什么"变成一条能被别人读懂、并且自己能画完的故事线。</div>
+      </div>
+      <div class="stage-right">
+        <div class="blk">
+          <h4>关键动作</h4>
+          <ul>
+            <li>一句话梗概（Logline）：主角 + 欲望 + 阻碍 + 代价</li>
+            <li>三幕式或起承转合结构，标出每幕的情绪拐点</li>
+            <li>分话大纲：每话末尾必须有一个翻页/下滑的钩子</li>
+            <li>文字台本：写清每格发生什么、说什么、留什么白</li>
+          </ul>
+        </div>
+        <div class="blk">
+          <h4>需要的基础组件</h4>
+          <div class="comps">
+            <span class="comp">故事模板</span><span class="comp">人物小传表</span>
+            <span class="comp">世界观设定集</span><span class="comp">冲突/动机清单</span>
+            <span class="comp">节奏曲线图</span><span class="comp">对白风格样本</span>
+          </div>
+        </div>
+        <div class="pain">
+          <strong>常见短板：想法很多，结构很散</strong>
+          <p>新手最常卡在"第二话崩盘"——开局热情撑得住，中段失去张力。解法是先用别人的分镜书和拉片素材拆结构，而不是硬写。</p>
+          <div class="fix">
+            <a href="https://characterdesignreferences.com" target="_blank" rel="noopener">Character Design References</a>
+            <a href="https://film-grab.com" target="_blank" rel="noopener">FILMGRAB 拉片参考</a>
+            <a href="https://www.moviestillsdb.com" target="_blank" rel="noopener">MovieStillsDB</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 阶段 2 -->
+    <article class="stage reveal">
+      <div class="stage-left">
+        <div class="huge">02</div>
+        <h3>人设 · 世界观<span class="tag">DESIGN</span></h3>
+        <div class="goal">目标：让角色在任何一格里都能被认出来，并且有"演戏"的余地。</div>
+      </div>
+      <div class="stage-right">
+        <div class="blk">
+          <h4>关键动作</h4>
+          <ul>
+            <li>三视图 + 表情集 + 常用姿势集，锁定轮廓特征（剪影可辨识）</li>
+            <li>服装道具拆解：哪些要画细，哪些可以简化</li>
+            <li>配色板与光源设定：白天/夜景/室内的光比统一</li>
+            <li>场景地图：故事发生的空间关系先画出来</li>
+          </ul>
+        </div>
+        <div class="blk">
+          <h4>需要的基础组件</h4>
+          <div class="comps">
+            <span class="comp">人体比例模板</span><span class="comp">表情表</span>
+            <span class="comp">服装参考板</span><span class="comp">道具图鉴</span>
+            <span class="comp">色彩脚本</span><span class="comp">场景平面图</span>
+          </div>
+        </div>
+        <div class="pain">
+          <strong>常见短板：人体结构与透视</strong>
+          <p>这是最普遍、也最容易用素材补齐的一环。3D 人偶摆姿势 + 解剖模型对着看，比闭门苦画效率高一个数量级。</p>
+          <div class="fix">
+            <a href="https://www.posemaniacs.com" target="_blank" rel="noopener">PoseManiacs 3D 肌肉</a>
+            <a href="https://terawell.net/terawell/?lang=en" target="_blank" rel="noopener">DesignDoll 人偶</a>
+            <a href="https://magicposer.com" target="_blank" rel="noopener">Magic Poser</a>
+            <a href="https://sketchfab.com" target="_blank" rel="noopener">Sketchfab 3D</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 阶段 3 -->
+    <article class="stage reveal">
+      <div class="stage-left">
+        <div class="huge">03</div>
+        <h3>分镜 · ネーム<span class="tag">NAME</span></h3>
+        <div class="goal">目标：决定读者看什么、怎么看、在哪一页被击中。整部作品的节奏在这一阶段定型。</div>
+      </div>
+      <div class="stage-right">
+        <div class="blk">
+          <h4>关键动作</h4>
+          <ul>
+            <li>页面结构：每页几格、视线动线、翻页冲击点放在右下</li>
+            <li>镜头语言：远景交代 / 中景关系 / 特写情绪，按需切换</li>
+            <li>信息密度控制：一格只讲一件事，重要格子放大</li>
+            <li>气泡位置预留：别让文字压住脸和手</li>
+          </ul>
+        </div>
+        <div class="blk">
+          <h4>需要的基础组件</h4>
+          <div class="comps">
+            <span class="comp">分镜草稿本</span><span class="comp">构图参考库</span>
+            <span class="comp">镜头词汇表</span><span class="comp">原稿纸模板</span>
+            <span class="comp">翻页钩子清单</span><span class="comp">情绪曲线图</span>
+          </div>
+        </div>
+        <div class="pain">
+          <strong>常见短板：构图缺乏电影感</strong>
+          <p>最快的补法是"拉片"——用电影截帧库研究景深、机位、正反打、留白。每周拆 20 张分镜，比画 20 张更有用。</p>
+          <div class="fix">
+            <a href="https://shotdeck.com" target="_blank" rel="noopener">ShotDeck</a>
+            <a href="https://shot.cafe" target="_blank" rel="noopener">SHOT.CAFE</a>
+            <a href="https://film-grab.com" target="_blank" rel="noopener">FILMGRAB</a>
+            <a href="https://www.moviestillsdb.com" target="_blank" rel="noopener">MovieStillsDB</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 阶段 4 -->
+    <article class="stage reveal">
+      <div class="stage-left">
+        <div class="huge">04</div>
+        <h3>草稿 · 线稿<span class="tag">INK</span></h3>
+        <div class="goal">目标：把分镜放大成干净、有体积、有情绪的线条。线是漫画的语言。</div>
+      </div>
+      <div class="stage-right">
+        <div class="blk">
+          <h4>关键动作</h4>
+          <ul>
+            <li>放大草稿：确定人体、透视、光影三大关系</li>
+            <li>勾线：外轮廓粗、内结构细，转折处提笔留气口</li>
+            <li>线重分层：主线 / 结构线 / 氛围线，情绪随之变化</li>
+            <li>擦除与整理：保持画面呼吸，别把线填死</li>
+          </ul>
+        </div>
+        <div class="blk">
+          <h4>需要的基础组件</h4>
+          <div class="comps">
+            <span class="comp">笔刷套装</span><span class="comp">笔压曲线预设</span>
+            <span class="comp">人体姿势图库</span><span class="comp">手部/足部专项</span>
+            <span class="comp">头发/衣褶画法</span><span class="comp">透视尺/辅助线</span>
+          </div>
+        </div>
+        <div class="pain">
+          <strong>常见短板：线条抖、动态僵</strong>
+          <p>先用限时速写把"抓形"练出来（30 秒/1 分钟动态），再练勾线。姿势图库和速写计时器是这一环节的最佳组合。</p>
+          <div class="fix">
+            <a href="https://line-of-action.com" target="_blank" rel="noopener">Line of Action</a>
+            <a href="https://quickposes.com/en" target="_blank" rel="noopener">QuickPoses</a>
+            <a href="https://proko.com" target="_blank" rel="noopener">Proko 人体课</a>
+            <a href="https://assets.clip-studio.com" target="_blank" rel="noopener">CSP ASSETS 笔刷</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 阶段 5 -->
+    <article class="stage reveal">
+      <div class="stage-left">
+        <div class="huge">05</div>
+        <h3>背景 · 网点 · 上色<span class="tag">TONAL</span></h3>
+        <div class="goal">目标：给画面加上灰度与空间，让黑白也读得出空气、光和距离。</div>
+      </div>
+      <div class="stage-right">
+        <div class="blk">
+          <h4>关键动作</h4>
+          <ul>
+            <li>背景：可用 3D 模型打底 + 线稿化，省下大量透视时间</li>
+            <li>网点：灰阶分层（高光/中间调/暗部/最暗），控制画面灰度平衡</li>
+            <li>上色（条漫/彩漫）：固有色 → 光影二分 → 环境色 → 氛围滤镜</li>
+            <li>特效：速度线、集中线、光晕、噪点，统一风格</li>
+          </ul>
+        </div>
+        <div class="blk">
+          <h4>需要的基础组件</h4>
+          <div class="comps">
+            <span class="comp">网点/纹理包</span><span class="comp">PBR 材质贴图</span>
+            <span class="comp">HDRI 环境光</span><span class="comp">3D 场景模型</span>
+            <span class="comp">照片参考库</span><span class="comp">色彩脚本</span>
+            <span class="comp">笔刷特效</span>
+          </div>
+        </div>
+        <div class="pain">
+          <strong>常见短板：灰度脏、空间糊</strong>
+          <p>背景不必全手绘。CC0 贴图库 + HDRI 打光 + 3D 模型打底，是职业条漫工作室的常规操作，能省下 40% 以上的时间。</p>
+          <div class="fix">
+            <a href="https://polyhaven.com" target="_blank" rel="noopener">Poly Haven</a>
+            <a href="https://ambientcg.com" target="_blank" rel="noopener">ambientCG</a>
+            <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a>
+            <a href="https://www.truegrittexturesupply.com" target="_blank" rel="noopener">True Grit Texture</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- 阶段 6 -->
+    <article class="stage reveal">
+      <div class="stage-left">
+        <div class="huge">06</div>
+        <h3>文字 · 拟声词 · 后期<span class="tag">TYPE</span></h3>
+        <div class="goal">目标：让文字成为画面的一部分，并把作品送到读者手上。</div>
+      </div>
+      <div class="stage-right">
+        <div class="blk">
+          <h4>关键动作</h4>
+          <ul>
+            <li>对白排版：气泡形状、字号、行距表达语气与音量</li>
+            <li>拟声词设计：字形本身就是演出，日系手写体是利器</li>
+            <li>旁白框与叙事声音：统一视觉语言</li>
+            <li>输出：原稿纸出血、分辨率（印刷 600dpi 线稿 / 网屏）、格式规范</li>
+            <li>发布：平台投稿规范、单行本排版、宣传图</li>
+          </ul>
+        </div>
+        <div class="blk">
+          <h4>需要的基础组件</h4>
+          <div class="comps">
+            <span class="comp">标题/正文/拟声词字体</span><span class="comp">气泡素材</span>
+            <span class="comp">效果字库</span><span class="comp">原稿纸模板</span>
+            <span class="comp">输出参数表</span><span class="comp">封面排版参考</span>
+          </div>
+        </div>
+        <div class="pain">
+          <strong>常见短板：字体侵权与排版违和</strong>
+          <p>商用务必使用明确标注"可免费商用"的字体。日系拟声词和中文卡通体各有成熟免费库，别用系统默认黑体糊弄。</p>
+          <div class="fix">
+            <a href="https://maoken.com" target="_blank" rel="noopener">猫啃网</a>
+            <a href="https://fonts.google.com" target="_blank" rel="noopener">Google Fonts</a>
+            <a href="https://www.100font.com" target="_blank" rel="noopener">100font</a>
+            <a href="https://assets.clip-studio.com" target="_blank" rel="noopener">CSP ASSETS 效果字</a>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ================= 素材组件矩阵 ================= -->
+<section class="sec" id="matrix" style="background:var(--paper-2)">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="idx">03</div>
+      <div>
+        <h2>基础材料组件：漫画工作室的"货架"</h2>
+        <p>把素材按用途归位，而不是乱存一气。这 12 类组件覆盖了从草稿到出版的全部需求。</p>
+      </div>
+    </div>
+
+    <div class="matrix" id="matrixGrid"></div>
+  </div>
+</section>
+
+<!-- ================= 资源索引 ================= -->
+<section class="sec" id="res">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="idx">04</div>
+      <div>
+        <h2>资源索引：按短板对号入座</h2>
+        <p>点击分类筛选。标注"免费"的站点可直接商用或个人使用；部分站点需注册或付费，请以官网最新授权为准。</p>
+      </div>
+    </div>
+
+    <div class="filters reveal" id="filters"></div>
+    <div class="res-count mono" id="resCount"></div>
+    <div class="res-grid" id="resGrid"></div>
+  </div>
+</section>
+
+<!-- ================= 上手路径 ================= -->
+<section class="sec" id="path" style="background:var(--paper-2)">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="idx">05</div>
+      <div>
+        <h2>四周补基计划：把素材变成能力</h2>
+        <p>素材只是拐杖。真正的补齐方式是"用素材去练"，而不是囤素材。以下是一个可执行的最小路径。</p>
+      </div>
+    </div>
+
+    <div class="path reveal">
+      <div class="ph">
+        <div class="wk">WEEK 01</div>
+        <h4>抓形与人体</h4>
+        <ol>
+          <li>每天 20 分钟限时速写（30s→1min→5min）</li>
+          <li>用 3D 人偶摆 3 个叙事姿势并描摹</li>
+          <li>临摹 10 张手部/足部专项</li>
+          <li>建立自己的"姿势参考"收藏夹</li>
+        </ol>
+      </div>
+      <div class="ph">
+        <div class="wk">WEEK 02</div>
+        <h4>构图与分镜</h4>
+        <ol>
+          <li>每周拆解 20 张电影分镜截帧</li>
+          <li>把一段小说改写成 4 页分镜</li>
+          <li>练习翻页钩子：每页末格留悬念</li>
+          <li>研究气泡与视线动线的配合</li>
+        </ol>
+      </div>
+      <div class="ph">
+        <div class="wk">WEEK 03</div>
+        <h4>线稿与灰度</h4>
+        <ol>
+          <li>选 3 套笔刷，固定下来别再换</li>
+          <li>练习线重变化：外粗内细</li>
+          <li>用网点做 5 张灰度层次练习</li>
+          <li>3D 打底 + 勾线，完成 2 张带背景的整页</li>
+        </ol>
+      </div>
+      <div class="ph">
+        <div class="wk">WEEK 04</div>
+        <h4>完稿与输出</h4>
+        <ol>
+          <li>搭好自己的字体库与气泡样式</li>
+          <li>走完一次完整流程：8 页短篇</li>
+          <li>按平台规范导出并做打印测试</li>
+          <li>复盘：哪道工序最耗时，就补哪块</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <h3>素材可以<em>补齐</em>工具，<br>但分镜与故事只能靠<em>一遍遍</em>画。</h3>
+      <div class="foot-note">
+        本页整理的资源站点信息基于公开资料，站点授权政策可能随时调整，商用前请务必核对各官网的最新许可条款。<br>
+        建议把常用站点收进书签栏，按"人体 / 构图 / 背景 / 字体"四栏分类，用时直接调取，不要临时乱找。
+      </div>
+    </div>
+    <div class="foot-bar">
+      <span>COMIC PRODUCTION WORKFLOW</span>
+      <span>06 STAGES / 12 COMPONENTS / 38 RESOURCES</span>
+      <span>MADE FOR SELF-TAUGHT CREATORS</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ================= 流水线 ticker ================= */
+const stages = [
+  ["01","策划 · 剧本","STORY"],
+  ["02","人设 · 世界观","DESIGN"],
+  ["03","分镜 · ネーム","NAME"],
+  ["04","草稿 · 线稿","INK"],
+  ["05","背景 · 网点 · 上色","TONAL"],
+  ["06","文字 · 拟声词 · 后期","TYPE"]
+];
+const track = document.getElementById('track');
+let tickHTML = '';
+for (let r = 0; r < 2; r++) {
+  stages.forEach(s => {
+    tickHTML += `<div class="pipe-item"><span class="num">${s[0]}</span><b>${s[1]}</b><i>${s[2]}</i><span class="arw">→</span></div>`;
+  });
+}
+track.innerHTML = tickHTML;
+
+/* ================= 全景流程卡片 ================= */
+const flowData = [
+  {n:"01", t:"策划 · 剧本", d:"一句话梗概、三幕结构、分话大纲、文字台本。决定故事的骨架。", out:"OUTPUT · 大纲 / 台本", w:"14%"},
+  {n:"02", t:"人设 · 世界观", d:"三视图、表情集、服装道具、场景地图、配色板。决定画面的稳定性。", out:"OUTPUT · 设定集", w:"16%"},
+  {n:"03", t:"分镜 · ネーム", d:"页面结构、镜头语言、信息密度、翻页钩子。决定作品的节奏。", out:"OUTPUT · 分镜草稿", w:"22%"},
+  {n:"04", t:"草稿 · 线稿", d:"放大草稿、勾线、线重分层、擦除整理。决定画面的气质。", out:"OUTPUT · 线稿原稿", w:"24%"},
+  {n:"05", t:"背景 · 网点 · 上色", d:"背景打底、灰阶网点、色彩脚本、特效氛围。决定空间与光。", out:"OUTPUT · 完整画面", w:"16%"},
+  {n:"06", t:"文字 · 后期", d:"对白排版、拟声词设计、输出参数、平台投稿。决定最终完成度。", out:"OUTPUT · 成稿 / 出版", w:"8%"}
+];
+document.getElementById('flowGrid').innerHTML = flowData.map(f => `
+  <div class="flow-card reveal" style="--w:${f.w}">
+    <div class="num">${f.n}</div>
+    <h3>${f.t}</h3>
+    <p>${f.d}</p>
+    <div class="out">${f.out}</div>
+    <div class="bar"><i></i></div>
+  </div>
+`).join('');
+
+/* ================= 素材组件矩阵 ================= */
+const matrix = [
+  {n:"A", t:"人体与姿势", d:"速写图库、3D 人偶、解剖模型、专项参考（手/足/头发/衣褶）。", li:["姿势图库","3D 人偶","解剖参考","速写计时器"]},
+  {n:"B", t:"构图与分镜", d:"电影截帧、镜头语言样本、分镜模板、原稿纸版式。", li:["电影截帧库","构图参考","原稿纸模板","镜头词汇表"]},
+  {n:"C", t:"背景与场景", d:"3D 场景模型、透视辅助、建筑与自然参考、照片素材。", li:["3D 场景","透视尺","照片参考","场景地图"]},
+  {n:"D", t:"质感与网点", d:"网点纸、笔刷纹理、纸张肌理、做旧与噪点效果。", li:["网点包","纸纹","噪点","做旧效果"]},
+  {n:"E", t:"贴图与光影", d:"PBR 材质、HDRI 环境光、法线与粗糙度贴图。", li:["PBR 贴图","HDRI","法线贴图","光照预设"]},
+  {n:"F", t:"笔刷与工具", d:"勾线笔、铅笔、水彩、效果笔刷、笔压预设。", li:["勾线笔","铅笔","效果笔刷","笔压曲线"]},
+  {n:"G", t:"字体与文字", d:"标题字、正文字、日系拟声词字体、效果字库。", li:["标题字体","正文字体","拟声词","效果字"]},
+  {n:"H", t:"色彩与氛围", d:"配色板、色彩脚本、环境色参考、光影研究。", li:["配色工具","色彩脚本","光影参考","氛围板"]},
+  {n:"I", t:"气泡与版式", d:"对话气泡、旁白框、音效字、页面排版模板。", li:["气泡素材","旁白框","版式模板","出血参考"]},
+  {n:"J", t:"3D 辅助", d:"人物模型、道具模型、相机取景、透视打底。", li:["人物 3D","道具 3D","相机取景","透视打底"]},
+  {n:"K", t:"学习与拆解", d:"教程、课程、大师分镜拆解、行业流程文档。", li:["人体课程","分镜拆解","流程文档","创作访谈"]},
+  {n:"L", t:"软件与协作", d:"绘图软件、3D 软件、参考管理、项目管理与版本管理。", li:["绘图软件","3D 软件","参考管理","版本管理"]}
+];
+document.getElementById('matrixGrid').innerHTML = matrix.map(m => `
+  <div class="mx reveal">
+    <div class="mx-n">${m.n}</div>
+    <h4>${m.t}</h4>
+    <div class="mx-d">${m.d}</div>
+    <ul>${m.li.map(x => `<li>— ${x}</li>`).join('')}</ul>
+  </div>
+`).join('');
+
+/* ================= 资源索引数据 ================= */
+const CATS = [
+  {k:"all", n:"全部"},
+  {k:"figure", n:"人体动态"},
+  {k:"comp", n:"构图分镜"},
+  {k:"bg", n:"背景场景"},
+  {k:"texture", n:"质感网点"},
+  {k:"brush", n:"笔刷工具"},
+  {k:"font", n:"字体文字"},
+  {k:"color", n:"色彩参考"},
+  {k:"learn", n:"学习课程"},
+  {k:"app", n:"软件工具"}
+];
+
+const RES = [
+  {n:"Line of Action", u:"https://line-of-action.com", c:"figure", p:"免费", d:"限时幻灯速写练习，人体、手脚、动物、面部、环境全覆盖，练抓形的第一站。", t:["速写","计时"]},
+  {n:"QuickPoses", u:"https://quickposes.com/en", c:"figure", p:"免费", d:"海量人体姿势照片库，支持设定练习时长，短时间提升动态概括能力。", t:["姿势库","速写"]},
+  {n:"PoseManiacs", u:"https://www.posemaniacs.com", c:"figure", p:"免费", d:"3D 人体肌肉解剖模型，可多角度旋转查看结构，理解体块与穿插的利器。", t:["3D","解剖"]},
+  {n:"DesignDoll", u:"https://terawell.net/terawell/", c:"figure", p:"免费/付费", d:"可自由调整体型与关节的 3D 人偶软件，摆好姿势导出当底稿，透视再也不会崩。", t:["3D人偶","透视"]},
+  {n:"Magic Poser", u:"https://magicposer.com", c:"figure", p:"免费/内购", d:"浏览器与移动端可用的 3D 摆姿势工具，支持多人组合与场景，快速试动作。", t:["3D","多人"]},
+  {n:"Character Design References", u:"https://characterdesignreferences.com", c:"figure", p:"免费", d:"角色设计与设定集资料库，造型语言、服装、配色的高质量参考来源。", t:["人设","造型"]},
+
+  {n:"ShotDeck", u:"https://shotdeck.com", c:"comp", p:"订阅", d:"专业级电影截帧数据库，可按构图、景别、光比、色调检索，拉片必备。", t:["电影截帧","检索"]},
+  {n:"SHOT.CAFE", u:"https://shot.cafe", c:"comp", p:"免费", d:"免费电影截帧合集，按风格与色调整理，做分镜情绪板很方便。", t:["截帧","情绪板"]},
+  {n:"FILMGRAB", u:"https://film-grab.com", c:"comp", p:"免费", d:"按影片整理的高分辨率剧照库，研究机位与场景调度的稳定来源。", t:["剧照","机位"]},
+  {n:"MovieStillsDB", u:"https://www.moviestillsdb.com", c:"comp", p:"免费", d:"电影剧照与海报数据库，覆盖大量经典作品，构图与色彩参考。", t:["剧照","色彩"]},
+  {n:"Animation Screencaps", u:"https://animationscreencaps.com", c:"comp", p:"免费", d:"动画截帧库，特别适合研究日式动画的分镜与演出手法。", t:["动画","演出"]},
+
+  {n:"CLIP STUDIO ASSETS", u:"https://assets.clip-studio.com", c:"brush", p:"免费/付费", d:"漫画创作素材的总仓库：网点、笔刷、3D 模型、材质、效果字、动作，一站式。", t:["网点","笔刷","3D"]},
+  {n:"Gumroad", u:"https://gumroad.com", c:"brush", p:"混合", d:"大量独立画师发布的笔刷、教程、笔刷包，价格灵活，常有免费资源。", t:["笔刷","教程"]},
+  {n:"Cubebrush", u:"https://cubebrush.co", c:"brush", p:"付费", d:"高质量笔刷、纹理、教程市场，风格化素材尤其丰富。", t:["笔刷","纹理"]},
+  {n:"True Grit Texture Supply", u:"https://www.truegrittexturesupply.com", c:"texture", p:"付费", d:"复古质感与网点纹理的标杆品牌，做旧纸纹、颗粒、半调效果极佳。", t:["网点","纸纹","做旧"]},
+  {n:"RetroSupply", u:"https://retrosupply.com", c:"texture", p:"付费", d:"复古印刷质感素材包，颗粒、错位、网点、磨损效果，适合漫画氛围。", t:["颗粒","印刷感"]},
+  {n:"Envato Elements", u:"https://elements.envato.com", c:"texture", p:"订阅", d:"订阅制综合素材库，纹理、笔刷、字体、模板数量庞大，性价比高。", t:["综合","订阅"]},
+  {n:"Freepik", u:"https://www.freepik.com", c:"texture", p:"免费/付费", d:"矢量与纹理素材库，找装饰图案、背景纹理、气泡素材都很快。", t:["矢量","纹理"]},
+
+  {n:"Poly Haven", u:"https://polyhaven.com", c:"bg", p:"免费 CC0", d:"完全免费的 3D 模型、PBR 贴图、HDRI 库，可商用无需署名，背景打底首选。", t:["CC0","HDRI","贴图"]},
+  {n:"ambientCG", u:"https://ambientcg.com", c:"bg", p:"免费 CC0", d:"2000+ 高质量 PBR 材质与 HDRI，墙砖、木纹、布料、金属一应俱全。", t:["PBR","CC0"]},
+  {n:"cgbookcase", u:"https://www.cgbookcase.com", c:"bg", p:"免费", d:"免费 PBR 贴图库，分类清晰，分辨率充足，做背景材质方便。", t:["PBR","贴图"]},
+  {n:"Sketchfab", u:"https://sketchfab.com", c:"bg", p:"免费/付费", d:"海量 3D 模型可在线旋转查看与下载，找道具、建筑、人体模型都好用。", t:["3D模型","在线预览"]},
+  {n:"Unsplash", u:"https://unsplash.com", c:"bg", p:"免费", d:"高质量免费照片库，取景、光影、空间关系的现实参考来源。", t:["照片","光影"]},
+  {n:"Pexels", u:"https://www.pexels.com", c:"bg", p:"免费", d:"免费商用照片与视频素材，场景与人物姿态参考。", t:["照片","场景"]},
+  {n:"Pixabay", u:"https://pixabay.com", c:"bg", p:"免费", d:"照片、矢量、插画综合素材站，找基础背景元素很实用。", t:["照片","矢量"]},
+
+  {n:"猫啃网", u:"https://maoken.com", c:"font", p:"免费", d:"专注免费可商用中文字体，授权标注清晰、配大字预览，做对白与标题必收藏。", t:["中文字体","可商用"]},
+  {n:"100font", u:"https://www.100font.com", c:"font", p:"免费", d:"免费商用字体整理站，收录大量卡通、手写、标题类中文字体。", t:["中文","标题字"]},
+  {n:"Google Fonts", u:"https://fonts.google.com", c:"font", p:"免费", d:"免费开源字体库，日系字体（Klee One / Yusei Magic / RocknRoll One）非常适合拟声词与效果字。", t:["开源","日系字体"]},
+  {n:"Adobe Color", u:"https://color.adobe.com", c:"color", p:"免费", d:"配色板生成与色彩关系工具，可从图片提取配色，搭色彩脚本很稳。", t:["配色","提取"]},
+  {n:"Coolors", u:"https://coolors.co", c:"color", p:"免费", d:"极速生成配色方案，支持锁定与导出，做角色与场景配色板很高效。", t:["配色","导出"]},
+  {n:"Pinterest", u:"https://www.pinterest.com", c:"color", p:"免费", d:"情绪板与参考收集的中枢，按作品建画板，统一视觉方向。", t:["情绪板","参考"]},
+  {n:"PureRef", u:"https://www.pureref.com", c:"color", p:"免费", d:"轻量参考图管理软件，把参考图拼成一块常驻画布，边画边对照。", t:["参考管理","工具"]},
+
+  {n:"Proko", u:"https://proko.com", c:"learn", p:"免费/付费", d:"人体解剖与绘画基础的标杆课程，讲解清晰，配套练习素材完善。", t:["人体","解剖"]},
+  {n:"Schoolism", u:"https://www.schoolism.com", c:"learn", p:"付费", d:"行业一线艺术家授课，构图、色彩、角色设计、叙事均有系统课程。", t:["系统课","行业"]},
+  {n:"Domestika", u:"https://www.domestika.org", c:"learn", p:"付费", d:"高质量创意课程平台，插画与漫画相关课程丰富，常有折扣。", t:["插画","课程"]},
+  {n:"ArtStation", u:"https://www.artstation.com", c:"learn", p:"免费", d:"职业概念设计与插画作品集平台，看行业标准、找风格方向。", t:["作品集","行业标准"]},
+  {n:"站酷 ZCOOL", u:"https://www.zcool.com.cn", c:"learn", p:"免费", d:"国内设计师与插画师社区，中文语境的创作参考与行业交流。", t:["国内","社区"]},
+  {n:"蓝铅笔", u:"https://www.lqb.com", c:"learn", p:"付费", d:"国内绘画在线教育平台，插画与漫画方向的系统课程与作业点评。", t:["国内","课程"]},
+
+  {n:"Clip Studio Paint", u:"https://www.clipstudio.net", c:"app", p:"付费", d:"漫画创作的行业标准软件，网点、分镜、3D 辅助、多页管理一应俱全。", t:["行业标准","漫画"]},
+  {n:"Krita", u:"https://krita.org", c:"app", p:"免费", d:"开源免费绘图软件，笔刷系统强大，功能更新活跃，零成本起步首选。", t:["开源","免费"]},
+  {n:"MediBang Paint", u:"https://medibang.com", c:"app", p:"免费", d:"免费漫画绘图软件，内置网点、字体、云素材，支持多页漫画制作。", t:["免费","漫画"]},
+  {n:"Blender", u:"https://www.blender.org", c:"app", p:"免费", d:"开源 3D 套件，建场景、摆人偶、打光渲染当背景底稿，性价比无敌。", t:["3D","开源"]}
+];
+
+/* ---- 渲染筛选器 ---- */
+const filtersEl = document.getElementById('filters');
+filtersEl.innerHTML = CATS.map((c,i) =>
+  `<button data-k="${c.k}" class="${i===0?'on':''}">${c.n}</button>`
+).join('');
+
+/* ---- 渲染资源卡 ---- */
+const gridEl = document.getElementById('resGrid');
+const countEl = document.getElementById('resCount');
+
+function renderRes(k){
+  const list = k === 'all' ? RES : RES.filter(r => r.c === k);
+  gridEl.innerHTML = list.map(r => `
+    <div class="res">
+      <div class="top">
+        <h5>${r.n}</h5>
+        <span class="price ${r.p.includes('免费')?'free':''}">${r.p}</span>
+      </div>
+      <div class="d">${r.d}</div>
+      <div class="tags">${r.t.map(t => `<span>${t}</span>`).join('')}</div>
+      <a class="u" href="${r.u}" target="_blank" rel="noopener">${r.u.replace('https://','')}</a>
+    </div>
+  `).join('');
+  countEl.textContent = `SHOWING ${String(list.length).padStart(2,'0')} / ${RES.length} RESOURCES`;
+}
+renderRes('all');
+
+filtersEl.addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  filtersEl.querySelectorAll('button').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  renderRes(btn.dataset.k);
+});
+
+/* ================= 滚动显现 ================= */
+const io = new IntersectionObserver((entries) => {
+  entries.forEach((en, i) => {
+    if(en.isIntersecting){
+      setTimeout(() => en.target.classList.add('in'), i * 65);
+      io.unobserve(en.target);
+    }
+  });
+}, {threshold:.12, rootMargin:'0px 0px -8% 0px'});
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+/* ================= 顶部进度条 ================= */
+const progress = document.getElementById('progress');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  progress.style.width = (window.scrollY / h * 100) + '%';
+}, {passive:true});
+</script>
+</body>
+</html>

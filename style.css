@@ -209,6 +209,7 @@ h1 .ln:nth-child(2) i{animation-delay:.1s}
    06 · Fields wall
    ═══════════════════════════════════════════ */
 .fields{display:grid;grid-template-columns:repeat(3,1fr);gap:1.65rem}
+.fields>.empty{grid-column:1/-1}
 .field{display:flex;min-height:308px;overflow:hidden;
   background:var(--paper-2);border:1px solid var(--rule);
   transition:transform .45s var(--ease),border-color .45s,box-shadow .45s}
@@ -218,7 +219,7 @@ h1 .ln:nth-child(2) i{animation-delay:.1s}
   display:flex;align-items:flex-start;justify-content:center;padding-top:1.35rem}
 .spine span{writing-mode:vertical-rl;font-family:var(--mono);font-size:.72rem;
   letter-spacing:.28em}
-.fbody{flex:1;padding:1.75rem 1.55rem 0;display:flex;flex-direction:column;min-width:0}
+.fbody{flex:1;padding:1.75rem 1.55rem;display:flex;flex-direction:column;min-width:0}
 .fhead{display:flex;align-items:baseline;justify-content:space-between;gap:1rem}
 .fhead h3{margin:0;font-family:var(--serif);font-weight:900;font-size:1.42rem;
   line-height:1.4;letter-spacing:.02em;transition:color .3s}
@@ -227,7 +228,7 @@ h1 .ln:nth-child(2) i{animation-delay:.1s}
   color:var(--ink-3);text-transform:uppercase;white-space:nowrap}
 .fdesc{margin:1.15rem 0 0;font-size:.925rem;font-weight:300;line-height:2.05;
   color:var(--ink-2);flex:1}
-.fstat{margin-top:1.35rem;font-family:var(--mono);font-size:.72rem;
+.fstat{margin-top:auto;padding-top:1.35rem;font-family:var(--mono);font-size:.72rem;
   letter-spacing:.16em;color:var(--ink-3);text-transform:uppercase}
 
 .fbar{display:flex;height:6px;gap:0;margin-top:1.35rem}
@@ -351,6 +352,13 @@ h1 .ln:nth-child(2) i{animation-delay:.1s}
 .foot-links{display:flex;gap:1.75rem;flex-wrap:wrap}
 .foot-links a{transition:color .3s}
 .foot-links a:hover{color:var(--blue)}
+.foot-in .mono{margin:0}
+
+/* 无 JS 降级块（noscript） */
+.ns-wrap{padding-top:clamp(28px,5vw,56px)}
+.ns-nav{margin:.75rem 0 0;font-size:.74rem;letter-spacing:.14em;color:var(--ink-3)}
+.ns-nav a{color:var(--ink-3);text-decoration:underline;text-underline-offset:.22em}
+.ns-nav a:hover{color:var(--blue)}
 .foot .say{margin:1.65rem 0 0;padding:1.85rem 1.75rem;
   border:1px solid var(--rule);border-left:3px solid var(--blue);
   background:var(--paper-2);

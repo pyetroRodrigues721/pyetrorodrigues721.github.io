@@ -1,0 +1,2429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>动起来之前 · 动画入门全指南</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --canvas:#f2efe8;
+  --white:#ffffff;
+  --ink:#161616;
+  --muted:#7b786f;
+  --dark:#131313;
+  --orange:#ff4b17;
+  --teal:#1557ff;
+  --yellow:#ffd600;
+  --s1:4px; --s2:8px; --s3:16px; --s4:24px; --s5:40px;
+  --s6:64px; --s7:96px; --s8:144px; --s9:192px;
+  --rule:1px solid var(--ink);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--canvas);
+  color:var(--ink);
+  font-family:"Noto Sans SC",sans-serif;
+  font-size:17px;
+  line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
+  opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+::selection{background:var(--orange);color:var(--white);}
+
+.wrap{max-width:1440px;margin:0 auto;padding:0 32px;}
+.mono{font-family:"IBM Plex Mono",monospace;}
+.tech{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;line-height:1.4;}
+.muted{color:var(--muted);}
+
+/* ---------- NAV ---------- */
+nav{
+  position:sticky;top:0;z-index:200;
+  background:var(--canvas);
+  border-bottom:var(--rule);
+}
+.nav-in{
+  max-width:1440px;margin:0 auto;padding:0 32px;
+  height:64px;display:flex;align-items:center;justify-content:space-between;gap:var(--s4);
+}
+.brand{font-weight:800;font-size:14px;letter-spacing:.02em;display:flex;align-items:center;gap:10px;}
+.brand .mk{width:12px;height:12px;background:var(--orange);display:block;}
+.nav-links{display:flex;gap:var(--s4);list-style:none;}
+.nav-links a{
+  color:var(--ink);text-decoration:none;font-size:13px;font-weight:500;
+  padding:4px 0;border-bottom:2px solid transparent;transition:border-color .2s ease;
+}
+.nav-links a:hover{border-bottom-color:var(--orange);}
+.nav-cta{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.12em;
+  background:var(--ink);color:var(--white);border:none;padding:12px 18px;
+  text-transform:uppercase;cursor:pointer;text-decoration:none;
+  transition:background .2s ease,letter-spacing .3s ease;
+}
+.nav-cta:hover{background:var(--orange);letter-spacing:.2em;}
+.menu-btn{display:none;background:none;border:var(--rule);width:40px;height:40px;cursor:pointer;}
+.menu-btn span{display:block;width:18px;height:2px;background:var(--ink);margin:3px auto;}
+
+/* ---------- HERO ---------- */
+.hero{
+  min-height:calc(100vh - 64px);
+  display:flex;flex-direction:column;justify-content:center;
+  padding:var(--s7) 0 var(--s6);
+  position:relative;overflow:hidden;
+}
+.hero-meta{
+  display:flex;gap:var(--s4);flex-wrap:wrap;align-items:center;
+  margin-bottom:var(--s5);
+}
+.slate{
+  border:var(--rule);padding:6px 12px;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+}
+.slate.hot{border-color:var(--orange);color:var(--orange);}
+.hero h1{
+  font-size:clamp(40px,7.6vw,112px);
+  font-weight:900;line-height:.92;letter-spacing:-.01em;
+  max-width:14ch;position:relative;z-index:3;
+}
+.hero h1 .em{color:var(--orange);}
+.hero-frames{
+  position:absolute;top:6%;right:-2%;width:min(46vw,620px);height:78%;
+  pointer-events:none;z-index:1;
+}
+.hero-frames .fr{
+  position:absolute;border:3px solid var(--ink);
+}
+.hero-frames .fr:nth-child(1){inset:0;opacity:.18;}
+.hero-frames .fr:nth-child(2){inset:12px -12px -12px 12px;opacity:.13;}
+.hero-frames .fr:nth-child(3){inset:24px -24px -24px 24px;opacity:.09;}
+.hero-frames .fr:nth-child(4){inset:36px -36px -36px 36px;opacity:.05;}
+.hero-sub{
+  margin-top:var(--s5);max-width:52ch;font-size:24px;line-height:1.45;font-weight:500;
+  position:relative;z-index:3;
+}
+.hero-note{
+  margin-top:var(--s4);max-width:46ch;font-size:15px;color:var(--muted);
+  position:relative;z-index:3;
+}
+
+/* ---------- SIGNATURE MOTION LAB ---------- */
+.lab{
+  margin-top:var(--s6);position:relative;z-index:3;
+  border:2px solid var(--ink);background:var(--white);
+  padding:var(--s4);
+}
+.lab-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  gap:var(--s3);flex-wrap:wrap;margin-bottom:var(--s4);
+}
+.lab-head h2{font-size:15px;font-weight:800;letter-spacing:.02em;}
+.lab-head .tech{color:var(--muted);}
+.lab-stage{
+  position:relative;height:190px;
+  border:var(--rule);background:
+    repeating-linear-gradient(90deg,rgba(22,22,22,.06) 0 1px,transparent 1px 60px),
+    var(--canvas);
+  overflow:hidden;
+}
+.ghost{
+  position:absolute;top:50%;left:50%;width:72px;height:72px;
+  border:2px solid var(--ink);opacity:.32;
+  transform:translate(-50%,-50%);
+}
+.ghost.g1{opacity:.14;}
+.ghost.g2{opacity:.22;}
+.ghost.g3{opacity:.32;}
+.live\boxed{
+  position:absolute;top:50%;left:50%;width:72px;height:72px;
+  background:var(--ink);border:2px solid var(--ink);
+  transform:translate(-50%,-50%);
+  transition:width .12s linear,height .12s linear;
+}
+.livebox.on{background:var(--orange);border-color:var(--orange);}
+.onion-tag{
+  position:absolute;top:10px;right:12px;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;
+  color:var(--muted);text-transform:uppercase;
+}
+.lab-track{
+  margin-top:var(--s4);position:relative;height:78px;
+  user-select:none;
+}
+.ruler{position:relative;height:26px;border-top:var(--rule);}
+.ruler .tick{position:absolute;top:0;width:1px;height:8px;background:var(--muted);}
+.ruler .tlabel{
+  position:absolute;top:11px;transform:translateX(-50%);
+  font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);
+}
+.kf{
+  position:absolute;top:0;width:2px;height:26px;background:var(--ink);
+}
+.kf::after{
+  content:"";position:absolute;left:-5px;top:-9px;width:12px;height:12px;
+  background:var(--ink);transform:rotate(45deg);
+}
+.kf.act::after{background:var(--orange);}
+.kf.act{background:var(--orange);}
+.lab-strip{
+  display:flex;gap:4px;height:48px;align-items:stretch;
+  overflow-x:auto;padding-top:6px;
+}
+.cell{
+  flex:1;min-width:22px;border:1px solid rgba(22,22,22,.35);
+  background:var(--white);position:relative;cursor:pointer;
+  transition:background .15s ease;
+}
+.cell.act{background:var(--orange);border-color:var(--orange);}
+.cell.key{border:2px solid var(--ink);}
+.cell .n{
+  position:absolute;bottom:2px;left:3px;
+  font-family:"IBM Plex Mono",monospace;font-size:8px;color:var(--muted);
+}
+.cell.act .n{color:var(--white);}
+.playhead{
+  position:absolute;top:0;bottom:0;width:2px;background:var(--orange);
+  pointer-events:none;z-index:5;
+}
+.playhead::before{
+  content:"";position:absolute;top:-4px;left:-5px;width:12px;height:12px;
+  background:var(--orange);clip-path:polygon(50% 100%,0 0,100% 0);
+}
+.handle{
+  position:absolute;top:-26px;width:44px;height:44px;margin-left:-22px;
+  background:transparent;border:none;cursor:grab;z-index:6;
+  display:flex;align-items:flex-start;justify-content:center;
+}
+.handle::after{
+  content:"";width:22px;height:22px;background:var(--orange);
+  border:2px solid var(--ink);margin-top:14px;
+}
+.handle:active{cursor:grabbing;}
+.handle:focus-visible{outline:2px dashed var(--ink);outline-offset:2px;}
+.lab-foot{
+  display:flex;justify-content:space-between;gap:var(--s3);flex-wrap:wrap;
+  margin-top:var(--s3);align-items:center;
+}
+.readout{
+  font-family:"IBM Plex Mono",monospace;font-size:14px;font-weight:600;
+}
+.readout b{color:var(--orange);}
+.btn-ghost{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;background:none;border:var(--rule);
+  padding:9px 14px;cursor:pointer;transition:all .2s ease;
+}
+.btn-ghost:hover{background:var(--ink);color:var(--white);}
+
+/* ---------- SECTIONS ---------- */
+section{padding:var(--s8) 0;}
+section.dark{background:var(--dark);color:var(--canvas);}
+section.dark .muted{color:#8c8880;}
+.sec-head{display:flex;gap:var(--s5);align-items:flex-start;margin-bottom:var(--s6);}
+.chapno{
+  font-family:"IBM Plex Mono",monospace;font-size:clamp(88px,13vw,180px);
+  font-weight:600;line-height:.8;letter-spacing:-.04em;
+  color:transparent;-webkit-text-stroke:1px var(--muted);
+  flex:none;
+}
+.sec-head h2{
+  font-size:clamp(32px,4vw,48px);font-weight:800;line-height:1.08;letter-spacing:-.01em;
+  max-width:20ch;
+}
+.sec-head .kick{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--orange);margin-bottom:var(--s3);display:block;
+}
+.lede{font-size:24px;line-height:1.45;font-weight:500;max-width:48ch;}
+
+/* ---------- S2 : definition ---------- */
+.split{display:grid;grid-template-columns:5fr 7fr;gap:var(--s6);align-items:start;}
+.keyline{
+  border-left:3px solid var(--orange);padding-left:var(--s4);
+  font-size:20px;font-weight:700;line-height:1.5;margin:var(--s4) 0;
+}
+.def-block{margin-bottom:var(--s5);}
+.def-block h3{font-size:20px;font-weight:700;margin-bottom:var(--s2);}
+.def-block p{max-width:44ch;}
+.frames3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s3);}
+.fcell{border:var(--rule);background:var(--white);}
+.fcell .img{aspect-ratio:3/4;background:var(--canvas);display:block;width:100%;}
+.fcell .cap{
+  border-top:var(--rule);padding:10px 12px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.fcell.hot{border-color:var(--orange);border-width:2px;}
+.fcell.hot .cap{border-top-color:var(--orange);}
+
+/* ---------- S3 : principles ---------- */
+.prin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s4);}
+.prin{
+  border:var(--rule);background:var(--white);padding:var(--s4);
+  display:flex;flex-direction:column;gap:var(--s3);
+}
+.prin:nth-child(even){transform:translateY(24px);}
+.prin .top{display:flex;justify-content:space-between;align-items:baseline;}
+.prin .no{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);letter-spacing:.1em;}
+.prin h3{font-size:20px;font-weight:700;line-height:1.25;}
+.prin .diag{
+  width:100%;aspect-ratio:16/9;background:var(--canvas);border:1px solid rgba(22,22,22,.2);
+}
+.prin p{font-size:15px;line-height:1.7;}
+.prin .eg{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.04em;
+  color:var(--muted);border-top:1px solid rgba(22,22,22,.2);padding-top:10px;margin-top:auto;
+}
+.prin .eg b{color:var(--ink);}
+
+/* ---------- S4 : pipeline (dark) ---------- */
+.pipe{display:grid;grid-template-columns:repeat(6,1fr);gap:0;border:1px solid rgba(242,239,232,.28);}
+.stage{
+  padding:var(--s4);border-right:1px solid rgba(242,239,232,.28);
+  display:flex;flex-direction:column;gap:var(--s3);min-width:0;
+}
+.stage:last-child{border-right:none;}
+.stage .idx{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;color:var(--orange);
+}
+.stage h3{font-size:20px;font-weight:700;line-height:1.2;}
+.stage .svg\boxed{
+  width:100%;aspect-ratio:1/1;border:1px solid rgba(242,239,232,.22);background:#1b1b1b;
+}
+.stage p{font-size:14px;line-height:1.65;color:#c8c4bb;}
+
+.routes{margin-top:var(--s7);}
+.routes h3{font-size:24px;font-weight:800;margin-bottom:var(--s4);}
+.route{border-top:1px solid rgba(242,239,232,.28);}
+.route:last-child{border-bottom:1px solid rgba(242,239,232,.28);}
+.route-btn{
+  width:100%;background:none;border:none;color:var(--canvas);
+  display:grid;grid-template-columns:44px 1fr auto 44px;gap:var(--s3);
+  align-items:center;text-align:left;padding:var(--s4) 0;cursor:pointer;
+  font-family:inherit;
+}
+.route-btn:hover .rname{color:var(--orange);}
+.route-btn .rno{font-family:"IBM Plex Mono",monospace;font-size:12px;color:#8c8880;}
+.route-btn .rname{font-size:20px;font-weight:700;transition:color .2s ease;}
+.route-btn .rtool{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.08em;color:#8c8880;
+  text-transform:uppercase;
+}
+.route-btn .rarrow{
+  width:28px;height:28px;border:1px solid rgba(242,239,232,.4);
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+  transition:transform .3s ease,background .2s ease;justify-self:end;
+}
+.route-btn[aria-expanded="true"] .rarrow{transform:rotate(45deg);background:var(--orange);border-color:var(--orange);color:var(--white);}
+.route-body{
+  max-height:0;overflow:hidden;transition:max-height .4s ease;
+}
+.route-body-in{
+  padding:0 0 var(--s5) 60px;display:grid;grid-template-columns:1fr 1fr;gap:var(--s5);
+}
+.route-body h4{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--orange);margin-bottom:var(--s2);
+}
+.route-body p{font-size:15px;line-height:1.75;color:#c8c4bb;max-width:44ch;}
+.spine{display:flex;flex-wrap:wrap;gap:6px;}
+.spine span{
+  border:1px solid rgba(242,239,232,.35);padding:5px 10px;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.04em;
+}
+.spine span.cur{background:var(--orange);border-color:var(--orange);color:var(--white);}
+.warn{
+  border-left:3px solid var(--yellow);padding:var(--s3) var(--s4);
+  background:rgba(255,214,0,.08);margin-top:var(--s4);
+  font-size:14px;line-height:1.7;color:#e8e4db;
+}
+section:not(.dark) .warn{
+  background:rgba(255,214,0,.16);color:var(--ink);border-left-color:var(--yellow);
+}
+
+/* ---------- S5 : comparison ---------- */
+.panels{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s4);}
+.panel{border:var(--rule);background:var(--white);display:flex;flex-direction:column;}
+.panel .head{
+  padding:var(--s4);border-bottom:var(--rule);display:flex;
+  justify-content:space-between;align-items:baseline;gap:var(--s3);
+}
+.panel h3{font-size:24px;font-weight:800;}
+.panel .body{padding:var(--s4);display:flex;flex-direction:column;gap:var(--s3);flex:1;}
+.panel .diagram{width:100%;aspect-ratio:4/3;border:1px solid rgba(22,22,22,.2);background:var(--canvas);}
+.panel .row{
+  display:flex;justify-content:space-between;gap:var(--s3);
+  border-top:1px solid rgba(22,22,22,.18);padding-top:10px;
+  font-size:14px;
+}
+.panel .row .k{color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;}
+.panel .row .v{font-weight:700;text-align:right;}
+.cmp{
+  margin-top:var(--s5);border:var(--rule);background:var(--white);overflow-x:auto;
+}
+.cmp table{border-collapse:collapse;width:100%;min-width:640px;}
+.cmp th,.cmp td{padding:14px 18px;text-align:left;border-bottom:var(--rule);font-size:15px;}
+.cmp th{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted);font-weight:500;
+}
+.cmp tr:last-child td{border-bottom:none;}
+.cmp td:first-child{font-weight:700;}
+
+/* ---------- S6 : timing worksheet ---------- */
+.ws{display:grid;grid-template-columns:5fr 7fr;gap:var(--s6);align-items:start;}
+.ws-stage{
+  border:2px solid var(--ink);background:var(--white);padding:var(--s4);
+}
+.ws-canvas{
+  width:100%;aspect-ratio:1/1;background:var(--canvas);border:var(--rule);display:block;
+}
+.ctrl{margin-top:var(--s4);}
+.ctrl label{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.12em;
+  text-transform:uppercase;margin-bottom:var(--s2);
+}
+.ctrl label b{color:var(--orange);font-size:14px;}
+input[type=range]{
+  width:100%;-webkit-appearance:none;appearance:none;height:2px;background:var(--ink);
+  outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:20px;height:20px;
+  background:var(--orange);border:2px solid var(--ink);cursor:grab;
+}
+input[type=range]::-moz-range-thumb{
+  width:20px;height:20px;background:var(--orange);border:2px solid var(--ink);
+  border-radius:0;cursor:grab;
+}
+input[type=range]:focus-visible{outline:2px dashed var(--orange);outline-offset:6px;}
+.ws-note{
+  margin-top:var(--s4);font-family:"IBM Plex Mono",monospace;font-size:11px;
+  letter-spacing:.04em;color:var(--muted);line-height:1.6;
+}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s4);margin:var(--s5) 0;}
+.stat{border:var(--rule);background:var(--white);padding:var(--s4);}
+.stat .big{
+  font-family:"IBM Plex Mono",monospace;font-size:clamp(34px,4.4vw,56px);
+  font-weight:600;line-height:1;letter-spacing:-.02em;
+}
+.stat .big.hot{color:var(--orange);}
+.stat .lbl{margin-top:var(--s2);font-size:14px;color:var(--muted);}
+.shutter{display:grid;grid-template-columns:auto 1fr;gap:var(--s5);align-items:center;}
+.shutter svg{width:200px;height:200px;flex:none;}
+.shutter p{max-width:44ch;}
+
+/* ---------- S7 : tool wall ---------- */
+.wall{display:grid;grid-template-columns:3fr 9fr;gap:var(--s6);align-items:start;}
+.wall-aside{position:sticky;top:96px;}
+.wall-aside h3{font-size:24px;font-weight:800;margin-bottom:var(--s3);}
+.wall-aside p{font-size:15px;color:var(--muted);margin-bottom:var(--s4);}
+.diff-key{border:var(--rule);background:var(--white);padding:var(--s3);}
+.diff-key .dk{display:flex;align-items:center;gap:10px;font-size:13px;padding:6px 0;}
+.segs{display:flex;gap:3px;}
+.segs i{width:10px;height:10px;background:rgba(22,22,22,.18);display:block;}
+.segs i.on{background:var(--ink);}
+.group-label{
+  position:sticky;top:64px;z-index:20;background:var(--canvas);
+  border-bottom:2px solid var(--ink);padding:12px 0;
+  font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+  display:flex;justify-content:space-between;
+}
+.tools{border:var(--rule);border-top:none;background:var(--white);}
+.tool-row{
+  display:grid;grid-template-columns:2.1fr 1.15fr 2fr 1.1fr 1fr;
+  gap:var(--s3);align-items:center;
+  min-height:88px;padding:var(--s4);border-bottom:var(--rule);
+  border-left:4px solid transparent;
+}
+.tool-row:last-child{border-bottom:none;}
+.tool-row:hover{border-left-color:var(--orange);}
+.tool-row .tn{font-size:20px;font-weight:800;line-height:1.2;}
+.tool-row .tn small{
+  display:block;font-family:"IBM Plex Mono",monospace;font-size:10px;
+  letter-spacing:.12em;color:var(--muted);text-transform:uppercase;font-weight:500;margin-top:3px;
+}
+.tool-row .best{font-size:14px;line-height:1.6;}
+.tool-row .best em{font-style:normal;color:var(--muted);display:block;font-size:13px;margin-top:3px;}
+.tool-row .price{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;line-height:1.6;}
+.tool-row .price a{color:var(--teal);text-decoration:none;border-bottom:1px solid currentColor;}
+.tool-row .price a:hover{color:var(--orange);}
+.links{display:flex;flex-direction:column;gap:5px;}
+.links a{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;
+  color:var(--teal);text-decoration:none;border-bottom:1px solid rgba(21,87,255,.35);
+  width:fit-content;
+}
+.links a:hover{color:var(--orange);border-bottom-color:var(--orange);}
+.mobile-only{display:none;}
+
+/* ---------- S8 : resources ---------- */
+.res-tabs{display:flex;flex-wrap:wrap;gap:var(--s2);margin-bottom:var(--s5);}
+.tab{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  background:var(--white);border:var(--rule);padding:10px 16px;cursor:pointer;
+  transition:all .2s ease;
+}
+.tab.on{background:var(--ink);color:var(--white);}
+.tab:hover{background:var(--orange);color:var(--white);border-color:var(--orange);}
+.res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s4);}
+.res{
+  background:var(--white);border:var(--rule);padding:var(--s4);
+  display:flex;flex-direction:column;gap:12px;
+}
+.res .rt{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--orange);
+}
+.res h3{font-size:20px;font-weight:800;line-height:1.25;}
+.res p{font-size:15px;line-height:1.7;}
+.res .meta{
+  margin-top:auto;padding-top:12px;border-top:1px solid rgba(22,22,22,.18);
+  display:flex;justify-content:space-between;align-items:center;gap:var(--s3);
+}
+.res .lvl{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.08em;}
+.res a.go{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink);text-decoration:none;
+  border-bottom:2px solid var(--ink);padding-bottom:2px;transition:all .2s ease;
+}
+.res a.go:hover{color:var(--orange);border-bottom-color:var(--orange);letter-spacing:.2em;}
+
+/* ---------- S9 : route ---------- */
+.phase{
+  display:grid;grid-template-columns:180px 1fr 1fr;gap:var(--s5);
+  border-top:var(--rule);padding:var(--s5) 0;align-items:start;
+}
+.phase:last-of-type{border-bottom:var(--rule);}
+.phase .pn{
+  font-family:"IBM Plex Mono",monospace;font-size:clamp(56px,7vw,96px);
+  font-weight:600;line-height:.85;letter-spacing:-.04em;color:var(--ink);
+}
+.phase h3{font-size:24px;font-weight:800;margin-bottom:var(--s2);}
+.phase p{max-width:38ch;}
+.kv{display:flex;flex-direction:column;gap:var(--s3);}
+.kv .item{border-left:2px solid var(--ink);padding-left:var(--s3);}
+.kv .k{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:2px;
+}
+.kv .v{font-size:15px;font-weight:700;}
+.kv .item.hot{border-left-color:var(--orange);}
+.kv .item.hot .v{color:var(--orange);}
+.advice{
+  margin-top:var(--s6);border:2px solid var(--ink);background:var(--white);
+  padding:var(--s5);display:flex;gap:var(--s5);align-items:center;flex-wrap:wrap;
+}
+.advice .q{
+  font-size:clamp(22px,2.6vw,32px);font-weight:800;line-height:1.35;flex:1;min-width:280px;
+}
+
+/* ---------- S10 : checklist ---------- */
+.check-wrap{display:grid;grid-template-columns:7fr 5fr;gap:var(--s6);align-items:start;}
+.check{border-top:var(--rule);}
+.check li{
+  list-style:none;border-bottom:var(--rule);
+  display:flex;align-items:center;gap:var(--s3);padding:18px 0;cursor:pointer;
+}
+.check li input{position:absolute;opacity:0;width:0;height:0;}
+.box{
+  width:22px;height:22px;border:2px solid var(--ink);flex:none;
+  display:flex;align-items:center;justify-content:center;transition:all .2s ease;
+}
+.box svg{opacity:0;transition:opacity .15s ease;}
+.check li input:checked + .box{background:var(--orange);border-color:var(--orange);}
+.check li input:checked + .box svg{opacity:1;}
+.check li input:focus-visible + .box{outline:2px dashed var(--orange);outline-offset:3px;}
+.check li span.txt{font-size:17px;font-weight:500;}
+.check li input:checked ~ span.txt{color:var(--muted);text-decoration:line-through;}
+.progress-\boxed{border:var(--rule);background:var(--white);padding:var(--s5);position:sticky;top:96px;}
+.progress-box .big{
+  font-family:"IBM Plex Mono",monospace;font-size:72px;font-weight:600;line-height:.9;
+  color:var(--orange);
+}
+.bar{height:8px;background:rgba(22,22,22,.15);margin:var(--s4) 0;}
+.bar i{display:block;height:100%;background:var(--orange);width:0;transition:width .35s ease;}
+.closing{
+  margin-top:var(--s6);font-size:clamp(28px,4.2vw,56px);font-weight:900;
+  line-height:1.15;letter-spacing:-.01em;max-width:22ch;
+}
+.closing .em{color:var(--orange);}
+
+/* ---------- FOOTER ---------- */
+footer{
+  background:var(--dark);color:var(--canvas);padding:var(--s7) 0 var(--s5);
+}
+.foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:var(--s5);}
+footer h4{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--orange);margin-bottom:var(--s3);
+}
+footer p,footer a{color:#b8b4ab;font-size:14px;line-height:1.8;text-decoration:none;display:block;}
+footer a:hover{color:var(--orange);}
+.foot-brand{font-size:24px;font-weight:900;color:var(--canvas);line-height:1.25;max-width:16ch;}
+.foot-base{
+  margin-top:var(--s6);padding-top:var(--s4);border-top:1px solid rgba(242,239,232,.2);
+  display:flex;justify-content:space-between;gap:var(--s4);flex-wrap:wrap;
+}
+.foot-base p{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;}
+
+/* ---------- REVEAL ---------- */
+.rv{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease;}
+.rv.in{opacity:1;transform:translateY(0);}
+
+/* ---------- RESPONSIVE ---------- */
+@media(max-width:1080px){
+  .prin-grid{grid-template-columns:repeat(2,1fr);}
+  .prin:nth-child(even){transform:none;}
+  .res-grid{grid-template-columns:repeat(2,1fr);}
+  .pipe{grid-template-columns:repeat(3,1fr);}
+  .stage:nth-child(3n){border-right:none;}
+  .stage{border-bottom:1px solid rgba(242,239,232,.28);}
+}
+@media(max-width:900px){
+  .nav-links{display:none;}
+  .nav-links.open{
+    display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;
+    background:var(--canvas);border-bottom:var(--rule);padding:var(--s4) 32px;gap:var(--s3);
+  }
+  .menu-btn{display:block;}
+  .nav-cta{display:none;}
+  .split,.ws,.wall,.check-wrap{grid-template-columns:1fr;gap:var(--s5);}
+  .wall-aside{position:static;}
+  .progress-\boxed{position:static;}
+  .panels{grid-template-columns:1fr;}
+  .phase{grid-template-columns:1fr;gap:var(--s3);}
+  .hero-frames{opacity:.5;width:70vw;}
+}
+@media(max-width:768px){
+  body{font-size:16px;}
+  .wrap{padding:0 20px;}
+  .nav-in{padding:0 20px;}
+  section{padding:var(--s7) 0;}
+  .sec-head{flex-direction:column;gap:var(--s3);}
+  .lede{font-size:20px;}
+  .hero-sub{font-size:20px;}
+  .prin-grid{grid-template-columns:1fr;}
+  .res-grid{grid-template-columns:1fr;}
+  .stats{grid-template-columns:1fr;}
+  .pipe{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;}
+  .stage{flex:0 0 78%;scroll-snap-align:start;border-bottom:none;}
+  .route-body-in{grid-template-columns:1fr;padding-left:0;}
+  .shutter{grid-template-columns:1fr;}
+  .foot-grid{grid-template-columns:1fr 1fr;}
+  .lab-stage{height:150px;}
+  .ghost,.live\boxed{width:56px;height:56px;}
+  /* tool rows -> stacked records */
+  .tools{border:none;background:none;}
+  .tool-row{
+    grid-template-columns:1fr;border:var(--rule);background:var(--white);
+    margin-bottom:var(--s3);gap:var(--s2);border-left-width:4px;
+  }
+  .tool-row .best,.tool-row .price{padding-top:6px;}
+  .tool-row .links{padding-top:6px;}
+  .mobile-only{display:block;}
+  .desktop-only{display:none;}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto;}
+  *,*::before,*::after{
+    animation-duration:.001ms!important;transition-duration:.001ms!important;
+  }
+  .rv{opacity:1;transform:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= NAV ================= -->
+<nav>
+  <div class="nav-in">
+    <div class="brand"><span class="mk"></span>动起来之前 / MOTION PRIMER</div>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#what">动画原理</a></li>
+      <li><a href="#pipeline">工作流</a></li>
+      <li><a href="#compare">类型</a></li>
+      <li><a href="#timing">时间与间距</a></li>
+      <li><a href="#tools">工具</a></li>
+      <li><a href="#docs">文档</a></li>
+      <li><a href="#route">入门路线</a></li>
+    </ul>
+    <a href="#route" class="nav-cta">开始第一帧</a>
+    <button class="menu-btn" id="menuBtn" aria-label="打开菜单" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <div class="hero-frames" aria-hidden="true">
+    <div class="fr"></div><div class="fr"></div><div class="fr"></div><div class="fr"></div>
+  </div>
+  <div class="wrap">
+    <div class="hero-meta">
+      <span class="slate">FRAME 001 / 024</span>
+      <span class="slate">24 FPS · 180° SHUTTER</span>
+      <span class="slate hot">INTERACTIVE</span>
+    </div>
+    <h1>让看不见的时间，<br>变成<span class="em">看得见的动作</span>。</h1>
+    <p class="hero-sub">从关键帧、时间、间距，到视频项目的完整工作流——一页看懂动画是怎么被做出来的。</p>
+    <p class="hero-note">这是一份写给初学者的地图。不讲软件按钮的位置，只讲原理、流程和你该去哪里查资料。拖动下面的时间轴，先感受一次「关键帧」。</p>
+
+    <!-- ===== SIGNATURE MOTION LAB ===== -->
+    <div class="lab" id="lab">
+      <div class="lab-head">
+        <h2>动效实验台 · MOTION LAB</h2>
+        <div class="tech">DRAG THE PLAYHEAD / 拖动橙色滑块</div>
+      </div>
+
+      <div class="lab-stage" id="labStage">
+        <div class="ghost g1" id="gh1"></div>
+        <div class="ghost g2" id="gh2"></div>
+        <div class="ghost g3" id="gh3"></div>
+        <div class="livebox" id="live"></div>
+        <div class="onion-tag">ONION SKIN · 洋葱皮</div>
+      </div>
+
+      <div class="lab-track" id="labTrack">
+        <div class="ruler" id="ruler"></div>
+        <div class="lab-strip" id="strip"></div>
+        <div class="playhead" id="playhead" style="left:0"></div>
+        <button class="handle" id="handle" style="left:0"
+                role="slider" aria-label="动画时间轴播放头"
+                aria-valuemin="0" aria-valuemax="12" aria-valuenow="0"
+                aria-valuetext="第 1 帧，0.00 秒"></button>
+      </div>
+
+      <div class="lab-foot">
+        <div class="readout">FRAME <b id="roFrame">01</b> / 12 &nbsp;·&nbsp; TIME <b id="roTime">0.00s</b> &nbsp;·&nbsp; 状态：<b id="roState">关键帧 A</b></div>
+        <button class="btn-ghost" id="playBtn">▶ 自动播放</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ================= 01 什么是动画 ================= -->
+<section id="what">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="chapno">01</div>
+      <div>
+        <span class="kick">Definition / 定义</span>
+        <h2>动画不是「移动」，是「连续的静态变化」。</h2>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="rv">
+        <div class="def-block">
+          <h3>先记住这一句话</h3>
+          <p class="keyline">动画不是物体真的移动，而是你连续看到许多静态变化。</p>
+          <p>每一张静止的画面叫一格（frame）。当每秒播放的格数够多，你的大脑就会自动把它们「脑补」成连续的运动——这叫视觉暂留。电影用每秒 24 格，电视常用 25 或 30 格，游戏常用 60 格。</p>
+        </div>
+        <div class="def-block">
+          <h3>再记住第二句</h3>
+          <p class="keyline">关键帧决定结果，时间与间距决定性格。</p>
+          <p>关键帧（keyframe）是你明确设定的「重要姿态」；中间那些过渡画面，叫中间帧（in-between）。新手通常只关心「它最后停在哪」，而职业动画师花更多时间在「它用多久、走多快、在哪一段加速」——同样是把方块从左边移到右边，可以是机械的、俏皮的、沉重的、突然的。</p>
+        </div>
+        <div class="warn">
+          <b>初学者常犯的错：</b>一上来就学软件的所有按钮。其实你只需要三个概念就能做出第一个动画——<b>关键帧、时间、间距</b>。剩下的全是工具。
+        </div>
+      </div>
+
+      <div class="rv">
+        <div class="frames3">
+          <div class="fcell">
+            <svg class="img" viewBox="0 0 300 400" role="img" aria-label="第一格：方块停在左侧起始位置">
+              <rect width="300" height="400" fill="#f2efe8"/>
+              <line x1="20" y1="330" x2="280" y2="330" stroke="#161616" stroke-width="2"/>
+              <rect x="35" y="278" width="52" height="52" fill="#161616"/>
+              <text x="20" y="40" font-family="IBM Plex Mono" font-size="13" fill="#7b786f">START</text>
+              <circle cx="262" cy="330" r="4" fill="none" stroke="#7b786f" stroke-width="1.5" stroke-dasharray="3 3"/>
+            </svg>
+            <div class="cap"><span class="tech">FRAME 01</span><span class="tech muted">0.0s</span></div>
+          </div>
+          <div class="fcell hot">
+            <svg class="img" viewBox="0 0 300 400" role="img" aria-label="第二格：方块在中间被压扁，表示接触与挤压">
+              <rect width="300" height="400" fill="#f2efe8"/>
+              <line x1="20" y1="330" x2="280" y2="330" stroke="#161616" stroke-width="2"/>
+              <rect x="124" y="286" width="72" height="44" fill="#ff4b17"/>
+              <path d="M40 304 L124 304" stroke="#7b786f" stroke-width="1.5" stroke-dasharray="5 5"/>
+              <path d="M196 304 L278 304" stroke="#7b786f" stroke-width="1.5" stroke-dasharray="5 5"/>
+              <text x="20" y="40" font-family="IBM Plex Mono" font-size="13" fill="#ff4b17">MIDDLE · IN-BETWEEN</text>
+            </svg>
+            <div class="cap"><span class="tech" style="color:var(--orange)">FRAME 02</span><span class="tech muted">0.17s</span></div>
+          </div>
+          <div class="fcell">
+            <svg class="img" viewBox="0 0 300 400" role="img" aria-label="第三格：方块停在右侧结束位置">
+              <rect width="300" height="400" fill="#f2efe8"/>
+              <line x1="20" y1="330" x2="280" y2="330" stroke="#161616" stroke-width="2"/>
+              <rect x="213" y="278" width="52" height="52" fill="#161616"/>
+              <text x="20" y="40" font-family="IBM Plex Mono" font-size="13" fill="#7b786f">END</text>
+            </svg>
+            <div class="cap"><span class="tech">FRAME 03</span><span class="tech muted">0.33s</span></div>
+          </div>
+        </div>
+        <p class="tech muted" style="margin-top:16px">
+          A → B → C：同样三格，中间那格决定了它的「性格」。第二格被压扁（挤压与伸展），动作就有了重量；如果第二格只是把方块平移一半，动作就是机械的。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 02 动画原则 ================= -->
+<section id="principles" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="chapno">02</div>
+      <div>
+        <span class="kick">Principles / 八个必学原则</span>
+        <h2>先学原理，再学软件。</h2>
+        <p class="lede" style="margin-top:24px">迪士尼总结的经典原则有十二条。下面这八条，是你做任何动画——包括一个 3 秒的网页按钮——都会立刻用到的。每张图都是原理本身，不是装饰。</p>
+      </div>
+    </div>
+
+    <div class="prin-grid">
+      <!-- 01 -->
+      <article class="prin rv">
+        <div class="top"><span class="no">P.01</span><span class="tech muted">SQUASH &amp; STRETCH</span></div>
+        <h3>挤压与伸展</h3>
+        <svg class="diag" viewBox="0 0 320 180" role="img" aria-label="方块下落时压扁，上升时拉长的对比图">
+          <rect width="320" height="180" fill="#f2efe8"/>
+          <line x1="20" y1="150" x2="300" y2="150" stroke="#161616" stroke-width="2"/>
+          <rect x="52" y="60" width="30" height="42" fill="none" stroke="#161616" stroke-width="2"/>
+          <rect x="140" y="126" width="48" height="24" fill="#ff4b17"/>
+          <rect x="234" y="48" width="26" height="56" fill="none" stroke="#161616" stroke-width="2"/>
+          <path d="M82 108 L130 132" stroke="#7b786f" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <path d="M192 132 L228 100" stroke="#7b786f" stroke-width="1.5" stroke-dasharray="4 4"/>
+        </svg>
+        <p>有弹性的物体在撞击时会变扁、在快速移动时会被拉长。体积感就来自这一压一拉。</p>
+        <div class="eg"><b>例子：</b>球落地变成扁椭圆，弹起瞬间被拉成竖椭圆。</div>
+      </article>
+
+      <!-- 02 -->
+      <article class="prin rv">
+        <div class="top"><span class="no">P.02</span><span class="tech muted">ANTICIPATION</span></div>
+        <h3>预备动作</h3>
+        <svg class="diag" viewBox="0 0 320 180" role="img" aria-label="先向后蓄力再向前冲出的动作线">
+          <rect width="320" height="180" fill="#f2efe8"/>
+          <line x1="20" y1="150" x2="300" y2="150" stroke="#161616" stroke-width="2"/>
+          <path d="M120 120 C90 118 76 128 72 138" stroke="#7b786f" stroke-width="2" fill="none" stroke-dasharray="5 4"/>
+          <circle cx="72" cy="138" r="9" fill="none" stroke="#7b786f" stroke-width="2"/>
+          <path d="M120 120 C180 96 236 96 282 88" stroke="#161616" stroke-width="2.5" fill="none"/>
+          <rect x="112" y="112" width="18" height="18" fill="#ff4b17"/>
+          <circle cx="286" cy="88" r="10" fill="#161616"/>
+          <text x="66" y="172" font-family="IBM Plex Mono" font-size="10" fill="#7b786f">WIND-UP</text>
+          <text x="248" y="172" font-family="IBM Plex Mono" font-size="10" fill="#7b786f">LAUNCH</text>
+        </svg>
+        <p>动作发生前先向相反方向蓄一下力。观众因此知道「有事要发生了」，动作也更有力。</p>
+        <div class="eg"><b>例子：</b>角色跳起前先蹲下；箭射出前弓弦先往后拉。</div>
+      </article>
+
+      <!-- 03 -->
+      <article class="prin rv">
+        <div class="top"><span class="no">P.03</span><span class="tech muted">STAGING</span></div>
+        <h3>演出与引导视线</h3>
+        <svg class="diag" viewBox="0 0 320 180" role="img" aria-label="聚光灯突出主角与杂乱画面的对比">
+          <rect width="320" height="180" fill="#f2efe8"/>
+          <ellipse cx="86" cy="112" rx="58" ry="34" fill="#ffd600" opacity=".55"/>
+          <rect x="70" y="86" width="32" height="32" fill="#161616"/>
+          <g stroke="#7b786f" stroke-width="1.5" opacity=".9">
+            <rect x="192" y="70" width="18" height="18" fill="none"/>
+            <rect x="218" y="82" width="18" height="18" fill="none"/>
+            <rect x="196" y="102" width="18" height="18" fill="none"/>
+            <rect x="244" y="70" width="18" height="18" fill="none"/>
+            <rect x="238" y="106" width="18" height="18" fill="none"/>
+            <rect x="266" y="92" width="18" height="18" fill="none"/>
+            <rect x="212" y="122" width="18" height="18" fill="none"/>
+            <rect x="262" y="124" width="18" height="18" fill="none"/>
+          </g>
+          <line x1="160" y1="30" x2="160" y2="160" stroke="#161616" stroke-width="1" stroke-dasharray="4 4"/>
+          <text x="52" y="168" font-family="IBM Plex Mono" font-size="10" fill="#7b786f">CLEAR</text>
+          <text x="212" y="168" font-family="IBM Plex Mono" font-size="10" fill="#7b786f">CLUTTER</text>
+        </svg>
+        <p>一格画面里只让观众看一件事。该突出的放大、留白、打光；该藏的缩小、压暗、清空。</p>
+        <div class="eg"><b>例子：</b>提示弹窗出现时，背景整体压暗。</div>
+      </article>
+
+      <!-- 04 -->
+      <article class="prin rv">
+        <div class="top"><span class="no">P.04</span><span class="tech muted">TIMING</span></div>
+        <h3>时间控制</h3>
+        <svg class="diag" viewBox="0 0 320 180" role="img" aria-label="两条不同速度的动作线横穿时间标尺">
+          <rect width="320" height="180" fill="#f2efe8"/>
+          <line x1="24" y1="150" x2="296" y2="150" stroke="#161616" stroke-width="2"/>
+          <g stroke="#7b786f" stroke-width="1">
+            <line x1="70" y1="150" x2="70" y2="158"/><line x1="116" y1="150" x2="116" y2="158"/>
+            <line x1="162" y1="150" x2="162" y2="158"/><line x1="208" y1="150" x2="208" y2="158"/>
+            <line x1="254" y1="150" x2="254" y2="158"/>
+          </g>
+          <path d="M24 60 C120 60 140 128 296 132" stroke="#161616" stroke-width="2.5" fill="none"/>
+          <path d="M24 44 C60 44 74 120 296 140" stroke="#ff4b17" stroke-width="2.5" fill="none"/>
+          <g fill="#161616"><circle cx="24" cy="60" r="4"/><circle cx="296" cy="132" r="4"/></g>
+          <g fill="#ff4b17"><circle cx="24" cy="44" r="4"/><circle cx="296" cy="140" r="4"/></g>
+          <text x="132" y="34" font-family="IBM Plex Mono" font-size="10" fill="#7b786f">SLOW-IN / SLOW-OUT</text>
+        </svg>
+        <p>同样的位移，用 6 格和用 18 格，感觉完全不同。格数少＝快而干脆，格数多＝慢而从容。</p>
+        <div class="eg"><b>例子：</b>同一条滑动，2 帧完成像「闪现」，20 帧完成像「滑行」。</div>
+      </article>
+
+      <!-- 05 -->
+      <article class="prin rv">
+        <div class="top"><span class="no">P.05</span><span class="tech muted">POSE TO POSE</span></div>
+        <h3>关键姿势与中间帧</h3>
+        <svg class="diag" viewBox="0 0 320 180" role="img" aria-label="上方是逐帧推进，下方是先定关键姿势再补中间帧">
+          <rect width="320" height="180" fill="#f2efe8"/>
+          <g stroke="#7b786f" stroke-width="1.5" fill="none">
+            <rect x="24" y="42" width="20" height="20"/><rect x="56" y="46" width="20" height="20"/>
+            <rect x="88" y="50" width="20" height="20"/><rect x="120" y="54" width="20" height="20"/>
+            <rect x="152" y="58" width="20" height="20"/><rect x="184" y="62" width="20" height="20"/>
+            <rect x="216" y="66" width="20" height="20"/><rect x="248" y="70" width="20" height="20"/>
+          </g>
+          <text x="24" y="32" font-family="IBM Plex Mono" font-size="10" fill="#7b786f">STRAIGHT AHEAD</text>
+          <rect x="24" y="112" width="22" height="22" fill="#161616"/>
+          <rect x="140" y="122" width="22" height="22" fill="#ff4b17"/>
+          <rect x="264" y="112" width="22" height="22" fill="#161616"/>
+          <rect x="82" y="117" width="22" height="22" fill="none" stroke="#161616" stroke-width="1.5" opacity=".35"/>
+          <rect x="202" y="117" width="22" height="22" fill="none" stroke="#161616" stroke-width="1.5" opacity=".35"/>
+          <line x1="46" y1="123" x2="264" y2="123" stroke="#161616" stroke-width="1" stroke-dasharray="4 4"/>
+          <text x="24" y="170" font-family="IBM Plex Mono" font-size="10" fill="#7b786f">POSE TO POSE</text>
+        </svg>
+        <p>先定最重要的几个姿势（关键帧），再补中间。这样动作结构稳、容易调整，是绝大多数项目的标准做法。</p>
+        <div class="eg"><b>例子：</b>挥手：先定「举起手」和「挥到底」，再补中间轨迹。</div>
+      </article>
+
+      <!-- 06 -->
+      <article class="prin rv">
+        <div class="top"><span class="no">P.06</span><span class="tech muted">SECONDARY ACTION</span></div>
+        <h3>次要动作</h3>
+        <svg class="diag" viewBox="0 0 320 180" role="img" aria-label="主角弹跳，身后拖尾随动">
+          <rect width="320" height="180" fill="#f2efe8"/>
+          <line x1="20" y1="150" x2="300" y2="150" stroke="#161616" stroke-width="2"/>
+          <path d="M40 150 Q110 50 180 150 Q240 78 292 138" stroke="#161616" stroke-width="2" fill="none"/>
+          <circle cx="180" cy="122" r="15" fill="#161616"/>
+          <path d="M166 118 Q132 112 106 126 Q86 138 66 132" stroke="#ff4b17" stroke-width="2.5" fill="none"/>
+          <path d="M166 128 Q138 130 118 142" stroke="#ff4b17" stroke-width="1.5" fill="none" opacity=".55"/>
+          <text x="212" y="42" font-family="IBM Plex Mono" font-size="10" fill="#7b786f">PRIMARY</text>
+          <text x="60" y="104" font-family="IBM Plex Mono" font-size="10" fill="#ff4b17">TRAIL</text>
+        </svg>
+        <p>在主要动作之外，加一个小的附属动作，让角色更活。但不能抢走主戏。</p>
+        <div class="eg"><b>例子：</b>走路时头发和背包在晃；点头时手轻轻摆一下。</div>
+      </article>
+
+      <!-- 07 -->
+      <article class="prin rv">
+        <div class="top"><span class="no">P.07</span><span class="tech muted">FOLLOW THROUGH</span></div>
+        <h3>跟随与过冲</h3>
+        <svg class="diag" viewBox="0 0 320 180" role="img" aria-label="身体停下后末端继续运动并回弹">
+          <rect width="320" height="180" fill="#f2efe8"/>
+          <line x1="20" y1="150" x2="300" y2="150" stroke="#161616" stroke-width="2"/>
+          <rect x="60" y="96" width="56" height="54" fill="#161616"/>
+          <path d="M116 110 L232 82" stroke="#161616" stroke-width="3" fill="none"/>
+          <path d="M232 82 Q256 74 268 60" stroke="#ff4b17" stroke-width="3" fill="none"/>
+          <path d="M232 82 Q262 88 282 84" stroke="#ff4b17" stroke-width="2" fill="none" opacity=".5"/>
+          <path d="M232 82 Q250 96 262 108" stroke="#ff4b17" stroke-width="1.5" fill="none" opacity=".3"/>
+          <g stroke="#7b786f" stroke-width="1" fill="none">
+            <path d="M262 62 A 26 26 0 0 1 268 74" />
+            <path d="M266 90 A 22 22 0 0 1 258 102" />
+          </g>
+          <text x="60" y="172" font-family="IBM Plex Mono" font-size="10" fill="#7b786f">STOP</text>
+          <text x="230" y="172" font-family="IBM Plex Mono" font-size="10" fill="#ff4b17">OVERSHOOT</text>
+        </svg>
+        <p>主体停了，末端（头发、衣角、尾巴、鞭子）不会同时停，它们会继续走一点再回来。</p>
+        <div class="eg"><b>例子：</b>手臂急停，袖口继续甩过去再落回。</div>
+      </article>
+
+      <!-- 08 -->
+      <article class="prin rv">
+        <div class="top"><span class="no">P.08</span><span class="tech muted">EXAGGERATION</span></div>
+        <h3>夸张</h3>
+        <svg class="diag" viewBox="0 0 320 180" role="img" aria-label="小幅弧线与夸张弧线的对比">
+          <rect width="320" height="180" fill="#f2efe8"/>
+          <line x1="20" y1="150" x2="300" y2="150" stroke="#161616" stroke-width="2"/>
+          <path d="M30 140 Q160 122 290 138" stroke="#7b786f" stroke-width="2" fill="none" stroke-dasharray="5 4"/>
+          <path d="M30 140 Q160 12 290 138" stroke="#ff4b17" stroke-width="3" fill="none"/>
+          <circle cx="30" cy="140" r="5" fill="#161616"/><circle cx="290" cy="138" r="5" fill="#161616"/>
+          <text x="128" y="112" font-family="IBM Plex Mono" font-size="10" fill="#7b786f">REAL</text>
+          <text x="128" y="42" font-family="IBM Plex Mono" font-size="10" fill="#ff4b17">READABLE</text>
+        </svg>
+        <p>把关键特征推得比真实更明显一点。小幅夸张没有意义——要夸张到「一眼能读出来」，再往回收。</p>
+        <div class="eg"><b>例子：</b>惊讶不是眼睛睁大 10%，而是整个人跳起来、眼睛变成两个大圆。</div>
+      </article>
+    </div>
+
+    <div class="warn rv" style="margin-top:64px">
+      <b>剩下四条属于进阶：</b>弧线（Arcs，真实动作走曲线不走直线）、次要的次要（Secondary）、扎实感（Solid Drawing / 体积感）、吸引力（Appeal，角色要好看、要有人格）。等你做完第一个 5 秒动画再回头看，会有完全不同的理解。
+    </div>
+  </div>
+</section>
+
+<!-- ================= 03 工作流（深色） ================= -->
+<section id="pipeline" class="dark">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="chapno" style="-webkit-text-stroke:1px #5c5850">03</div>
+      <div>
+        <span class="kick">Pipeline / 视频项目的标准流程</span>
+        <h2>一条视频动画，<br>到底经过哪几步？</h2>
+        <p class="lede" style="margin-top:24px;color:#c8c4bb">下面六个阶段，是全世界动画、影视、广告、动效行业通用的骨架。小项目可以压缩，但不能跳过顺序。</p>
+      </div>
+    </div>
+
+    <div class="pipe rv">
+      <div class="stage">
+        <div class="idx">STAGE 01</div>
+        <h3>概念</h3>
+        <div class="svgbox">
+          <svg viewBox="0 0 120 120" width="100%" height="100%" role="img" aria-label="文字与参考图拼成的概念板">
+            <rect width="120" height="120" fill="#1b1b1b"/>
+            <rect x="14" y="18" width="40" height="30" fill="none" stroke="#8c8880" stroke-width="1.5"/>
+            <rect x="62" y="18" width="44" height="12" fill="none" stroke="#8c8880" stroke-width="1.5"/>
+            <rect x="62" y="36" width="34" height="12" fill="none" stroke="#8c8880" stroke-width="1.5"/>
+            <rect x="14" y="58" width="26" height="26" fill="none" stroke="#8c8880" stroke-width="1.5"/>
+            <rect x="48" y="58" width="26" height="26" fill="none" stroke="#ff4b17" stroke-width="1.5"/>
+            <rect x="82" y="58" width="24" height="26" fill="none" stroke="#8c8880" stroke-width="1.5"/>
+            <line x1="14" y1="98" x2="106" y2="98" stroke="#ff4b17" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <p>确定「要讲什么、给谁看、多长、什么调性」。产出一句话的创意描述、参考图（reference board）和时长预算。</p>
+      </div>
+      <div class="stage">
+        <div class="idx">STAGE 02</div>
+        <h3>分镜</h3>
+        <div class="svgbox">
+          <svg viewBox="0 0 120 120" width="100%" height="100%" role="img" aria-label="三格分镜与镜头运动箭头">
+            <rect width="120" height="120" fill="#1b1b1b"/>
+            <rect x="10" y="16" width="46" height="34" fill="none" stroke="#8c8880" stroke-width="1.5"/>
+            <rect x="64" y="16" width="46" height="34" fill="none" stroke="#8c8880" stroke-width="1.5"/>
+            <rect x="37" y="60" width="46" height="34" fill="none" stroke="#ff4b17" stroke-width="1.5"/>
+            <path d="M20 40 L46 24" stroke="#ff4b17" stroke-width="1.5"/>
+            <path d="M42 24 L46 24 L46 28" stroke="#ff4b17" stroke-width="1.5" fill="none"/>
+            <text x="12" y="110" font-family="IBM Plex Mono" font-size="9" fill="#8c8880">SHOT / CAMERA MOVE</text>
+          </svg>
+        </div>
+        <p>把故事拆成一个个镜头：构图、时长、镜头怎么动、在哪里切。这是最省钱的一步，也是最容易被跳过的一步。</p>
+      </div>
+      <div class="stage">
+        <div class="idx">STAGE 03</div>
+        <h3>动画</h3>
+        <div class="svgbox">
+          <svg viewBox="0 0 120 120" width="100%" height="100%" role="img" aria-label="关键帧序列与时间轴">
+            <rect width="120" height="120" fill="#1b1b1b"/>
+            <g fill="#8c8880"><rect x="12" y="22" width="16" height="16"/><rect x="36" y="30" width="16" height="16"/><rect x="60" y="38" width="16" height="16"/><rect x="84" y="30" width="16" height="16"/></g>
+            <rect x="36" y="30" width="16" height="16" fill="#ff4b17"/>
+            <line x1="12" y1="86" x2="108" y2="86" stroke="#8c8880" stroke-width="1.5"/>
+            <g fill="#ff4b17"><rect x="18" y="82" width="3" height="8"/><rect x="42" y="82" width="3" height="8"/><rect x="72" y="82" width="3" height="8"/><rect x="98" y="82" width="3" height="8"/></g>
+            <rect x="12" y="102" width="80" height="6" fill="#8c8880" opacity=".4"/>
+          </svg>
+        </div>
+        <p>让画面动起来：设定关键姿势、调整时间、调节间距与缓动。这是最花时间的一段，占整个项目约 40%–60%。</p>
+      </div>
+      <div class="stage">
+        <div class="idx">STAGE 04</div>
+        <h3>材质灯光</h3>
+        <div class="svgbox">
+          <svg viewBox="0 0 120 120" width="100%" height="100%" role="img" aria-label="球体受光、表面纹理与阴影">
+            <rect width="120" height="120" fill="#1b1b1b"/>
+            <circle cx="60" cy="56" r="28" fill="none" stroke="#8c8880" stroke-width="1.5"/>
+            <path d="M40 44 A 28 28 0 0 1 72 32" stroke="#ff4b17" stroke-width="3" fill="none"/>
+            <ellipse cx="60" cy="98" rx="26" ry="6" fill="#8c8880" opacity=".35"/>
+            <path d="M22 22 L36 34" stroke="#ff4b17" stroke-width="1.5"/>
+            <g fill="#8c8880" opacity=".5">
+              <circle cx="52" cy="52" r="1.5"/><circle cx="62" cy="60" r="1.5"/><circle cx="70" cy="48" r="1.5"/><circle cx="56" cy="68" r="1.5"/>
+            </g>
+          </svg>
+        </div>
+        <p>决定物体表面是什么质感、光从哪里来、影子多硬。三维项目里这一步决定「像不像真的」。</p>
+      </div>
+      <div class="stage">
+        <div class="idx">STAGE 05</div>
+        <h3>渲染</h3>
+        <div class="svgbox">
+          <svg viewBox="0 0 120 120" width="100%" height="100%" role="img" aria-label="渲染进度条与单帧输出">
+            <rect width="120" height="120" fill="#1b1b1b"/>
+            <rect x="14" y="30" width="40" height="30" fill="none" stroke="#8c8880" stroke-width="1.5"/>
+            <rect x="66" y="30" width="40" height="30" fill="none" stroke="#8c8880" stroke-width="1.5"/>
+            <rect x="14" y="74" width="92" height="8" fill="none" stroke="#8c8880" stroke-width="1.5"/>
+            <rect x="14" y="74" width="58" height="8" fill="#ff4b17"/>
+            <text x="14" y="24" font-family="IBM Plex Mono" font-size="9" fill="#ff4b17">FRAME 0612 / 0960</text>
+          </svg>
+        </div>
+        <p>把每一格算出来并输出。二维多半直接出片，三维可能一格要算几秒到几小时，常常需要农场（render farm）排队。</p>
+      </div>
+      <div class="stage">
+        <div class="idx">STAGE 06</div>
+        <h3>合成</h3>
+        <div class="svgbox">
+          <svg viewBox="0 0 120 120" width="100%" height="100%" role="img" aria-label="多图层叠加与输出规格">
+            <rect width="120" height="120" fill="#1b1b1b"/>
+            <rect x="16" y="22" width="70" height="16" fill="none" stroke="#8c8880" stroke-width="1.5"/>
+            <rect x="22" y="42" width="70" height="16" fill="none" stroke="#8c8880" stroke-width="1.5"/>
+            <rect x="28" y="62" width="70" height="16" fill="none" stroke="#ff4b17" stroke-width="1.5"/>
+            <line x1="16" y1="94" x2="104" y2="94" stroke="#8c8880" stroke-width="1.5"/>
+            <text x="16" y="110" font-family="IBM Plex Mono" font-size="9" fill="#8c8880">MP4 · 1080p · 24fps</text>
+          </svg>
+        </div>
+        <p>把渲染出的图层、文字、音效、调色叠在一起，导出成最终成片。这一步决定观众真正看到什么。</p>
+      </div>
+    </div>
+
+    <!-- ROUTES -->
+    <div class="routes">
+      <h3 class="rv">六种常见工作流 · 点开看真实流程</h3>
+      <p class="muted rv" style="max-width:60ch;margin-bottom:32px">不同类型的工作流，骨架一样，重点完全不同。下面写的是真实项目里通常会发生的顺序，包括那句没人愿意承认的话：分镜常常被跳过。</p>
+
+      <div class="route rv">
+        <button class="route-btn" aria-expanded="false" aria-controls="rb1">
+          <span class="rno">R.01</span>
+          <span class="rname">角色动画</span>
+          <span class="rtool">Blender / Maya / TVPaint</span>
+          <span class="rarrow">+</span>
+        </button>
+        <div class="route-body" id="rb1">
+          <div class="route-body-in">
+            <div>
+              <h4>流程顺序</h4>
+              <div class="spine">
+                <span>概念</span><span>分镜</span><span>角色设计</span><span>绑定</span>
+                <span class="cur">关键姿势</span><span>中间帧</span><span>润色</span><span>合成</span>
+              </div>
+              <div class="warn">
+                <b>真实情况：</b>绑定（rigging）做不好，后面动画全是补救。初学者应该用现成的角色资产练习动作，不要一开始就自己绑骨骼。
+              </div>
+            </div>
+            <div>
+              <h4>典型周期与产出</h4>
+              <p>一个 10 秒的角色表演段落，单人练习大约 1–2 周；商业项目中一个角色镜头常按「秒/人天」估算。产出：镜头文件、角色资产、渲染图层序列、成片。</p>
+              <h4 style="margin-top:24px">先练什么</h4>
+              <p>先练「一个球的弹跳」和「走路循环」。这两件事覆盖了时间、间距、挤压伸展、跟随过冲全部四个核心。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="route rv">
+        <button class="route-btn" aria-expanded="false" aria-controls="rb2">
+          <span class="rno">R.02</span>
+          <span class="rname">动态图形</span>
+          <span class="rtool">After Effects / Rive / Figma</span>
+          <span class="rarrow">+</span>
+        </button>
+        <div class="route-body" id="rb2">
+          <div class="route-body-in">
+            <div>
+              <h4>流程顺序</h4>
+              <div class="spine">
+                <span>脚本</span><span>风格帧</span><span>分镜</span>
+                <span class="cur">版式设计</span><span>动画</span><span>声音</span><span>导出</span>
+              </div>
+              <div class="warn">
+                <b>真实情况：</b>动态图形项目里，90% 的「好不好看」在版式设计阶段就定了。如果静态版式不好看，动起来只会更糟。
+              </div>
+            </div>
+            <div>
+              <h4>典型周期与产出</h4>
+              <p>一条 30 秒的品牌图形动画，小团队约 1–3 周。产出：风格帧（style frame）、动画工程文件、Lottie/视频导出、音效对轨版本。</p>
+              <h4 style="margin-top:24px">先练什么</h4>
+              <p>先练「文字进场」：一组标题依次出现、停住、消失。它练的是时间、层级和缓动，不需要画任何东西。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="route rv">
+        <button class="route-btn" aria-expanded="false" aria-controls="rb3">
+          <span class="rno">R.03</span>
+          <span class="rname">视觉特效</span>
+          <span class="rtool">Houdini / Nuke / After Effects</span>
+          <span class="rarrow">+</span>
+        </button>
+        <div class="route-body" id="rb3">
+          <div class="route-body-in">
+            <div>
+              <h4>流程顺序</h4>
+              <div class="spine">
+                <span>素材拍摄</span><span>跟踪</span><span>模拟</span>
+                <span class="cur">分层渲染</span><span>合成</span><span>调色</span><span>交付</span>
+              </div>
+              <div class="warn">
+                <b>真实情况：</b>VFX 的核心不是「特效有多炫」，而是「素材拍得对不对」。跟踪点缺失、快门速度不对，后面全白做。
+              </div>
+            </div>
+            <div>
+              <h4>典型周期与产出</h4>
+              <p>一个爆破/烟雾镜头，单人练习可从一周起步；商业镜头按「版本迭代」计费，常常来回改十几版。产出：分层 EXR 序列、合成工程、交付成片。</p>
+              <h4 style="margin-top:24px">先练什么</h4>
+              <p>先练「把一个物体粘在实拍画面上」（简单的 2D/3D 跟踪合成）。这一步就能让你理解图层、遮罩和色彩匹配的全部基础。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="route rv">
+        <button class="route-btn" aria-expanded="false" aria-controls="rb4">
+          <span class="rno">R.04</span>
+          <span class="rname">产品动效</span>
+          <span class="rtool">Figma / Rive / Lottie</span>
+          <span class="rarrow">+</span>
+        </button>
+        <div class="route-body" id="rb4">
+          <div class="route-body-in">
+            <div>
+              <h4>流程顺序</h4>
+              <div class="spine">
+                <span>交互稿</span><span>状态定义</span>
+                <span class="cur">动效标注</span><span>原型</span><span>开发交付</span><span>验收</span>
+              </div>
+              <div class="warn">
+                <b>真实情况：</b>产品动效最重要的是「可实现」和「可标注」。一个工程师无法还原的漂亮动画，价值是零。永远附上时长、缓动曲线和触发条件。
+              </div>
+            </div>
+            <div>
+              <h4>典型周期与产出</h4>
+              <p>一个界面组件（如弹层、切换）动效，通常 1–3 天。产出：动效标注文档（时长 / 缓动 / 起始状态 / 结束状态）、可交互原型、Lottie 或代码片段。</p>
+              <h4 style="margin-top:24px">先练什么</h4>
+              <p>先练「一个按钮的三种状态」（常态 / 按下 / 完成）。它逼你思考：什么时候开始、多快、怎么停。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="route rv">
+        <button class="route-btn" aria-expanded="false" aria-controls="rb5">
+          <span class="rno">R.05</span>
+          <span class="rname">定格动画</span>
+          <span class="rtool">Dragonframe / 相机</span>
+          <span class="rarrow">+</span>
+        </button>
+        <div class="route-body" id="rb5">
+          <div class="route-body-in">
+            <div>
+              <h4>流程顺序</h4>
+              <div class="spine">
+                <span>分镜</span><span>搭景</span><span>角色骨架</span>
+                <span class="cur">逐格拍摄</span><span>清理</span><span>调色</span><span>配音</span>
+              </div>
+              <div class="warn">
+                <b>真实情况：</b>24 帧 = 1 秒，意味着一秒的动作你要拍 24 次并保持一切稳定。灯光一动、桌子一晃，全部重来。这是最考验耐心的动画形式。
+              </div>
+            </div>
+            <div>
+              <h4>典型周期与产出</h4>
+              <p>熟练团队一天大约产出 3–10 秒成片。产出：照片序列、拍摄日志、成片。它也是唯一不需要任何三维软件的完整动画流程。</p>
+              <h4 style="margin-top:24px">先练什么</h4>
+              <p>先用手机 + 玩具拍一个 2 秒的「玩具走三步」。你会立刻理解为什么「间距」决定一切。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="route rv">
+        <button class="route-btn" aria-expanded="false" aria-controls="rb6">
+          <span class="rno">R.06</span>
+          <span class="rname">手绘二维</span>
+          <span class="rtool">TVPaint / Toon Boom / Procreate</span>
+          <span class="rarrow">+</span>
+        </button>
+        <div class="route-body" id="rb6">
+          <div class="route-body-in">
+            <div>
+              <h4>流程顺序</h4>
+              <div class="spine">
+                <span>故事</span><span>分镜</span><span>动态分镜</span><span>原画</span>
+                <span class="cur">中间张</span><span>上色</span><span>摄影表</span><span>合成</span>
+              </div>
+              <div class="warn">
+                <b>真实情况：</b>手绘二维的产量以「张」计。一个熟练动画师一天可能只出 2–5 秒。它慢，但它的时间控制精度是所有形式里最高的。
+              </div>
+            </div>
+            <div>
+              <h4>典型周期与产出</h4>
+              <p>电视动画一集 22 分钟，通常需要数十人团队数月完成。产出：原画（key drawings）、中间张、摄影表（exposure sheet / dope sheet）、上色序列。</p>
+              <h4 style="margin-top:24px">先练什么</h4>
+              <p>先练「一格一格地画同一个圆在走」。Procreate 的动画辅助就能做，成本几乎为零。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 04 二维/三维/VFX ================= -->
+<section id="compare">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="chapno">04</div>
+      <div>
+        <span class="kick">Comparison / 二维 · 三维 · 动态图形</span>
+        <h2>差别不在软件，<br>在流程的形状。</h2>
+        <p class="lede" style="margin-top:24px">同样是「让东西动起来」，这三条路线的成本结构、迭代速度和团队规模完全不同。看懂下面三张流程图，你就知道该走哪条。</p>
+      </div>
+    </div>
+
+    <div class="panels">
+      <article class="panel rv">
+        <div class="head">
+          <h3>二维动画</h3>
+          <span class="tech muted">2D / DRAWN</span>
+        </div>
+        <div class="body">
+          <svg class="diagram" viewBox="0 0 320 240" role="img" aria-label="二维动画流程图：概念、分镜、设计、原画、中间张、上色、合成">
+            <rect width="320" height="240" fill="#f2efe8"/>
+            <g font-family="IBM Plex Mono" font-size="10" fill="#161616">
+              <rect x="16" y="20" width="72" height="30" fill="none" stroke="#161616" stroke-width="1.5"/><text x="34" y="39">概念</text>
+              <rect x="112" y="20" width="72" height="30" fill="none" stroke="#161616" stroke-width="1.5"/><text x="130" y="39">分镜</text>
+              <rect x="208" y="20" width="96" height="30" fill="none" stroke="#161616" stroke-width="1.5"/><text x="232" y="39">角色设计</text>
+              <rect x="16" y="76" width="72" height="30" fill="#1557ff"/><text x="34" y="95" fill="#fff">原画</text>
+              <rect x="112" y="76" width="72" height="30" fill="none" stroke="#1557ff" stroke-width="2"/><text x="124" y="95" fill="#1557ff">中间张</text>
+              <rect x="208" y="76" width="96" height="30" fill="none" stroke="#161616" stroke-width="1.5"/><text x="238" y="95">上色</text>
+              <rect x="64" y="132" width="96" height="30" fill="none" stroke="#161616" stroke-width="1.5"/><text x="86" y="151">摄影表</text>
+              <rect x="184" y="132" width="120" height="30" fill="#161616"/><text x="212" y="151" fill="#fff">合成 / 导出</text>
+            </g>
+            <g stroke="#161616" stroke-width="1.2" fill="none">
+              <path d="M88 35 L112 35"/><path d="M184 35 L208 35"/>
+              <path d="M256 50 L256 62 L52 62 L52 76"/>
+              <path d="M88 91 L112 91"/><path d="M184 91 L208 91"/>
+              <path d="M256 106 L256 118 L112 118 L112 132"/>
+              <path d="M160 162 L160 176"/>
+            </g>
+            <rect x="64" y="186" width="200" height="32" fill="none" stroke="#ff4b17" stroke-width="2"/>
+            <text x="88" y="207" font-family="IBM Plex Mono" font-size="11" fill="#ff4b17">OUTPUT · 手绘质感</text>
+          </svg>
+          <div class="row"><span class="k">改起来</span><span class="v">贵 · 已上色难返工</span></div>
+          <div class="row"><span class="k">迭代速度</span><span class="v">慢</span></div>
+          <div class="row"><span class="k">团队</span><span class="v">按张数计，多人工序</span></div>
+          <div class="row"><span class="k">适合</span><span class="v">叙事、表演、独特笔触</span></div>
+        </div>
+      </article>
+
+      <article class="panel rv">
+        <div class="head">
+          <h3>三维动画</h3>
+          <span class="tech muted">3D / CG</span>
+        </div>
+        <div class="body">
+          <svg class="diagram" viewBox="0 0 320 240" role="img" aria-label="三维动画流程图：建模、绑定、布局、动画、材质、灯光、渲染、合成">
+            <rect width="320" height="240" fill="#f2efe8"/>
+            <g font-family="IBM Plex Mono" font-size="10" fill="#161616">
+              <rect x="16" y="18" width="86" height="30" fill="none" stroke="#161616" stroke-width="1.5"/><text x="38" y="37">建模</text>
+              <rect x="118" y="18" width="86" height="30" fill="none" stroke="#161616" stroke-width="1.5"/><text x="140" y="37">绑定</text>
+              <rect x="220" y="18" width="84" height="30" fill="none" stroke="#161616" stroke-width="1.5"/><text x="242" y="37">布局</text>
+              <rect x="16" y="74" width="120" height="30" fill="#1557ff"/><text x="52" y="93" fill="#fff">动画</text>
+              <rect x="152" y="74" width="72" height="30" fill="none" stroke="#161616" stroke-width="1.5"/><text x="172" y="93">材质</text>
+              <rect x="240" y="74" width="64" height="30" fill="none" stroke="#161616" stroke-width="1.5"/><text x="258" y="93">灯光</text>
+              <rect x="16" y="130" width="120" height="30" fill="none" stroke="#161616" stroke-width="1.5"/><text x="52" y="149">分层渲染</text>
+              <rect x="152" y="130" width="152" height="30" fill="#161616"/><text x="200" y="149" fill="#fff">合成 / 交付</text>
+            </g>
+            <g stroke="#161616" stroke-width="1.2" fill="none">
+              <path d="M102 33 L118 33"/><path d="M204 33 L220 33"/>
+              <path d="M262 48 L262 60 L76 60 L76 74"/>
+              <path d="M136 89 L152 89"/><path d="M224 89 L240 89"/>
+              <path d="M272 104 L272 118 L76 118 L76 130"/>
+              <path d="M136 145 L152 145"/>
+            </g>
+            <rect x="16" y="186" width="288" height="32" fill="none" stroke="#ff4b17" stroke-width="2"/>
+            <text x="44" y="207" font-family="IBM Plex Mono" font-size="11" fill="#ff4b17">OUTPUT · 真实光影 / 无限机位</text>
+          </svg>
+          <div class="row"><span class="k">改起来</span><span class="v">中 · 阶段越晚越贵</span></div>
+          <div class="row"><span class="k">迭代速度</span><span class="v">中，渲染是瓶颈</span></div>
+          <div class="row"><span class="k">团队</span><span class="v">分工极细，管线依赖强</span></div>
+          <div class="row"><span class="k">适合</span><span class="v">复杂镜头、真实质感、复用资产</span></div>
+        </div>
+      </article>
+
+      <article class="panel rv">
+        <div class="head">
+          <h3>动态图形</h3>
+          <span class="tech muted">MOTION GRAPHICS</span>
+        </div>
+        <div class="body">
+          <svg class="diagram" viewBox="0 0 320 240" role="img" aria-label="动态图形流程图：脚本、版式、分层、缓动、声音、导出">
+            <rect width="320" height="240" fill="#f2efe8"/>
+            <g font-family="IBM Plex Mono" font-size="10" fill="#161616">
+              <rect x="16" y="18" width="130" height="30" fill="none" stroke="#161616" stroke-width="1.5"/><text x="58" y="37">脚本 / 信息结构</text>
+              <rect x="162" y="18" width="142" height="30" fill="none" stroke="#161616" stroke-width="1.5"/><text x="206" y="37">版式 / 风格帧</text>
+              <rect x="16" y="74" width="96" height="30" fill="none" stroke="#161616" stroke-width="1.5"/><text x="42" y="93">图层拆分</text>
+              <rect x="128" y="74" width="96" height="30" fill="#1557ff"/><text x="152" y="93" fill="#fff">缓动</text>
+              <rect x="240" y="74" width="64" height="30" fill="none" stroke="#161616" stroke-width="1.5"/><text x="256" y="93">节奏</text>
+              <rect x="16" y="130" width="120" height="30" fill="none" stroke="#161616" stroke-width="1.5"/><text x="48" y="149">声音对轨</text>
+              <rect x="152" y="130" width="152" height="30" fill="#161616"/><text x="188" y="149" fill="#fff">导出 MP4 / Lottie</text>
+            </g>
+            <g stroke="#161616" stroke-width="1.2" fill="none">
+              <path d="M146 33 L162 33"/>
+              <path d="M233 48 L233 60 L64 60 L64 74"/>
+              <path d="M112 89 L128 89"/><path d="M224 89 L240 89"/>
+              <path d="M272 104 L272 118 L76 118 L76 130"/>
+              <path d="M136 145 L152 145"/>
+            </g>
+            <rect x="16" y="186" width="288" height="32" fill="none" stroke="#ff4b17" stroke-width="2"/>
+            <text x="46" y="207" font-family="IBM Plex Mono" font-size="11" fill="#ff4b17">OUTPUT · 快速迭代 / 可进产品</text>
+          </svg>
+          <div class="row"><span class="k">改起来</span><span class="v">便宜 · 图层随时调</span></div>
+          <div class="row"><span class="k">迭代速度</span><span class="v">快</span></div>
+          <div class="row"><span class="k">团队</span><span class="v">1 人可独立完成</span></div>
+          <div class="row"><span class="k">适合</span><span class="v">品牌、信息传达、产品界面</span></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="cmp rv">
+      <table>
+        <caption class="tech muted" style="text-align:left;padding:16px 18px 0">QUICK MATRIX / 三条路线速查</caption>
+        <thead>
+          <tr><th>维度</th><th>二维动画</th><th>三维动画</th><th>动态图形</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>核心技能</td><td>绘画 + 时间控制</td><td>空间 + 管线理解</td><td>版式 + 缓动</td></tr>
+          <tr><td>上手门槛</td><td>中（要会画）</td><td>高（概念多）</td><td>低（最适合入门）</td></tr>
+          <tr><td>第一件作品耗时</td><td>2–4 周</td><td>3–6 周</td><td>3–7 天</td></tr>
+          <tr><td>主要成本</td><td>人力工时（张数）</td><td>渲染算力 + 分工</td><td>设计与迭代次数</td></tr>
+          <tr><td>典型交付</td><td>MP4 / ProRes</td><td>EXR 序列 + 成片</td><td>MP4 / Lottie / GIF</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 05 时间与间距 ================= -->
+<section id="timing" style="background:var(--white);border-top:var(--rule);border-bottom:var(--rule)">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="chapno">05</div>
+      <div>
+        <span class="kick">Timing &amp; Spacing / 职业与业余的分界线</span>
+        <h2>动效实验室：<br>亲手改一改「时间」和「间距」。</h2>
+        <p class="lede" style="margin-top:24px">下面这个小工具不需要任何软件。拖动两个滑块，你会立刻看到同一条弹跳轨迹如何变成完全不同的性格。</p>
+      </div>
+    </div>
+
+    <div class="ws">
+      <div class="ws-stage rv">
+        <canvas class="ws-canvas" id="wsCanvas" width="600" height="600" role="img"
+                aria-label="弹跳小球轨迹示意图，包含时间标尺与关键帧"></canvas>
+
+        <div class="ctrl">
+          <label for="rTime">时间 · TIMING <b id="vTime">1.0s</b></label>
+          <input type="range" id="rTime" min="0.4" max="2.4" step="0.1" value="1">
+          <p class="ws-note">时间 = 这个动作一共用多少格。短 → 急促有力；长 → 缓慢沉重。</p>
+        </div>
+
+        <div class="ctrl">
+          <label for="rSpace">间距 · SPACING <b id="vSpace">均匀</b></label>
+          <input type="range" id="rSpace" min="0" max="100" step="1" value="50">
+          <p class="ws-note">间距 = 相邻两格之间移动多远。靠得密 → 加速；分得开 → 减速；均匀 → 机械匀速。</p>
+        </div>
+
+        <div class="ctrl">
+          <label for="rEase">缓动 · EASING <b id="vEase">缓慢进入</b></label>
+          <input type="range" id="rEase" min="0" max="100" step="1" value="60">
+          <p class="ws-note">缓动 = 间距变化的规律。慢慢加速（ease-in）、慢慢停下（ease-out）、两头慢中间快（ease-in-out）。</p>
+        </div>
+      </div>
+
+      <div class="rv">
+        <div class="def-block">
+          <h3>把这三件事串起来</h3>
+          <p class="keyline">时间告诉你「多久」，间距告诉你「多快」，缓动告诉你「什么性格」。</p>
+          <p>职业工作流里，这三样不是靠感觉瞎调的，而是<b>写在标注里</b>的：<span class="mono">0.3s / ease-out / cubic-bezier(0.16, 1, 0.3, 1)</span>。这就是为什么同一套设计，不同人做出来差别巨大——他们改的从来不是位置，是这三行参数。</p>
+        </div>
+
+        <div class="def-block">
+          <h3>缓动函数速查</h3>
+          <div class="cmp" style="margin-top:16px">
+            <table>
+              <thead><tr><th>名称</th><th>感觉</th><th>常用场景</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">linear</td><td>机械、匀速</td><td>进度条、循环转圈</td></tr>
+                <tr><td class="mono">ease-in</td><td>起步慢，越来越快</td><td>物体掉落、离开画面</td></tr>
+                <tr><td class="mono">ease-out</td><td>冲进来，缓缓停住</td><td>弹窗、元素进场（最常用）</td></tr>
+                <tr><td class="mono">ease-in-out</td><td>两头软，中间快</td><td>位移、过渡、镜头运动</td></tr>
+                <tr><td class="mono">spring / 回弹</td><td>有重量、有性格</td><td>按钮、卡片、有弹性的物体</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="warn">
+          <b>初学者提示：</b>如果你只能记住一个，记住 <b>ease-out</b>。自然界里几乎没有东西是突然停住的——会停的东西，都是慢慢停的。
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats rv">
+      <div class="stat">
+        <div class="big hot mono">24 fps</div>
+        <div class="lbl">电影与大多数影视项目的标准帧率。每一张停 1/24 秒。</div>
+      </div>
+      <div class="stat">
+        <div class="big mono">180°</div>
+        <div class="lbl">标准快门角。意味着每格曝光 1/48 秒，产生「刚好」的运动模糊。</div>
+      </div>
+      <div class="stat">
+        <div class="big mono">12 fps</div>
+        <div class="lbl">传统手绘动画常用「一拍二」——每张画停两格。它更「有手工感」，成本减半。</div>
+      </div>
+    </div>
+
+    <div class="shutter rv" style="margin-top:40px">
+      <svg viewBox="0 0 200 200" role="img" aria-label="180 度快门盘示意图，一半开放一半遮挡">
+        <circle cx="100" cy="100" r="82" fill="none" stroke="#161616" stroke-width="2"/>
+        <path d="M100 100 L100 18 A 82 82 0 0 1 100 182 Z" fill="#161616"/>
+        <path d="M100 100 L100 18 A 82 82 0 0 0 100 182 Z" fill="#ff4b17" opacity=".85"/>
+        <circle cx="100" cy="100" r="10" fill="#f2efe8" stroke="#161616" stroke-width="2"/>
+        <text x="112" y="60" font-family="IBM Plex Mono" font-size="12" fill="#161616">OPEN 180°</text>
+        <text x="106" y="152" font-family="IBM Plex Mono" font-size="12" fill="#ff4b17">BLOCK 180°</text>
+      </svg>
+      <div>
+        <h3 style="font-size:24px;font-weight:800;margin-bottom:12px">快门角度是什么，为什么它决定「电影感」</h3>
+        <p>胶片摄影机里有一块旋转的遮光盘（快门）。180° 快门意味着每一格画面只有一半时间在曝光。快门角度越大（270°、360°）运动模糊越多，画面越「糊」越梦幻；角度越小（45°、90°）画面越「顿」越凌厉，动作片常用小角度制造紧张感。</p>
+        <p class="keyline" style="margin-top:20px">电影感不是来自模糊，而是来自正确的曝光节奏与稳定的间距。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 06 工具墙 ================= -->
+<section id="tools">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="chapno">06</div>
+      <div>
+        <span class="kick">Toolkit / 全球通用工具索引</span>
+        <h2>工具有很多，<br>但它们解决的问题只有四类。</h2>
+        <p class="lede" style="margin-top:24px">不要被软件名单吓到。先想清楚你要做哪一类工作，再挑一个工具。<b>难度不是星级评判，只是「从零到能做出东西」的上手距离。</b></p>
+      </div>
+    </div>
+
+    <div class="wall">
+      <aside class="wall-aside rv">
+        <h3>怎么读这张表</h3>
+        <p>每一行回答四件事：它最强的地方是什么、要花多少钱、官方资料在哪、初学者最容易在哪卡住。右边的方块是上手距离，不是好坏评价。</p>
+        <div class="diff-key">
+          <div class="dk"><span class="segs"><i class="on"></i><i></i><i></i><i></i><i></i></span> 很快 · 一两天能出东西</div>
+          <div class="dk"><span class="segs"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span> 较快 · 一周左右</div>
+          <div class="dk"><span class="segs"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span> 中等 · 需要几周</div>
+          <div class="dk"><span class="segs"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span> 较久 · 需要一两个月</div>
+          <div class="dk"><span class="segs"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span> 很久 · 专业管线级别</div>
+        </div>
+        <div class="warn" style="margin-top:24px">
+          <b>选工具的顺序：</b>先定工作类型 → 再看行业里最常用哪个 → 只学一条完整工作流 → 做出成品。千万别同时装五个软件然后每个都只打开过一次。
+        </div>
+      </aside>
+
+      <div>
+        <!-- GROUP A -->
+        <div class="group-label"><span>A · 基础 / 图像与剪辑</span><span>FOUNDATION</span></div>
+        <div class="tools">
+          <div class="tool-row">
+            <div class="tn">Photoshop<small>RASTER / IMAGE</small></div>
+            <div class="best">绘画、贴图、纹理、关键帧逐帧动画<em>图像处理与二维动画的第一块砖</em></div>
+            <div class="price">订阅制 · Adobe 创意套件<br>含 2D 时间轴动画功能</div>
+            <div>
+              <div class="segs" aria-label="上手距离 2/5"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+              <div class="links"><a href="https://helpx.adobe.com/photoshop/user-guide.html" target="_blank" rel="noopener">官方使用手册</a></div>
+            </div>
+            <div class="price muted">初学者常卡在：图层、蒙版、色彩模式还没弄清就想做动画。</div>
+          </div>
+          <div class="tool-row">
+            <div class="tn">Illustrator<small>VECTOR</small></div>
+            <div class="best">矢量图形、图标、可无限放大的动画素材<em>动效素材的「零件工厂」</em></div>
+            <div class="price">订阅制 · Adobe 创意套件<br>支持矢量绘制与导出</div>
+            <div>
+              <div class="segs" aria-label="上手距离 2/5"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+              <div class="links"><a href="https://helpx.adobe.com/illustrator/user-guide.html" target="_blank" rel="noopener">官方使用手册</a></div>
+            </div>
+            <div class="price muted">初学者常卡在：钢笔工具。它需要刻意练一小时，之后一辈子受用。</div>
+          </div>
+          <div class="tool-row">
+            <div class="tn">Procreate<small>DRAWING / IPAD</small></div>
+            <div class="best">手绘风格、逐帧小动画、插画<em>最便宜的入门手绘动画方式</em></div>
+            <div class="price">一次性买断 · iPad<br>含动画辅助（逐帧）</div>
+            <div>
+              <div class="segs" aria-label="上手距离 1/5"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+              <div class="links"><a href="https://procreate.com/handbook" target="_blank" rel="noopener">官方 Handbook</a></div>
+            </div>
+            <div class="price muted">初学者常卡在：没打开「动画辅助」，结果画了一堆不会动的图层。</div>
+          </div>
+        </div>
+
+        <!-- GROUP B -->
+        <div class="group-label"><span>B · 合成 / 动效与视频剪辑</span><span>COMPOSITING</span></div>
+        <div class="tools">
+          <div class="tool-row">
+            <div class="tn">After Effects<small>MOTION GRAPHICS</small></div>
+            <div class="best">图形动画、文字动效、合成、简单特效<em>行业里动态图形事实上的通用语言</em></div>
+            <div class="price">订阅制 · Adobe 创意套件<br>支持关键帧、表达式、插件生态</div>
+            <div>
+              <div class="segs" aria-label="上手距离 3/5"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+              <div class="links">
+                <a href="https://helpx.adobe.com/after-effects/user-guide.html" target="_blank" rel="noopener">官方使用手册</a>
+                <a href="https://helpx.adobe.com/after-effects/using/expression-basics.html" target="_blank" rel="noopener">表达式入门</a>
+              </div>
+            </div>
+            <div class="price muted">初学者常卡在：图层顺序与预合成。理解「预合成 = 把一段动画打包成一个新图层」就通了。</div>
+          </div>
+          <div class="tool-row">
+            <div class="tn">DaVinci Resolve<small>EDIT · FUSION</small></div>
+            <div class="best">剪辑、调色、合成（Fusion）、音频<em>免费版功能已足够学习完整流程</em></div>
+            <div class="price">免费版可用 · Studio 一次性买断<br>含剪辑 / 调色 / 合成 / 音频</div>
+            <div>
+              <div class="segs" aria-label="上手距离 3/5"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+              <div class="links">
+                <a href="https://documents.blackmagicdesign.com/UserManuals/DaVinci-Resolve-Manual.pdf" target="_blank" rel="noopener">官方手册 PDF</a>
+                <a href="https://www.blackmagicdesign.com/products/davinciresolve/training" target="_blank" rel="noopener">官方免费培训</a>
+              </div>
+            </div>
+            <div class="price muted">初学者常卡在：节点式合成（Fusion）和图层式合成完全是两种思维，先看官方那套免费培训课。</div>
+          </div>
+          <div class="tool-row">
+            <div class="tn">Nuke<small>COMPOSITING</small></div>
+            <div class="best">影视级合成、多通道、大规模 VFX 管线<em>电影工业合成的行业标准</em></div>
+            <div class="price">商用授权 · 提供非商用免费学习版<br>基于节点的合成</div>
+            <div>
+              <div class="segs" aria-label="上手距离 5/5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+              <div class="links">
+                <a href="https://learn.foundry.com/nuke" target="_blank" rel="noopener">Foundry 官方学习中心</a>
+              </div>
+            </div>
+            <div class="price muted">初学者常卡在：还没做过任何合成就直接学 Nuke。先用 After Effects 或 Fusion 理解图层与通道。</div>
+          </div>
+          <div class="tool-row">
+            <div class="tn">Premiere Pro<small>EDITING</small></div>
+            <div class="best">剪辑、成片组装、音画对轨、基础字幕<em>它不做动画，但决定动画怎么被看到</em></div>
+            <div class="price">订阅制 · Adobe 创意套件<br>支持多格式时间线</div>
+            <div>
+              <div class="segs" aria-label="上手距离 2/5"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+              <div class="links"><a href="https://helpx.adobe.com/premiere-pro/user-guide.html" target="_blank" rel="noopener">官方使用手册</a></div>
+            </div>
+            <div class="price muted">初学者常卡在：导出设置。记住一个稳定组合：<span class="mono">H.264 · 1080p · 24/30fps · 目标码率 10–20 Mbps</span>。</div>
+          </div>
+        </div>
+
+        <!-- GROUP C -->
+        <div class="group-label"><span>C · 三维 / 建模与特效</span><span>3D &amp; VFX</span></div>
+        <div class="tools">
+          <div class="tool-row">
+            <div class="tn">Blender<small>3D · OPEN SOURCE</small></div>
+            <div class="best">建模、绑定、动画、模拟、渲染、剪辑<em>唯一免费且覆盖完整管线的三维软件</em></div>
+            <div class="price">完全免费开源<br>覆盖建模到渲染全流程</div>
+            <div>
+              <div class="segs" aria-label="上手距离 4/5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+              <div class="links">
+                <a href="https://docs.blender.org/manual/en/latest/" target="_blank" rel="noopener">官方手册</a>
+                <a href="https://www.blender.org/support/tutorials/" target="_blank" rel="noopener">官方教程入口</a>
+              </div>
+            </div>
+            <div class="price muted">初学者常卡在：快捷键与「编辑模式/物体模式」的切换。先花半天只学界面和视图操作。</div>
+          </div>
+          <div class="tool-row">
+            <div class="tn">Cinema 4D<small>3D · MOTION</small></div>
+            <div class="best">动态图形三维、广播包装、易用的动画工具<em>平面设计师转三维最友好的一条路</em></div>
+            <div class="price">订阅制 · Maxon One<br>以易用的运动图形模块著称</div>
+            <div>
+              <div class="segs" aria-label="上手距离 3/5"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+              <div class="links"><a href="https://www.maxon.net/en/learn" target="_blank" rel="noopener">Maxon 官方学习</a></div>
+            </div>
+            <div class="price muted">初学者常卡在：和 After Effects 之间怎么来回。理解「多通道渲染 + 合成」这个概念比学按钮重要。</div>
+          </div>
+          <div class="tool-row">
+            <div class="tn">Houdini<small>PROCEDURAL / FX</small></div>
+            <div class="best">程序化建模、烟火水流破碎、复杂模拟<em>影视特效行业的硬通货</em></div>
+            <div class="price">有免费学习版（Apprentice）<br>程序化节点式工作流</div>
+            <div>
+              <div class="segs" aria-label="上手距离 5/5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+              <div class="links"><a href="https://www.sidefx.com/tutorials/" target="_blank" rel="noopener">SideFX 官方教程</a></div>
+            </div>
+            <div class="price muted">初学者常卡在：思维方式。Houdini 不是「画一个东西」，是「写一套规则生成东西」。别从这里开始。</div>
+          </div>
+        </div>
+
+        <!-- GROUP D -->
+        <div class="group-label"><span>D · 实时 / 网页与产品</span><span>REAL-TIME</span></div>
+        <div class="tools">
+          <div class="tool-row">
+            <div class="tn">Figma<small>DESIGN / PROTOTYPE</small></div>
+            <div class="best">界面设计、交互动效原型、设计标注<em>产品动效的起点与交付终点</em></div>
+            <div class="price">免费版可用<br>Smart Animate 做状态过渡</div>
+            <div>
+              <div class="segs" aria-label="上手距离 1/5"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+              <div class="links"><a href="https://help.figma.com/hc/en-us" target="_blank" rel="noopener">官方帮助中心</a></div>
+            </div>
+            <div class="price muted">初学者常卡在：把动效做成「炫」，而不是「能被开发还原」。标注时长与缓动比动画本身更值钱。</div>
+          </div>
+          <div class="tool-row">
+            <div class="tn">Rive<small>INTERACTIVE</small></div>
+            <div class="best">交互动画、状态机、可嵌入网页与 App 的动效<em>为「会响应的动画」而生</em></div>
+            <div class="price">免费版可用<br>含状态机与运行时</div>
+            <div>
+              <div class="segs" aria-label="上手距离 2/5"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+              <div class="links">
+                <a href="https://rive.app/community/doc" target="_blank" rel="noopener">官方文档</a>
+              </div>
+            </div>
+            <div class="price muted">初学者常卡在：状态机（State Machine）概念。先做一个「按钮按下就换颜色」的两状态作品。</div>
+          </div>
+          <div class="tool-row">
+            <div class="tn">Lottie / Bodymovin<small>WEB DELIVERY</small></div>
+            <div class="best">把动画导出成网页能直接播放的 JSON<em>设计师到工程师之间最短的一座桥</em></div>
+            <div class="price">开源格式与运行时<br>After Effects 导出插件免费</div>
+            <div>
+              <div class="segs" aria-label="上手距离 2/5"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+              <div class="links">
+                <a href="https://airbnb.io/lottie/" target="_blank" rel="noopener">官方文档</a>
+                <a href="https://lottiefiles.com/" target="_blank" rel="noopener">社区与素材库</a>
+              </div>
+            </div>
+            <div class="price muted">初学者常卡在：导出不支持的特效。Lottie 不是万能的——保持用基础图层、遮罩和变换。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 07 文档与参考 ================= -->
+<section id="docs" class="dark">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="chapno" style="-webkit-text-stroke:1px #5c5850">07</div>
+      <div>
+        <span class="kick">References / 世界上真正的参考来源</span>
+        <h2>遇到问题先查这里，<br>不要先看短视频。</h2>
+        <p class="lede" style="margin-top:24px;color:#c8c4bb">下面这些是行业里真的在用的规范、文档与学习库。把它们放进收藏夹，你的学习速度会翻倍。</p>
+      </div>
+    </div>
+
+    <div class="res-tabs rv" role="tablist" aria-label="资源分类">
+      <button class="tab on" data-cat="all" role="tab" aria-selected="true">全部</button>
+      <button class="tab" data-cat="spec" role="tab" aria-selected="false">规范</button>
+      <button class="tab" data-cat="engine" role="tab" aria-selected="false">引擎指南</button>
+      <button class="tab" data-cat="learn" role="tab" aria-selected="false">学习库</button>
+      <button class="tab" data-cat="asset" role="tab" aria-selected="false">开源素材</button>
+      <button class="tab" data-cat="export" role="tab" aria-selected="false">导出格式</button>
+      <button class="tab" data-cat="comm" role="tab" aria-selected="false">社区</button>
+    </div>
+
+    <div class="res-grid" id="resGrid">
+      <article class="res rv" data-cat="spec">
+        <div class="rt">规范 · WEB SPEC</div>
+        <h3>MDN — CSS Animation &amp; Web Animations API</h3>
+        <p>网页动画的官方参考。所有时间函数、缓动关键字、动画事件都能在这里查到准确语法与浏览器兼容性。做产品动效的人必须收藏。</p>
+        <div class="meta">
+          <span class="lvl">适合：有网页基础之后</span>
+          <a class="go" href="https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_animations" target="_blank" rel="noopener">打开 →</a>
+        </div>
+      </article>
+
+      <article class="res rv" data-cat="engine">
+        <div class="rt">设计系统 · MOTION GUIDELINES</div>
+        <h3>Google Material — Motion</h3>
+        <p>Google 的动效设计系统，把「什么时候动、动多久、什么曲线」写成了可执行的规范。它给的不是灵感，是参数。非常适合学习如何把感觉变成标注。</p>
+        <div class="meta">
+          <span class="lvl">适合：做完第一个动效之后</span>
+          <a class="go" href="https://m3.material.io/styles/motion/overview" target="_blank" rel="noopener">打开 →</a>
+        </div>
+      </article>
+
+      <article class="res rv" data-cat="engine">
+        <div class="rt">设计系统 · PLATFORM</div>
+        <h3>Apple — Human Interface Guidelines: Motion</h3>
+        <p>苹果平台的动效原则。和 Material 对照着看，你会理解两家在「动效该不该被注意到」这件事上的根本分歧。这是进阶的理解力训练。</p>
+        <div class="meta">
+          <span class="lvl">适合：做产品动效的人</span>
+          <a class="go" href="https://developer.apple.com/design/human-interface-guidelines/motion" target="_blank" rel="noopener">打开 →</a>
+        </div>
+      </article>
+
+      <article class="res rv" data-cat="export">
+        <div class="rt">导出格式 · WEB DELIVERY</div>
+        <h3>Lottie — 官方文档</h3>
+        <p>把 After Effects 的动画导出成网页、iOS、Android 都能播放的轻量格式。学它，你就打通了「设计师做」到「产品里跑」的整条链路。</p>
+        <div class="meta">
+          <span class="lvl">适合：想让作品上线的人</span>
+          <a class="go" href="https://airbnb.io/lottie/" target="_blank" rel="noopener">打开 →</a>
+        </div>
+      </article>
+
+      <article class="res rv" data-cat="export">
+        <div class="rt">交互动画 · REAL-TIME</div>
+        <h3>Rive — 官方文档</h3>
+        <p>不止是动画，还能定义状态机让它「响应用户」。文档结构清晰，自带可交互示例，是目前学习交互动画最舒服的入口。</p>
+        <div class="meta">
+          <span class="lvl">适合：零基础也能读</span>
+          <a class="go" href="https://rive.app/community/doc" target="_blank" rel="noopener">打开 →</a>
+        </div>
+      </article>
+
+      <article class="res rv" data-cat="learn">
+        <div class="rt">学习库 · INTERACTION</div>
+        <h3>Interaction Design Foundation — Animation</h3>
+        <p>把动效放回「交互设计」的语境里讲：什么时候不该加动画、动画如何影响认知负荷。这门课补的是审美判断，不是技术。</p>
+        <div class="meta">
+          <span class="lvl">适合：想理解「为什么动」</span>
+          <a class="go" href="https://www.interaction-design.org/literature/topics/animation" target="_blank" rel="noopener">打开 →</a>
+        </div>
+      </article>
+
+      <article class="res rv" data-cat="asset">
+        <div class="rt">开源素材 · ANIMATION</div>
+        <h3>LottieFiles — 素材与社区</h3>
+        <p>大量免费可下载的 Lottie 动画。最好的用法不是直接抄，而是下载下来拆开看：它的关键帧密度、缓动曲线是怎么设置的。</p>
+        <div class="meta">
+          <span class="lvl">适合：边拆边学</span>
+          <a class="go" href="https://lottiefiles.com/" target="_blank" rel="noopener">打开 →</a>
+        </div>
+      </article>
+
+      <article class="res rv" data-cat="learn">
+        <div class="rt">三维学习 · OPEN</div>
+        <h3>Blender — 官方手册与教程</h3>
+        <p>免费三维软件的官方文档，质量极高。配合 Blender 社区的入门系列，这是不花钱走完完整三维管线的唯一路径。</p>
+        <div class="meta">
+          <span class="lvl">适合：决定走三维之后</span>
+          <a class="go" href="https://docs.blender.org/manual/en/latest/" target="_blank" rel="noopener">打开 →</a>
+        </div>
+      </article>
+
+      <article class="res rv" data-cat="spec">
+        <div class="rt">文件格式 · 3D</div>
+        <h3>Khronos — glTF 规范</h3>
+        <p>三维资产在网页和实时引擎里传输的通用格式，被称为「三维界的 JPEG」。理解它，你就理解了三维素材如何进入产品。</p>
+        <div class="meta">
+          <span class="lvl">适合：做三维交付时</span>
+          <a class="go" href="https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html" target="_blank" rel="noopener">打开 →</a>
+        </div>
+      </article>
+
+      <article class="res rv" data-cat="comm">
+        <div class="rt">社区 · DISCUSSION</div>
+        <h3>动画与动效社区 · 去哪提问</h3>
+        <p>比起教程，更重要的是「有人回答你的具体问题」。找一个活跃社区，把你的作品发出去接受批评——成长最快的十倍速来自这里。</p>
+        <div class="meta">
+          <span class="lvl">适合：做完作品之后</span>
+          <a class="go" href="https://www.reddit.com/r/motiondesign/" target="_blank" rel="noopener">打开 →</a>
+        </div>
+      </article>
+
+      <article class="res rv" data-cat="asset">
+        <div class="rt">开源素材 · PROJECTS</div>
+        <h3>GitHub — 开源动效项目</h3>
+        <p>搜「animation」「lottie」「motion」能挖到大量真实工程。读别人的真实项目文件，比看十节课更能建立「工程感」。</p>
+        <div class="meta">
+          <span class="lvl">适合：想看真实工程</span>
+          <a class="go" href="https://github.com/topics/animation" target="_blank" rel="noopener">打开 →</a>
+        </div>
+      </article>
+
+      <article class="res rv" data-cat="learn">
+        <div class="rt">字体与形状 · ASSETS</div>
+        <h3>Google Fonts — 字体与排版基础</h3>
+        <p>动效里 50% 的「好看」来自排版。免费可商用的字体库，加上正确的字重与间距，能让你的第一个动效立刻专业起来。</p>
+        <div class="meta">
+          <span class="lvl">适合：任何阶段</span>
+          <a class="go" href="https://fonts.google.com/" target="_blank" rel="noopener">打开 →</a>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 08 入门路线 ================= -->
+<section id="route">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="chapno">08</div>
+      <div>
+        <span class="kick">Starter Route / 初学者的四步</span>
+        <h2>不要先学完所有软件。<br>先做出一个 5 秒动画。</h2>
+        <p class="lede" style="margin-top:24px">下面四个阶段，每个都有一件必须交出的东西。做不到就别进下一阶段——这是最不会走弯路的顺序。</p>
+      </div>
+    </div>
+
+    <div class="phase rv">
+      <div class="pn">01</div>
+      <div>
+        <h3>看懂 · UNDERSTAND</h3>
+        <p>不要打开任何软件。先看三段你喜欢的动画，每段看五遍：第一遍看感觉，第二遍数它用了多少格，第三遍注意它在哪里加速、哪里停住，第四遍找它的预备动作，第五遍记下你最喜欢的那一下。</p>
+      </div>
+      <div class="kv">
+        <div class="item"><div class="k">阶段耗时</div><div class="v">2–3 天</div></div>
+        <div class="item hot"><div class="k">必交产出</div><div class="v">能用自己的话说出：关键帧 / 时间 / 间距 / 缓动</div></div>
+        <div class="item"><div class="k">完成证据</div><div class="v">一段 30 秒的语音或一篇短文，拆解一条你喜欢的动效</div></div>
+      </div>
+    </div>
+
+    <div class="phase rv">
+      <div class="pn">02</div>
+      <div>
+        <h3>做一条 · MAKE ONE</h3>
+        <p>现在才开始做。做一个 5 秒的循环动画：一个方块从左边移动到右边，再回来。要求有挤压伸展、有预备动作、有 ease-out 停顿。用任何工具都行——Procreate、After Effects、Blender，甚至纯手写 CSS。</p>
+      </div>
+      <div class="kv">
+        <div class="item"><div class="k">阶段耗时</div><div class="v">1–2 周</div></div>
+        <div class="item hot"><div class="k">必交产出</div><div class="v">一个 5 秒循环动画文件（MP4 / GIF 均可）</div></div>
+        <div class="item"><div class="k">完成证据</div><div class="v">能播放的文件 + 一份三行说明：时长、帧率、缓动</div></div>
+      </div>
+    </div>
+
+    <div class="phase rv">
+      <div class="pn">03</div>
+      <div>
+        <h3>进入工作流 · WORK LIKE A PRO</h3>
+        <p>把上一步的作品重做一遍，但这次按真实流程：先写一句话创意描述，画三格分镜，做一块风格帧，再开始动画，最后导出。你会痛一次，但从此知道为什么分镜不能跳。</p>
+      </div>
+      <div class="kv">
+        <div class="item"><div class="k">阶段耗时</div><div class="v">2–3 周</div></div>
+        <div class="item hot"><div class="k">必交产出</div><div class="v">一个带分镜、命名规范、版本记录的小项目</div></div>
+        <div class="item"><div class="k">完成证据</div><div class="v">整洁的文件夹结构 + 一份导出规格说明</div></div>
+      </div>
+    </div>
+
+    <div class="phase rv">
+      <div class="pn">04</div>
+      <div>
+        <h3>建立资产库 · BUILD YOUR KIT</h3>
+        <p>把你用过的缓动曲线、字体组合、材质、合成模板存成可复用的库。职业动画师和业余爱好者的差别，往往不是技术，而是「第二条动画做得有多快」。</p>
+      </div>
+      <div class="kv">
+        <div class="item"><div class="k">阶段耗时</div><div class="v">持续</div></div>
+        <div class="item hot"><div class="k">必交产出</div><div class="v">一份可复用资产库（缓动 / 字体 / 材质 / 模板）</div></div>
+        <div class="item"><div class="k">完成证据</div><div class="v">能连续做出三条风格一致的动画</div></div>
+      </div>
+    </div>
+
+    <div class="advice rv">
+      <div class="q">「不要先学完所有软件。<br>先做出一个 <span style="color:var(--orange)">5 秒</span> 动画。」</div>
+      <div style="flex:1;min-width:260px">
+        <p class="muted" style="font-size:15px">这条建议听起来像废话，但它精确地描述了 90% 初学者卡住的地方：他们在第 0 步收集了二十个工具，却从来没有一次完整的「概念 → 做 → 导出」闭环。闭环做过一次，所有工具的界面都开始变得有意义。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 09 检查清单 ================= -->
+<section id="checklist" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="chapno">09</div>
+      <div>
+        <span class="kick">Final Check / 交付前自查</span>
+        <h2>把动作做完整之前，<br>先检查这十件事。</h2>
+      </div>
+    </div>
+
+    <div class="check-wrap">
+      <div class="rv">
+        <ul class="check" id="checkList">
+          <li><label style="display:flex;align-items:center;gap:16px;cursor:pointer;width:100%">
+            <input type="checkbox"><span class="box"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 6 L4.5 9.5 L11 2" stroke="#fff" stroke-width="2.2" fill="none"/></svg></span>
+            <span class="txt">我的动作在静音时也能被读懂。</span>
+          </label></li>
+          <li><label style="display:flex;align-items:center;gap:16px;cursor:pointer;width:100%">
+            <input type="checkbox"><span class="box"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 6 L4.5 9.5 L11 2" stroke="#fff" stroke-width="2.2" fill="none"/></svg></span>
+            <span class="txt">我的关键帧数量足够，但没有堆满时间轴。</span>
+          </label></li>
+          <li><label style="display:flex;align-items:center;gap:16px;cursor:pointer;width:100%">
+            <input type="checkbox"><span class="box"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 6 L4.5 9.5 L11 2" stroke="#fff" stroke-width="2.2" fill="none"/></svg></span>
+            <span class="txt">我明确知道每一处缓动为什么这样选。</span>
+          </label></li>
+          <li><label style="display:flex;align-items:center;gap:16px;cursor:pointer;width:100%">
+            <input type="checkbox"><span class="box"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 6 L4.5 9.5 L11 2" stroke="#fff" stroke-width="2.2" fill="none"/></svg></span>
+            <span class="txt">我把最想让观众看到的动作放在最清晰的位置。</span>
+          </label></li>
+          <li><label style="display:flex;align-items:center;gap:16px;cursor:pointer;width:100%">
+            <input type="checkbox"><span class="box"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 6 L4.5 9.5 L11 2" stroke="#fff" stroke-width="2.2" fill="none"/></svg></span>
+            <span class="txt">我在导出前检查了帧率、尺寸、时长和声音。</span>
+          </label></li>
+          <li><label style="display:flex;align-items:center;gap:16px;cursor:pointer;width:100%">
+            <input type="checkbox"><span class="box"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 6 L4.5 9.5 L11 2" stroke="#fff" stroke-width="2.2" fill="none"/></svg></span>
+            <span class="txt">我做了一次分镜，哪怕只有三格。</span>
+          </label></li>
+          <li><label style="display:flex;align-items:center;gap:16px;cursor:pointer;width:100%">
+            <input type="checkbox"><span class="box"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 6 L4.5 9.5 L11 2" stroke="#fff" stroke-width="2.2" fill="none"/></svg></span>
+            <span class="txt">我的项目文件有清楚的命名和版本记录。</span>
+          </label></li>
+          <li><label style="display:flex;align-items:center;gap:16px;cursor:pointer;width:100%">
+            <input type="checkbox"><span class="box"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 6 L4.5 9.5 L11 2" stroke="#fff" stroke-width="2.2" fill="none"/></svg></span>
+            <span class="txt">我用一种颜色也能分清画面的主次。</span>
+          </label></li>
+          <li><label style="display:flex;align-items:center;gap:16px;cursor:pointer;width:100%">
+            <input type="checkbox"><span class="box"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 6 L4.5 9.5 L11 2" stroke="#fff" stroke-width="2.2" fill="none"/></svg></span>
+            <span class="txt">我关掉动画后，画面本身依然成立。</span>
+          </label></li>
+          <li><label style="display:flex;align-items:center;gap:16px;cursor:pointer;width:100%">
+            <input type="checkbox"><span class="box"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 6 L4.5 9.5 L11 2" stroke="#fff" stroke-width="2.2" fill="none"/></svg></span>
+            <span class="txt">我能向别人解释它为什么这样动。</span>
+          </label></li>
+        </ul>
+      </div>
+
+      <div class="progress-box rv">
+        <div class="tech muted">CHECKED</div>
+        <div class="big"><span id="ckCount">0</span><span style="font-size:32px;color:var(--muted)">/10</span></div>
+        <div class="bar"><i id="ckBar"></i></div>
+        <p style="font-size:15px;line-height:1.8">全部勾上，你就已经越过了绝大多数初学者的门槛。如果还有没勾上的，那一条就是你下一个该练的东西——把它单独做成一个练习。</p>
+        <div class="warn" style="margin-top:24px">
+          <b>关于「关掉动画后画面依然成立」：</b>这是检验动效是否「掩盖了设计问题」的最好方法。好的动画加强好设计；坏的动画替糟糕的设计遮丑。
+        </div>
+      </div>
+    </div>
+
+    <p class="closing rv">先把一个动作<span class="em">做完整</span>，<br>再把完整动作做得<span class="em">有性格</span>。</p>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="foot-brand">动起来之前<br>MOTION PRIMER</div>
+        <p style="margin-top:16px;max-width:36ch">一份写给初学者的动画流程地图。原理、工作流、工具与文档，全在这一页。</p>
+      </div>
+      <div>
+        <h4>章节</h4>
+        <a href="#what">01 什么是动画</a>
+        <a href="#principles">02 动画原则</a>
+        <a href="#pipeline">03 标准工作流</a>
+        <a href="#compare">04 类型比较</a>
+        <a href="#timing">05 时间与间距</a>
+      </div>
+      <div>
+        <h4>资料</h4>
+        <a href="#tools">06 工具索引</a>
+        <a href="#docs">07 文档与参考</a>
+        <a href="#route">08 入门路线</a>
+        <a href="#checklist">09 交付自查</a>
+      </div>
+      <div>
+        <h4>说明</h4>
+        <p>本页所列工具名称与商标归各自所有者所有。功能与价格可能随时间变化，购买前请查阅官方信息。</p>
+      </div>
+    </div>
+    <div class="foot-base">
+      <p>© 2026 MOTION PRIMER · 本页全部图形均为程序化生成，可离线查看。</p>
+      <p>24 FPS · 180° SHUTTER · KEYFRAME FIRST</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- NAV ---------- */
+  var menuBtn = document.getElementById('menuBtn');
+  var navLinks = document.getElementById('navLinks');
+  menuBtn.addEventListener('click', function(){
+    var open = navLinks.classList.toggle('open');
+    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  navLinks.addEventListener('click', function(e){
+    if(e.target.tagName === 'A'){ navLinks.classList.remove('open'); menuBtn.setAttribute('aria-expanded','false'); }
+  });
+
+  /* ---------- REVEAL ---------- */
+  var rvEls = [].slice.call(document.querySelectorAll('.rv'));
+  if('IntersectionObserver' in window && !reduce){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en, i){
+        if(en.isIntersecting){
+          var el = en.target;
+          setTimeout(function(){ el.classList.add('in'); }, (i % 6) * 80);
+          io.unobserve(el);
+        }
+      });
+    }, {threshold:.12, rootMargin:'0px 0px -8% 0px'});
+    rvEls.forEach(function(el){ io.observe(el); });
+  } else {
+    rvEls.forEach(function(el){ el.classList.add('in'); });
+  }
+
+  /* ============================================================
+     SIGNATURE MOTION LAB
+     ============================================================ */
+  var FRAMES = 12;
+  var DURATION = 2.0; // seconds
+  var state = { idx: 0, playing: false, raf: null, t0: 0 };
+
+  var strip = document.getElementById('strip');
+  var ruler = document.getElementById('ruler');
+  var handle = document.getElementById('handle');
+  var playhead = document.getElementById('playhead');
+  var live = document.getElementById('live');
+  var gh1 = document.getElementById('gh1'), gh2 = document.getElementById('gh2'), gh3 = document.getElementById('gh3');
+  var roFrame = document.getElementById('roFrame'), roTime = document.getElementById('roTime'), roState = document.getElementById('roState');
+  var playBtn = document.getElementById('playBtn');
+
+  // build ruler
+  (function(){
+    var frag = document.createDocumentFragment();
+    for(var s=0; s<=4; s++){
+      var t = s * 0.5;
+      var x = (t / DURATION) * 100;
+      var tick = document.createElement('div');
+      tick.className = 'tick';
+      tick.style.left = x + '%';
+      frag.appendChild(tick);
+      var lab = document.createElement('div');
+      lab.className = 'tlabel';
+      lab.style.left = x + '%';
+      lab.textContent = t.toFixed(1) + 's';
+      frag.appendChild(lab);
+    }
+    ruler.appendChild(frag);
+  })();
+
+  // build frame strip
+  var cells = [];
+  (function(){
+    for(var i=0; i<FRAMES; i++){
+      var c = document.createElement('div');
+      c.className = 'cell' + (i % 3 === 0 ? ' key' : '');
+      c.setAttribute('role','button');
+      c.setAttribute('tabindex','0');
+      c.setAttribute('aria-label', '第 ' + (i+1) + ' 帧');
+      var n = document.createElement('span');
+      n.className = 'n';
+      n.textContent = (i+1);
+      c.appendChild(n);
+      (function(idx){
+        c.addEventListener('click', function(){ stopPlay(); setFrame(idx); });
+        c.addEventListener('keydown', function(e){
+          if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); stopPlay(); setFrame(idx); }
+        });
+      })(i);
+      strip.appendChild(c);
+      cells.push(c);
+    }
+  })();
+
+  // ball trajectory: bounce across, with squash at contacts
+  function poseAt(f){
+    // f in [0, FRAMES-1]
+    var u = f / (FRAMES - 1);
+    var x = 8 + u * 84;                 // % horizontal
+    var bounces = 2;
+    var phase = u * bounces * Math.PI;
+    var h = Math.abs(Math.sin(phase));  // 0..1 height
+    var y = 12 + (1 - h) * 66;          // % vertical from top (invert later)
+    var squash = 0;
+    if(h < 0.12) squash = (0.12 - h) / 0.12;   // near ground -> squash
+    return {x:x, y:y, squash:squash, h:h};
+  }
+
+  function place(box, pose, cx, cy, size){
+    var w = size * (1 + pose.squash * 0.55);
+    var hgt = size * (1 - pose.squash * 0.42);
+    box.style.width = w + 'px';
+    box.style.height = hgt + 'px';
+    box.style.left = cx + '%';
+    box.style.top = cy + '%';
+    box.style.transform = 'translate(-50%,-50%)';
+  }
+
+  function setFrame(idx){
+    idx = Math.max(0, Math.min(FRAMES - 1, idx));
+    state.idx = idx;
+    var pct = idx / (FRAMES - 1);
+
+    // playhead + handle
+    playhead.style.left = (pct * 100) + '%';
+    handle.style.left = (pct * 100) + '%';
+    handle.setAttribute('aria-valuenow', idx);
+    handle.setAttribute('aria-valuetext', '第 ' + (idx+1) + ' 帧，' + (pct * DURATION).toFixed(2) + ' 秒');
+
+    // strip cells
+    for(var i=0;i<FRAMES;i++){
+      cells[i].classList.toggle('act', i === idx);
+    }
+
+    // stage
+    var p = poseAt(idx);
+    place(live, p, p.x, p.y, 72);
+    live.classList.toggle('on', p.squash > 0.35);
+
+    // onion skins = 3 previous distinct frames
+    var ghosts = [gh1, gh2, gh3];
+    for(var g=0; g<3; g++){
+      var gi = idx - (g + 1) * 1.4;
+      if(gi < 0){ ghosts[g].style.opacity = 0; continue; }
+      var gp = poseAt(gi);
+      ghosts[g].style.opacity = [0.14,0.22,0.32][g];
+      place(ghosts[g], gp, gp.x, gp.y, 72);
+    }
+
+    // readout
+    roFrame.textContent = (idx + 1 < 10 ? '0' : '') + (idx + 1);
+    roTime.textContent = (pct * DURATION).toFixed(2) + 's';
+    roState.textContent = (idx % 3 === 0) ? '关键帧 KEY' : '中间帧 IN-BETWEEN';
+    roState.style.color = (idx % 3 === 0) ? 'var(--orange)' : 'var(--ink)';
+  }
+
+  /* drag */
+  var track = document.getElementById('labTrack');
+  var dragging = false;
+
+  function posToIdx(clientX){
+    var r = track.getBoundingClientRect();
+    var pct = (clientX - r.left) / r.width;
+    pct = Math.max(0, Math.min(1, pct));
+    return Math.round(pct * (FRAMES - 1));
+  }
+
+  function onDown(e){
+    dragging = true;
+    stopPlay();
+    handle.setPointerCapture && e.pointerId != null && handle.setPointerCapture(e.pointerId);
+    setFrame(posToIdx(e.clientX != null ? e.clientX : e.touches[0].clientX));
+    e.preventDefault();
+  }
+  function onMove(e){
+    if(!dragging) return;
+    var x = e.clientX != null ? e.clientX : (e.touches && e.touches[0].clientX);
+    if(x == null) return;
+    setFrame(posToIdx(x));
+    e.preventDefault();
+  }
+  function onUp(){ dragging = false; }
+
+  handle.addEventListener('pointerdown', onDown);
+  track.addEventListener('pointerdown', function(e){
+    if(e.target === handle || handle.contains(e.target)) return;
+    onDown(e);
+  });
+  window.addEventListener('pointermove', onMove, {passive:false});
+  window.addEventListener('pointerup', onUp);
+  window.addEventListener('pointercancel', onUp);
+
+  handle.addEventListener('keydown', function(e){
+    var k = e.key;
+    if(k === 'ArrowRight' || k === 'ArrowUp'){ stopPlay(); setFrame(state.idx + 1); e.preventDefault(); }
+    else if(k === 'ArrowLeft' || k === 'ArrowDown'){ stopPlay(); setFrame(state.idx - 1); e.preventDefault(); }
+    else if(k === 'Home'){ stopPlay(); setFrame(0); e.preventDefault(); }
+    else if(k === 'End'){ stopPlay(); setFrame(FRAMES-1); e.preventDefault(); }
+    else if(k === 'PageUp'){ stopPlay(); setFrame(state.idx + 3); e.preventDefault(); }
+    else if(k === 'PageDown'){ stopPlay(); setFrame(state.idx - 3); e.preventDefault(); }
+    else if(k === ' ' || k === 'Enter'){ togglePlay(); e.preventDefault(); }
+  });
+
+  /* playback */
+  function step(ts){
+    if(!state.playing) return;
+    if(!state.t0) state.t0 = ts;
+    var elapsed = (ts - state.t0) / 1000;
+    var total = (FRAMES / 24) * 4; // slow enough to read
+    var cycle = (elapsed % total) / total;
+    setFrame(Math.round(cycle * (FRAMES - 1)));
+    state.raf = requestAnimationFrame(step);
+  }
+  function startPlay(){
+    if(reduce) return;
+    state.playing = true; state.t0 = 0;
+    playBtn.textContent = '❚❚ 暂停';
+    state.raf = requestAnimationFrame(step);
+  }
+  function stopPlay(){
+    if(state.raf) cancelAnimationFrame(state.raf);
+    state.playing = false;
+    playBtn.textContent = '▶ 自动播放';
+  }
+  function togglePlay(){ state.playing ? stopPlay() : startPlay(); }
+  playBtn.addEventListener('click', togglePlay);
+
+  setFrame(0);
+
+  /* ============================================================
+     ROUTE ACCORDIONS
+     ============================================================ */
+  [].slice.call(document.querySelectorAll('.route-btn')).forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var expanded = btn.getAttribute('aria-expanded') === 'true';
+      // close others
+      [].slice.call(document.querySelectorAll('.route-btn')).forEach(function(b){
+        if(b !== btn){
+          b.setAttribute('aria-expanded','false');
+          var bod = document.getElementById(b.getAttribute('aria-controls'));
+          if(bod) bod.style.maxHeight = '0px';
+        }
+      });
+      btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+      var body = document.getElementById(btn.getAttribute('aria-controls'));
+      if(body) body.style.maxHeight = expanded ? '0px' : (body.scrollHeight + 40) + 'px';
+    });
+  });
+
+  /* ============================================================
+     TIMING WORKSHEET (canvas)
+     ============================================================ */
+  var cvs = document.getElementById('wsCanvas');
+  var ctx = cvs.getContext('2d');
+  var rTime = document.getElementById('rTime'),
+      rSpace = document.getElementById('rSpace'),
+      rEase = document.getElementById('rEase');
+  var vTime = document.getElementById('vTime'),
+      vSpace = document.getElementById('vSpace'),
+      vEase = document.getElementById('vEase');
+
+  function easeInOut(t, amount){
+    // amount 0..1 -> how strong the ease-in-out is
+    var e = t < .5 ? 2*t*t : -1 + (4 - 2*t)*t; // standard inOut quad
+    return t * (1 - amount) + e * amount;
+  }
+
+  function draw(){
+    var W = cvs.width, H = cvs.height;
+    var pad = 60;
+    ctx.clearRect(0,0,W,H);
+
+    // background grid
+    ctx.strokeStyle = 'rgba(22,22,22,.10)';
+    ctx.lineWidth = 1;
+    for(var gx=pad; gx<=W-pad; gx+=40){
+      ctx.beginPath(); ctx.moveTo(gx,pad*0.5); ctx.lineTo(gx,H-pad*0.6); ctx.stroke();
+    }
+    for(var gy=pad*0.5; gy<=H-pad*0.6; gy+=40){
+      ctx.beginPath(); ctx.moveTo(pad,gy); ctx.lineTo(W-pad,gy); ctx.stroke();
+    }
+
+    var groundY = H - pad*1.6;
+    var leftX = pad + 30, rightX = W - pad - 30;
+
+    // ground
+    ctx.strokeStyle = '#161616'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(pad, groundY); ctx.lineTo(W-pad, groundY); ctx.stroke();
+
+    // time ruler
+    ctx.strokeStyle = 'rgba(22,22,22,.5)'; ctx.lineWidth = 1.5;
+    var rulerY = pad*0.9;
+    ctx.beginPath(); ctx.moveTo(leftX, rulerY); ctx.lineTo(rightX, rulerY); ctx.stroke();
+    var frames = 12;
+    ctx.fillStyle = '#7b786f';
+    ctx.font = '500 18px "IBM Plex Mono", monospace';
+    for(var i=0;i<=frames;i++){
+      var tx = leftX + (rightX-leftX) * (i/frames);
+      ctx.strokeStyle = (i % 3 === 0) ? '#161616' : 'rgba(22,22,22,.35)';
+      ctx.lineWidth = (i % 3 === 0) ? 2.5 : 1.5;
+      ctx.beginPath(); ctx.moveTo(tx, rulerY - ((i%3===0)?16:8)); ctx.lineTo(tx, rulerY + ((i%3===0)?16:8)); ctx.stroke();
+      if(i % 3 === 0){
+        ctx.fillStyle = '#7b786f';
+        ctx.fillText((i/frames * parseFloat(rTime.value)).toFixed(2) + 's', tx - 22, rulerY + 38);
+      }
+    }
+
+    // trajectory points
+    var spacing = parseFloat(rSpace.value) / 100;   // 0=even, 1=strongly eased spacing
+    var easeAmt = parseFloat(rEase.value) / 100;
+    var pts = [];
+    for(var f=0; f<=frames; f++){
+      var t = f / frames;
+      // spacing remap: apply ease to the *position distribution*
+      var tt = easeInOut(t, easeAmt);
+      // spacing 0 -> linear distribution; spacing 1 -> clustered at ends
+      var ts = tt * (1 - spacing) + (t*t*(3-2*t)) * spacing;
+      var x = leftX + (rightX-leftX) * ts;
+      // bounce height: two arcs
+      var arc = Math.abs(Math.sin(ts * Math.PI * 2));
+      var y = groundY - 34 - arc * (groundY - rulerY - 90);
+      pts.push({x:x, y:y});
+    }
+
+    // onion ghosts (previous frames) - subtle
+    for(var g=0; g<frames; g++){
+      var p = pts[g];
+      var squash = (p.y > groundY - 50) ? 1 : 0;
+      var rw = squash ? 46 : 34, rh = squash ? 22 : 34;
+      ctx.fillStyle = 'rgba(22,22,22,.12)';
+      ctx.fillRect(p.x - rw/2, p.y - rh/2, rw, rh);
+    }
+
+    // live path curve
+    ctx.strokeStyle = '#161616'; ctx.lineWidth = 2;
+    ctx.setLineDash([6,6]);
+    ctx.beginPath();
+    pts.forEach(function(p,i){ i ? ctx.lineTo(p.x,p.y) : ctx.moveTo(p.x,p.y); });
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // keyframe diamonds (every 3rd)
+    for(var k=0;k<=frames;k+=3){
+      var pk = pts[k];
+      ctx.save();
+      ctx.translate(pk.x, pk.y);
+      ctx.rotate(Math.PI/4);
+      ctx.fillStyle = '#ff4b17';
+      ctx.fillRect(-9,-9,18,18);
+      ctx.restore();
+    }
+
+    // the "current" ball at midpoint of path for readability
+    var mid = pts[Math.floor(frames/2)];
+    ctx.fillStyle = '#161616';
+    ctx.beginPath(); ctx.arc(mid.x, mid.y, 22, 0, Math.PI*2); ctx.fill();
+
+    // labels
+    ctx.fillStyle = '#161616';
+    ctx.font = '600 20px "IBM Plex Mono", monospace';
+    ctx.fillText('TIME', pad, H - 26);
+    ctx.fillStyle = '#ff4b17';
+    ctx.fillText('KEYFRAME ◆', pad + 110, H - 26);
+    ctx.fillStyle = '#7b786f';
+    ctx.fillText('SPACING = 每格之间移动的距离', pad + 320, H - 26);
+  }
+
+  function updateLabels(){
+    vTime.textContent = parseFloat(rTime.value).toFixed(1) + 's';
+    var sp = parseFloat(rSpace.value);
+    vSpace.textContent = sp < 25 ? '均匀' : (sp < 60 ? '轻微变速' : '强烈变速');
+    var ea = parseFloat(rEase.value);
+    vEase.textContent = ea < 25 ? '匀速' : (ea < 55 ? '轻微缓动' : (ea < 80 ? '缓慢进入' : '强缓动'));
+    draw();
+  }
+  [rTime, rSpace, rEase].forEach(function(r){ r.addEventListener('input', updateLabels); });
+  updateLabels();
+  window.addEventListener('resize', draw);
+
+  /* ============================================================
+     RESOURCE FILTER
+     ============================================================ */
+  var tabs = [].slice.call(document.querySelectorAll('.tab'));
+  var cards = [].slice.call(document.querySelectorAll('#resGrid .res'));
+  tabs.forEach(function(tab){
+    tab.addEventListener('click', function(){
+      tabs.forEach(function(t){ t.classList.remove('on'); t.setAttribute('aria-selected','false'); });
+      tab.classList.add('on'); tab.setAttribute('aria-selected','true');
+      var cat = tab.getAttribute('data-cat');
+      cards.forEach(function(c){
+        var show = (cat === 'all') || (c.getAttribute('data-cat') === cat);
+        c.style.display = show ? '' : 'none';
+      });
+    });
+  });
+
+  /* ============================================================
+     CHECKLIST
+     ============================================================ */
+  var boxes = [].slice.call(document.querySelectorAll('#checkList input[type=checkbox]'));
+  var ckCount = document.getElementById('ckCount');
+  var ckBar = document.getElementById('ckBar');
+  function updateCheck(){
+    var n = boxes.filter(function(b){ return b.checked; }).length;
+    ckCount.textContent = n;
+    ckBar.style.width = (n / boxes.length * 100) + '%';
+  }
+  boxes.forEach(function(b){ b.addEventListener('change', updateCheck); });
+
+})();
+</script>
+</body>
+</html>

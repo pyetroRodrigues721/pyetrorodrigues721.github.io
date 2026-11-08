@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<meta name="color-scheme" content="dark">
+<title>可变电容充放电 · 三阶段图像判定</title>
+
+<!--
+  物理习题讲解 · 模板 v2 ｜ @Neking · lvshaomeng806@gmail.com
+  SVG 铁律：禁 HTML 标签（sub/sup/span/br…）；上下标用 tspan；动画放页面层
+  CSS 铁律：margin 重置只进 :where()；间距规则加 .reveal 前缀
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Noto+Serif+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css">
+
+<style>
+/* =========================================================
+   01. DESIGN TOKENS
+========================================================= */
+:root {
+  --r-background-color: #0b1220;
+  --slide-w: 1600px;
+  --slide-h: 900px;
+  --page-x: 100px;
+  --page-top: 56px;
+  --page-bottom: 44px;
+  --header-h: 84px;
+  --footer-h: 48px;
+
+  --bg-void: #0b1220;
+
+  --text: #f2f6fc;
+  --muted: #a1b0c5;
+  --subtle: #8fa2ba;
+
+  --blue: #65b9ff;
+  --orange: #ffb36b;
+  --green: #6bd6ae;
+  --red: #ff8585;
+
+  --surface-blue:   rgba(101, 185, 255, 0.05);
+  --surface-red:    rgba(255, 133, 133, 0.05);
+  --surface-green:  rgba(107, 214, 174, 0.06);
+  --border-red:     rgba(255, 133, 133, 0.22);
+  --border-green:   rgba(107, 214, 174, 0.22);
+
+  --line: rgba(180, 205, 235, 0.10);
+  --line-strong: rgba(180, 205, 235, 0.25);
+
+  --font: "Newsreader", "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-mono: "IBM Plex Mono", "Noto Serif SC", "PingFang SC", monospace;
+  --font-number: "Newsreader", "Times New Roman", serif;
+
+  --fs-display:   78px;
+  --fs-h1:        46px;
+  --fs-lead:      26px;
+  --fs-body:      22px;
+  --fs-caption:   18px;
+  --fs-label:     15px;
+  --fs-equation:  54px;
+  --fs-step:      46px;
+  --fs-mega:      118px;
+
+  --lh-cover: 1.16;
+  --lh-title: 1.24;
+  --lh-body: 1.72;
+  --lh-equation: 1.4;
+
+  --gap-eyebrow: 56px;
+
+  --ease-out: cubic-bezier(0.22, 0.7, 0.24, 1);
+}
+
+/* =========================================================
+   02. RESET & BACKGROUND
+========================================================= */
+* { box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%; height: 100dvh;
+  margin: 0; overflow: hidden;
+  background-color: var(--bg-void);
+  overscroll-behavior: none;
+}
+
+body {
+  font-family: var(--font); color: var(--text); font-weight: 400;
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  font-optical-sizing: auto;
+}
+
+body.anno-on {
+  user-select: none; -webkit-user-select: none;
+  cursor: none;
+  touch-action: none;
+}
+
+.reveal-viewport, body {
+  background-color: var(--bg-void);
+  background-image:
+    radial-gradient(ellipse 120% 100% at 82% 8%, rgba(101, 185, 255, 0.085), transparent 55%),
+    radial-gradient(ellipse 85% 85% at 8% 92%, rgba(107, 214, 174, 0.045), transparent 55%),
+    linear-gradient(rgba(180, 205, 235, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(180, 205, 235, 0.028) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 88px 88px, 88px 88px;
+  background-attachment: fixed;
+}
+
+.grain {
+  position: fixed; inset: 0; pointer-events: none; z-index: 60;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+::selection { background: rgba(101, 185, 255, 0.28); color: var(--text); }
+
+.reveal {
+  width: 100%; height: 100%; font-family: var(--font); color: var(--text);
+  font-size: var(--fs-lead);
+  font-synthesis: none; -webkit-font-synthesis: none;
+}
+.reveal .slides { text-align: left; }
+
+.reveal .slides section {
+  width: var(--slide-w); height: var(--slide-h);
+  padding: var(--page-top) var(--page-x) var(--page-bottom);
+  box-sizing: border-box; overflow: hidden;
+  background: transparent; color: var(--text); box-shadow: none;
+}
+
+.reveal h1, .reveal h2, .reveal h3, .reveal p { color: inherit; font-family: var(--font); }
+.reveal h1, .reveal h2, .reveal h3 { font-weight: 700; letter-spacing: -0.02em; text-wrap: balance; }
+.reveal p { line-height: var(--lh-body); text-wrap: pretty; }
+/* ★ margin 重置必须零优先级，否则间距规则被静默碾压 */
+:where(.reveal h1, .reveal h2, .reveal h3, .reveal p) { margin: 0; }
+
+.reveal sub, .reveal sup {
+  font-size: 0.55em; font-style: normal;
+  font-family: inherit; font-weight: 500; letter-spacing: 0;
+}
+.reveal sub { vertical-align: -0.22em; }
+.reveal sup { vertical-align: 0.45em; }
+
+/* =========================================================
+   03. TYPOGRAPHY
+========================================================= */
+.cover-title, .slide-title { font-weight: 900; letter-spacing: -0.02em; text-wrap: balance; }
+.cover-title { font-size: var(--fs-display); line-height: var(--lh-cover); }
+.slide-title, .question-heading, .process-title, .model-headline,
+.derivation-heading, .calculation-title {
+  font-size: var(--fs-h1); line-height: var(--lh-title); font-weight: 700;
+}
+
+.reveal .question-heading,
+.reveal .process-title,
+.reveal .model-headline,
+.reveal .derivation-heading,
+.reveal .calculation-title,
+.reveal .slide-title { margin-top: var(--gap-eyebrow); }
+
+.eyebrow, .label, .chapter-index, .header-meta,
+.derivation-step-label, .calculation-result-label, .answer-kicker {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label); font-weight: 600; letter-spacing: 0.16em;
+}
+
+.number, .answer-unit, .calculation-result-value, .footer-page {
+  font-family: var(--font-number), var(--font);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+.model-equation .formula, .derivation-formula, .calculation-line {
+  font-family: var(--font-number), var(--font);
+  font-size: var(--fs-equation); line-height: var(--lh-equation); font-weight: 500;
+  font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "tnum" 1, "lnum" 1;
+}
+.derivation-formula { font-size: var(--fs-step); line-height: 1.35; }
+
+.var { font-style: italic; font-family: "Newsreader", "Times New Roman", serif; font-weight: 500; }
+.blue { color: var(--blue); }
+.orange { color: var(--orange); }
+.green { color: var(--green); }
+.red { color: var(--red); }
+
+.calc-inline {
+  font-family: var(--font-number); font-weight: 500;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.calc-inline sub { font-size: 0.66em; }
+
+/* =========================================================
+   04. SLIDE FRAME
+========================================================= */
+.slide-frame {
+  width: 100%; height: 100%;
+  display: grid; grid-template-rows: var(--header-h) minmax(0, 1fr) var(--footer-h);
+}
+.slide-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  border-bottom: 1px solid var(--line); padding-bottom: 24px;
+}
+.header-left { display: flex; align-items: center; gap: 20px; }
+.chapter-index { color: var(--blue); font-size: 16px; position: relative; }
+.chapter-index::after {
+  content: ""; position: absolute; left: 0; bottom: -26px;
+  width: 100%; height: 2px; background: var(--blue);
+}
+.chapter-name { color: var(--muted); font-size: 17px; font-weight: 400; letter-spacing: 0.04em; }
+.header-meta { color: var(--subtle); }
+.slide-main { position: relative; min-height: 0; overflow: hidden; padding-top: 32px; }
+.slide-footer {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  color: var(--subtle); font-size: 14px; letter-spacing: 0.06em;
+  border-top: 1px solid var(--line);
+  padding-top: 20px; padding-bottom: 12px;
+}
+.footer-topic { color: var(--muted); }
+.footer-credit {
+  color: var(--subtle); font-family: var(--font-mono);
+  font-size: 12px; letter-spacing: 0.12em; opacity: 0.65;
+}
+
+.svg-label { fill: var(--muted); font-size: 22px; font-family: var(--font); }
+.svg-small { fill: var(--subtle); font-size: var(--fs-caption); font-family: var(--font); }
+.svg-blue { fill: var(--blue); }
+.svg-orange { fill: var(--orange); }
+.svg-green { fill: var(--green); }
+.svg-red { fill: var(--red); }
+.tsub { font-size: 0.58em; }
+
+.glow-blue { filter: drop-shadow(0 0 10px rgba(101, 185, 255, 0.45)); }
+.glow-orange { filter: drop-shadow(0 0 12px rgba(255, 179, 107, 0.4)); }
+.glow-green { filter: drop-shadow(0 0 12px rgba(107, 214, 174, 0.4)); }
+
+.visual-caption {
+  display: flex; justify-content: space-between;
+  color: var(--subtle); font-family: var(--font-mono);
+  font-size: 14px; letter-spacing: 0.12em;
+}
+
+/* =========================================================
+   05. SLIDE 01 — COVER
+========================================================= */
+.cover { position: relative; display: grid; grid-template-rows: 1fr 64px; height: 100%; }
+.cover-content { display: grid; grid-template-columns: 0.95fr 1.05fr; align-items: center; }
+.cover-copy { padding-right: 36px; }
+.cover-kicker {
+  display: flex; align-items: center; gap: 20px; margin-bottom: var(--gap-eyebrow);
+  color: var(--blue); font-family: var(--font-mono);
+  font-size: var(--fs-label); font-weight: 600; letter-spacing: 0.22em;
+}
+.accent-rule { width: 64px; height: 3px; background: var(--blue); }
+.cover-title .accent {
+  color: var(--blue);
+  text-shadow: 0 0 42px rgba(101, 185, 255, 0.35);
+}
+.reveal .cover-description { max-width: 560px; margin-top: 32px; color: var(--muted); font-size: var(--fs-lead); }
+.cover-divider { width: 100%; height: 1px; margin-top: 40px; background: var(--line-strong); }
+.cover-meta {
+  display: flex; gap: 32px; margin-top: 24px; color: var(--subtle);
+  font-family: var(--font-mono); font-size: 14px; letter-spacing: 0.08em;
+}
+.cover-meta span { display: flex; align-items: center; gap: 10px; }
+.cover-meta span::before {
+  content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--blue); opacity: 0.7;
+}
+.cover-visual { display: flex; align-items: center; justify-content: center; height: 100%; }
+.cover-visual svg { width: 100%; height: 100%; overflow: visible; }
+.cover-bottom {
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--line); padding-top: 20px;
+  color: var(--subtle); font-family: var(--font-mono);
+  font-size: 13px; letter-spacing: 0.12em;
+}
+.cover-hint {
+  position: absolute; right: var(--page-x); bottom: 96px;
+  color: var(--subtle); font-family: var(--font-mono); font-size: 13px;
+  letter-spacing: 0.1em; animation: hintPulse 2.6s ease-in-out infinite;
+}
+.cover-hint kbd {
+  padding: 4px 8px; border: 1px solid var(--line-strong); border-radius: 5px;
+  color: var(--muted); font-family: inherit; font-size: 12px;
+}
+
+.orbit-ring { transform-box: view-box; transform-origin: 360px 300px; animation: spin 70s linear infinite; }
+.peak-pulse {
+  transform-box: fill-box; transform-origin: center;
+  animation: peakPulse 2.6s ease-in-out infinite alternate;
+}
+
+/* =========================================================
+   06. SLIDE 02 — QUESTION
+========================================================= */
+.question-layout { display: grid; grid-template-columns: 1.12fr 0.88fr; gap: 56px; height: 100%; }
+.reveal .question-heading { margin-bottom: 24px; }
+.question-body {
+  color: var(--muted); font-size: var(--fs-lead);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.question-body .emphasis { color: var(--text); font-weight: 700; white-space: nowrap; }
+.question-options {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px;
+  margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--line);
+}
+.option {
+  display: flex; align-items: baseline; gap: 16px;
+  padding: 16px 20px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--surface-blue);
+  color: var(--muted); font-size: var(--fs-body); white-space: nowrap;
+  font-variant-numeric: lining-nums tabular-nums;
+  transition: border-color 240ms ease, background 240ms ease;
+}
+.option:hover { border-color: rgba(101, 185, 255, 0.35); background: rgba(101, 185, 255, 0.09); }
+.option-letter {
+  color: var(--blue); font-weight: 700;
+  font-family: var(--font-mono); font-size: 17px; letter-spacing: 0.06em;
+}
+.question-visual svg { width: 100%; height: 470px; overflow: visible; }
+
+/* =========================================================
+   07. SLIDE 03 — PROCESS
+========================================================= */
+.process-layout { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 24px; height: 100%; }
+.process-intro { display: flex; justify-content: space-between; align-items: flex-end; }
+.process-tag {
+  color: var(--orange); font-family: var(--font-mono);
+  font-size: var(--fs-caption); letter-spacing: 0.08em;
+  padding-bottom: 6px;
+}
+.process-svg { width: 100%; height: 100%; min-height: 0; }
+.process-note {
+  display: flex; align-items: center; gap: 20px;
+  padding-top: 20px; border-top: 1px solid var(--line);
+  color: var(--muted); font-size: var(--fs-caption);
+}
+.process-note-mark { width: 7px; height: 7px; background: var(--green); border-radius: 50%; flex: none; }
+
+/* =========================================================
+   08. SLIDE 04 — MODEL
+========================================================= */
+.model-layout { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 72px; height: 100%; }
+.model-copy { display: flex; flex-direction: column; justify-content: center; }
+.reveal .model-headline { margin-bottom: 28px; }
+.model-explanation { color: var(--muted); font-size: var(--fs-lead); }
+.model-visual { display: flex; flex-direction: column; justify-content: center; }
+.model-equation { padding: 28px 0; border-bottom: 1px solid var(--line); }
+.model-equation:first-child { border-top: 1px solid var(--line); }
+.model-equation .explain { margin-top: 12px; color: var(--subtle); font-size: var(--fs-caption); }
+.direction-line { display: flex; align-items: center; gap: 20px; margin-top: 24px; }
+.direction-line svg { width: 100%; height: 76px; }
+.direction-tag { color: var(--orange); font-size: 18px; white-space: nowrap; }
+
+/* =========================================================
+   09. SLIDE 05 — DERIVATION
+========================================================= */
+.derivation-layout { display: grid; grid-template-columns: 0.78fr 1.22fr; gap: 64px; height: 100%; }
+.derivation-copy { display: flex; flex-direction: column; justify-content: center; }
+.reveal .derivation-heading { margin-bottom: 24px; }
+.derivation-description { color: var(--muted); font-size: var(--fs-lead); }
+
+.derivation-steps { display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.derivation-step {
+  position: relative;
+  padding: 20px 0 20px 28px;
+  border-left: 2px solid rgba(101, 185, 255, 0.18);
+}
+.derivation-step-label { color: var(--subtle); margin-bottom: 12px; }
+.derivation-step .derivation-formula { white-space: nowrap; }
+
+.derivation-insight {
+  margin-top: 20px;
+  padding: 24px 28px;
+  background: var(--surface-blue);
+  border: 1px solid rgba(101, 185, 255, 0.22);
+  border-left: 3px solid var(--blue);
+  border-radius: 12px;
+}
+.derivation-insight-label { color: var(--blue); margin-bottom: 12px; }
+.derivation-insight-text {
+  color: var(--text); font-size: 26px; line-height: 1.5; font-weight: 700;
+}
+
+/* =========================================================
+   10. SLIDE 06 — CALCULATION
+========================================================= */
+.calculation-layout { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 24px; height: 100%; }
+.calculation-intro { display: flex; align-items: flex-end; justify-content: space-between; }
+.calculation-body { display: grid; grid-template-columns: 1fr 0.85fr; gap: 56px; }
+.calculation-formula { display: flex; flex-direction: column; justify-content: center; }
+.calculation-line { font-size: 42px; white-space: nowrap; }
+.calculation-line + .calculation-line { margin-top: 12px; }
+.calculation-result { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--line); }
+.calculation-result-label { color: var(--subtle); margin-bottom: 16px; }
+.calculation-result-value {
+  color: var(--orange); font-size: 66px; line-height: 1.2; font-weight: 700; white-space: nowrap;
+  text-shadow: 0 0 36px rgba(255, 179, 107, 0.25);
+}
+.calculation-result-note { margin-top: 12px; color: var(--subtle); font-size: var(--fs-caption); }
+.calculation-visual svg { width: 100%; height: 380px; overflow: visible; }
+.calculation-footnote {
+  color: var(--muted); font-size: var(--fs-caption);
+  padding-top: 20px; border-top: 1px solid var(--line);
+}
+
+/* =========================================================
+   11. SLIDE 07 — ANSWER
+========================================================= */
+.answer-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; height: 100%; }
+.answer-main { display: flex; flex-direction: column; justify-content: center; }
+.answer-kicker { color: var(--subtle); margin-bottom: 48px; }
+.answer-value { display: flex; align-items: baseline; gap: 24px; }
+.answer-letter {
+  font-family: var(--font-mono);
+  font-size: var(--fs-mega); line-height: 0.9; color: var(--green);
+  font-weight: 600; letter-spacing: -0.04em;
+  text-shadow: 0 0 48px rgba(107, 214, 174, 0.35);
+}
+.answer-unit { font-size: 38px; line-height: 1.3; color: var(--text); font-weight: 400; white-space: nowrap; }
+.reveal .answer-direction { margin-top: 32px; color: var(--muted); font-size: var(--fs-lead); line-height: 1.75; }
+.answer-visual { display: flex; flex-direction: column; justify-content: center; }
+.answer-visual svg { width: 100%; height: 430px; overflow: visible; }
+.answer-summary {
+  margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line);
+  color: var(--muted); font-size: 17px; line-height: 1.8;
+}
+
+/* =========================================================
+   12. SLIDE 08 — ERROR ANALYSIS
+========================================================= */
+.error-layout { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 36px; height: 100%; }
+.error-head { display: flex; align-items: flex-end; justify-content: space-between; }
+.error-columns {
+  display: grid; grid-template-columns: 1.16fr 0.84fr; gap: 44px;
+  align-items: start; align-content: start;
+}
+.error-card {
+  padding: 24px 28px;
+  background: var(--surface-red);
+  border: 1px solid var(--border-red);
+  border-left: 3px solid var(--red);
+  border-radius: 12px; margin-bottom: 20px;
+}
+.error-title {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--red); font-weight: 700; font-size: 19px;
+  margin-bottom: 12px; letter-spacing: 0.03em;
+}
+.error-num {
+  font-family: var(--font-mono); font-size: 13px; font-weight: 600;
+  letter-spacing: 0.12em; color: rgba(255, 133, 133, 0.75);
+  border: 1px solid var(--border-red); border-radius: 5px; padding: 4px 8px;
+}
+.error-desc { color: var(--muted); font-size: 17px; line-height: 1.75; }
+.note-card {
+  background: var(--surface-green);
+  border: 1px solid var(--border-green);
+  border-left: 3px solid var(--green);
+  padding: 24px 28px; border-radius: 12px;
+}
+.note-title {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--green); font-weight: 700; font-size: 19px; margin-bottom: 16px;
+}
+.note-body { color: var(--muted); font-size: 17px; line-height: 1.85; }
+.note-motto {
+  margin: 16px 0; padding: 16px 24px;
+  background: var(--surface-green); border-radius: 10px;
+  color: var(--text); font-size: 21px; line-height: 1.9; font-weight: 700;
+}
+
+/* =========================================================
+   13. REVEAL UI
+========================================================= */
+.reveal .controls {
+  right: 24px; bottom: 18px; color: var(--blue);
+  opacity: 0.35; transform: scale(0.68); transform-origin: bottom right;
+  transition: opacity 240ms ease;
+}
+.reveal .controls:hover { opacity: 0.9; }
+.reveal .controls button:focus-visible { outline: 2px solid var(--blue); opacity: 1; }
+.reveal .progress { height: 2px; color: var(--blue); background: rgba(180, 205, 235, 0.05); }
+.reveal .slide-number { display: none; }
+
+/* =========================================================
+   14. ANNOTATION — FAB 开合工具坞 + 笔刷环 + 画布
+========================================================= */
+.anno-canvas {
+  position: fixed; inset: 0; z-index: 45;
+  pointer-events: none; touch-action: none;
+}
+
+.brush-cursor {
+  position: fixed; left: 0; top: 0; z-index: 65;
+  width: 24px; height: 24px;
+  border: 1.5px solid #ffe066; border-radius: 50%;
+  background: rgba(255, 224, 102, 0.14);
+  pointer-events: none;
+  transform: translate3d(-400px, -400px, 0) translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 120ms ease, width 140ms ease, height 140ms ease,
+              border-color 140ms ease, background 140ms ease;
+  will-change: transform;
+}
+body.anno-on.brush-visible .brush-cursor { opacity: 1; }
+
+.anno-dock {
+  position: fixed;
+  left: max(18px, env(safe-area-inset-left, 0px));
+  top: 50%; transform: translateY(-50%);
+  display: flex; align-items: center; gap: 10px;
+  z-index: 70;
+}
+
+.anno-fab {
+  position: relative; flex: none;
+  width: 52px; height: 52px; border-radius: 50%;
+  appearance: none; cursor: pointer;
+  background: rgba(16, 24, 39, 0.94);
+  border: 1px solid var(--line-strong);
+  color: var(--muted);
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  transition: color 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+.anno-fab:hover { color: var(--text); transform: scale(1.05); }
+.anno-fab:focus-visible { outline: 2px solid var(--blue); }
+.anno-fab svg { width: 22px; height: 22px; }
+.anno-fab .fab-close { display: none; }
+.anno-dock.open .anno-fab .fab-open { display: none; }
+.anno-dock.open .anno-fab .fab-close { display: block; }
+.anno-dock.open .anno-fab { color: var(--green); border-color: rgba(107, 214, 174, 0.5); }
+.fab-dot {
+  position: absolute; right: 3px; bottom: 3px;
+  width: 11px; height: 11px; border-radius: 50%;
+  border: 2px solid rgba(16, 24, 39, 0.95);
+  background: #ffe066;
+}
+.anno-fab::after {
+  content: attr(data-tip);
+  position: absolute; left: calc(100% + 14px); top: 50%;
+  transform: translateY(-50%) translateX(-6px);
+  background: rgba(16, 24, 39, 0.96);
+  border: 1px solid var(--line-strong); border-radius: 9px;
+  color: var(--muted); font-family: var(--font-mono);
+  font-size: 12px; letter-spacing: 0.08em; padding: 8px 12px;
+  white-space: nowrap; opacity: 0; pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+.anno-fab:hover::after { opacity: 1; transform: translateY(-50%) translateX(0); }
+
+.anno-rail {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 12px 8px; border-radius: 18px;
+  background: rgba(16, 24, 39, 0.93);
+  border: 1px solid var(--line-strong);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  opacity: 0; transform: translateX(-12px) scale(0.96);
+  pointer-events: none; visibility: hidden;
+  transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out),
+              visibility 0s linear 220ms;
+}
+.anno-dock.open .anno-rail {
+  opacity: 1; transform: translateX(0) scale(1);
+  pointer-events: auto; visibility: visible;
+  transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out);
+}
+.anno-dock.open.paused .anno-rail { opacity: 0.45; }
+
+.anno-tool {
+  position: relative;
+  appearance: none; background: transparent;
+  border: 1px solid transparent; border-radius: 11px;
+  width: 40px; height: 40px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted); cursor: pointer;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 600;
+  letter-spacing: 0.08em;
+  transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+.anno-tool svg { width: 21px; height: 21px; }
+.anno-tool:hover { color: var(--text); border-color: var(--line-strong); }
+.anno-tool:focus-visible { outline: 2px solid var(--blue); }
+.anno-tool.active {
+  color: var(--blue); border-color: rgba(101, 185, 255, 0.45);
+  background: var(--surface-blue);
+}
+.anno-tool.on {
+  color: var(--green); border-color: rgba(107, 214, 174, 0.5);
+  background: var(--surface-green);
+}
+.anno-tool:disabled { opacity: 0.32; cursor: default; }
+
+.anno-tool::after {
+  content: attr(data-tip);
+  position: absolute; left: calc(100% + 14px); top: 50%;
+  transform: translateY(-50%) translateX(-6px);
+  background: rgba(16, 24, 39, 0.96);
+  border: 1px solid var(--line-strong); border-radius: 9px;
+  color: var(--muted); font-family: var(--font-mono);
+  font-size: 12px; font-weight: 500; letter-spacing: 0.08em;
+  padding: 8px 12px; white-space: nowrap;
+  opacity: 0; pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+.anno-tool:hover::after { opacity: 1; transform: translateY(-50%) translateX(0); }
+
+.anno-sep-v { width: 26px; height: 1px; background: var(--line-strong); margin: 5px 0; flex: none; }
+
+.anno-colors { display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 3px 0; }
+.anno-swatch {
+  width: 17px; height: 17px; border-radius: 50%;
+  border: 2px solid transparent; cursor: pointer; padding: 0;
+  transition: transform 150ms ease, border-color 150ms ease;
+}
+.anno-swatch:hover { transform: scale(1.18); }
+.anno-swatch.active { border-color: var(--text); transform: scale(1.18); }
+
+@media (max-width: 860px), (max-height: 560px) {
+  .anno-dock {
+    left: 50%; right: auto; top: auto;
+    bottom: max(14px, env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    flex-direction: column-reverse; align-items: center; gap: 8px;
+    max-width: calc(100vw - 20px);
+  }
+  .anno-rail {
+    flex-direction: row; flex-wrap: wrap; justify-content: center;
+    max-width: calc(100vw - 20px);
+    transform: translateY(12px) scale(0.96);
+  }
+  .anno-dock.open .anno-rail { transform: translateY(0) scale(1); }
+  .anno-sep-v { width: 1px; height: 22px; margin: 0 4px; }
+  .anno-colors { flex-direction: row; padding: 0 3px; }
+  .anno-tool::after, .anno-fab::after {
+    left: 50%; top: auto; bottom: calc(100% + 12px);
+    transform: translateX(-50%) translateY(6px);
+  }
+  .anno-tool:hover::after, .anno-fab:hover::after {
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* =========================================================
+   15. MOTION
+========================================================= */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeOnly { from { opacity: 0; } to { opacity: 1; } }
+@keyframes drawRule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes peakPulse {
+  from { opacity: 0.65; transform: scale(1); }
+  to   { opacity: 1;    transform: scale(1.18); }
+}
+@keyframes hintPulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 0.9; } }
+
+.reveal .slides section.present .rise { animation: rise 0.75s var(--ease-out) both; }
+.reveal .slides section.present .fade { animation: fadeOnly 1s ease both; }
+.reveal .slides section.present .d1 { animation-delay: 0.10s; }
+.reveal .slides section.present .d2 { animation-delay: 0.20s; }
+.reveal .slides section.present .d3 { animation-delay: 0.30s; }
+.reveal .slides section.present .d4 { animation-delay: 0.40s; }
+.reveal .slides section.present .d5 { animation-delay: 0.50s; }
+.reveal .slides section.present .d6 { animation-delay: 0.60s; }
+.reveal .slides section.present .rule-anim {
+  transform-origin: left center;
+  animation: drawRule 0.9s var(--ease-out) both;
+}
+
+/* =========================================================
+   16. RESPONSIVE / PRINT
+========================================================= */
+.viewport-tip { display: none; }
+@media (max-width: 720px) and (orientation: portrait) {
+  .viewport-tip {
+    display: block; position: fixed;
+    left: 50%; bottom: calc(180px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    padding: 10px 20px; border-radius: 999px;
+    background: rgba(16, 24, 39, 0.92); border: 1px solid var(--line-strong);
+    color: var(--muted); font-family: var(--font-mono); font-size: 13px;
+    letter-spacing: 0.06em; z-index: 100;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    white-space: nowrap; max-width: calc(100vw - 24px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+@media print {
+  @page { size: 1600px 900px; margin: 0; }
+  html, body { overflow: visible; background: white; }
+  .reveal .slides section { position: relative; display: block !important; page-break-after: always; }
+  .reveal .controls, .reveal .progress, .cover-hint, .viewport-tip,
+  .grain, .anno-dock, .anno-canvas, .brush-cursor { display: none !important; }
+}
+
+/* =========================================================
+   17. 间距工具类
+========================================================= */
+.reveal .stack-16 { margin-top: 16px; }
+.reveal .stack-20 { margin-top: 20px; }
+.reveal .stack-24 { margin-top: 24px; }
+.reveal .stack-32 { margin-top: 32px; }
+.reveal .stack-48 { margin-top: 48px; }
+</style>
+</head>
+
+<body>
+
+<!-- ═══ SVG 资产：禁 HTML 标签；上下标用 tspan/Unicode；动画放页面层 ═══
+     #fixPlateG 固定极板（齿朝下）· #movePlateG 动极板（齿朝上）
+     #motionG 上下运动箭头 · #circuitG 三挡开关电路 · #quG Q–U 三角回线 -->
+<svg width="0" height="0" style="position:absolute;pointer-events:none" aria-hidden="true" focusable="false">
+  <defs>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#65b9ff"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#ffb36b"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#6bd6ae"/>
+    </marker>
+
+    <!-- 固定极板（原点在极板条中心，齿延伸到 y=48） -->
+    <g id="fixPlateG">
+      <rect x="-130" y="-30" width="260" height="26" rx="6" fill="#24344b" stroke="rgba(180,205,235,.5)" stroke-width="3"/>
+      <g fill="#24344b" stroke="rgba(180,205,235,.5)" stroke-width="2.5">
+        <rect x="-116" y="-8" width="18" height="56" rx="3"/>
+        <rect x="-62" y="-8" width="18" height="56" rx="3"/>
+        <rect x="-8" y="-8" width="18" height="56" rx="3"/>
+        <rect x="46" y="-8" width="18" height="56" rx="3"/>
+        <rect x="100" y="-8" width="18" height="56" rx="3"/>
+      </g>
+    </g>
+
+    <!-- 动极板（原点在极板条中心，齿上探到 y=-48） -->
+    <g id="movePlateG">
+      <g fill="#2b3c55" stroke="rgba(180,205,235,.5)" stroke-width="2.5">
+        <rect x="-89" y="-48" width="18" height="52" rx="3"/>
+        <rect x="-35" y="-48" width="18" height="52" rx="3"/>
+        <rect x="19" y="-48" width="18" height="52" rx="3"/>
+        <rect x="73" y="-48" width="18" height="52" rx="3"/>
+      </g>
+      <rect x="-130" y="4" width="260" height="26" rx="6" fill="#2b3c55" stroke="rgba(180,205,235,.5)" stroke-width="3"/>
+    </g>
+
+    <!-- 上下运动双箭头 -->
+    <g id="motionG">
+      <path d="M0 12 V64" stroke="#65b9ff" stroke-width="4"/>
+      <path d="M0 6 l-8 13 h16 z" fill="#65b9ff"/>
+      <path d="M0 70 l-8 -13 h16 z" fill="#65b9ff"/>
+    </g>
+
+    <!-- 三挡开关电路（E 电池 · a/b/c 触点 · C 电容 · R 电阻） -->
+    <g id="circuitG">
+      <path d="M-160 -70 V-24 M-160 24 V90 M0 -70 V-14 M0 14 V90 M160 -70 V-30 M160 30 V90"
+            stroke="rgba(180,205,235,.55)" stroke-width="3.5" fill="none"/>
+      <path d="M-160 90 H160" stroke="rgba(180,205,235,.55)" stroke-width="3.5"/>
+      <path d="M-192 -22 H-128" stroke="#a1b0c5" stroke-width="5"/>
+      <path d="M-176 -6 H-144" stroke="#a1b0c5" stroke-width="5"/>
+      <path d="M-32 -14 H32 M-32 14 H32" stroke="#a1b0c5" stroke-width="5"/>
+      <rect x="132" y="-30" width="56" height="60" rx="6" fill="none" stroke="#a1b0c5" stroke-width="4"/>
+      <path d="M-160 -70 V-104 H-110 M110 -104 H160 V-70" stroke="rgba(180,205,235,.55)" stroke-width="3.5" fill="none"/>
+      <circle cx="-110" cy="-104" r="7" fill="#8fa2ba"/>
+      <circle cx="0" cy="-104" r="7" fill="#8fa2ba"/>
+      <circle cx="110" cy="-104" r="7" fill="#8fa2ba"/>
+      <path d="M0 -70 L-104 -101" stroke="#ffb36b" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="0" cy="-70" r="6" fill="#ffb36b"/>
+      <text x="-216" y="-8" font-family="Newsreader, serif" font-size="28" fill="#a1b0c5" font-style="italic">E</text>
+      <text x="44" y="8" font-family="Newsreader, serif" font-size="28" fill="#a1b0c5" font-style="italic">C</text>
+      <text x="196" y="8" font-family="Newsreader, serif" font-size="28" fill="#a1b0c5" font-style="italic">R</text>
+      <text x="-110" y="-124" text-anchor="middle" font-family="Newsreader, serif" font-size="26" fill="#8fa2ba" font-style="italic">a</text>
+      <text x="0" y="-124" text-anchor="middle" font-family="Newsreader, serif" font-size="26" fill="#8fa2ba" font-style="italic">b</text>
+      <text x="110" y="-124" text-anchor="middle" font-family="Newsreader, serif" font-size="26" fill="#8fa2ba" font-style="italic">c</text>
+      <text x="-34" y="-58" font-family="Newsreader, serif" font-size="26" fill="#ffb36b" font-style="italic">S</text>
+    </g>
+
+    <!-- Q–U 三角回线：① 过原点直线（斜率大）② 水平右移 ③ 过原点直线回 O（斜率小） -->
+    <g id="quG">
+      <path d="M-46 0 H310" stroke="rgba(180,205,235,.55)" stroke-width="3" fill="none" marker-end="url(#arrowBlue)"/>
+      <path d="M0 46 V-158" stroke="rgba(180,205,235,.55)" stroke-width="3" fill="none" marker-end="url(#arrowBlue)"/>
+      <text x="322" y="14" font-family="Newsreader, serif" font-size="26" fill="#8fa2ba" font-style="italic">U</text>
+      <text x="-14" y="-172" text-anchor="end" font-family="Newsreader, serif" font-size="26" fill="#8fa2ba" font-style="italic">Q</text>
+      <text x="-22" y="28" text-anchor="end" font-family="Newsreader, serif" font-size="24" fill="#8fa2ba">O</text>
+
+      <path d="M120 -90 V0 M120 -90 H0 M250 -90 V0" stroke="rgba(180,205,235,.25)" stroke-width="2.5" stroke-dasharray="7 8"/>
+
+      <path d="M6 -5 L114 -85" stroke="#65b9ff" stroke-width="5" marker-end="url(#arrowBlue)" stroke-linecap="round"/>
+      <path d="M124 -90 H244" stroke="#ffb36b" stroke-width="5" marker-end="url(#arrowOrange)" stroke-linecap="round"/>
+      <path d="M246 -88 L8 -7" stroke="#6bd6ae" stroke-width="5" marker-end="url(#arrowGreen)" stroke-linecap="round"/>
+
+      <circle cx="44" cy="-72" r="17" fill="rgba(101,185,255,.15)" stroke="#65b9ff" stroke-width="2"/>
+      <text x="44" y="-63" text-anchor="middle" font-family="IBM Plex Mono, Noto Serif SC, sans-serif" font-size="21" fill="#65b9ff">①</text>
+      <circle cx="185" cy="-112" r="17" fill="rgba(255,179,107,.15)" stroke="#ffb36b" stroke-width="2"/>
+      <text x="185" y="-103" text-anchor="middle" font-family="IBM Plex Mono, Noto Serif SC, sans-serif" font-size="21" fill="#ffb36b">②</text>
+      <circle cx="150" cy="-16" r="17" fill="rgba(107,214,174,.15)" stroke="#6bd6ae" stroke-width="2"/>
+      <text x="150" y="-7" text-anchor="middle" font-family="IBM Plex Mono, Noto Serif SC, sans-serif" font-size="21" fill="#6bd6ae">③</text>
+    </g>
+  </defs>
+</svg>
+
+<div class="reveal">
+<div class="slides">
+
+<!-- ================= SLIDE 01 — COVER ================= -->
+<section data-transition="fade">
+  <div class="cover">
+    <div class="cover-content">
+      <div class="cover-copy">
+        <div class="cover-kicker rise"><span class="accent-rule"></span><span>PHYSICS · CAPACITANCE</span></div>
+        <h1 class="cover-title rise d1">可变电容充放电<br><span class="accent">三阶段图像判定</span></h1>
+        <p class="cover-description rise d2">充电、断开拉开、放电——一道图像题，练“先定哪个量守恒，再定图线形状”：斜率就是电容。</p>
+        <div class="cover-divider rule-anim d3"></div>
+        <div class="cover-meta rise d4">
+          <span>充电与放电</span>
+          <span>Q 恒定过程</span>
+          <span>图像斜率</span>
+        </div>
+      </div>
+      <div class="cover-visual fade d2">
+        <svg viewBox="0 0 720 650" role="img" aria-label="Q-U 图像三段轨迹：过原点直线、水平段、斜率更小的过原点直线">
+          <g class="orbit-ring">
+            <circle cx="360" cy="300" r="185" fill="none" stroke="rgba(180,205,235,.12)" stroke-dasharray="4 14"/>
+          </g>
+          <circle cx="360" cy="300" r="252" fill="none" stroke="rgba(180,205,235,.08)"/>
+
+          <g transform="translate(225 385) scale(1.05)">
+            <use href="#quG"/>
+            <circle class="peak-pulse" cx="250" cy="-90" r="10" fill="#ffb36b"/>
+          </g>
+
+          <text x="360" y="628" text-anchor="middle" class="svg-small">斜率就是电容 · ①③ 过原点直线 · ② 水平线</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="cover-bottom">
+      <span>物理习题讲解</span>
+      <span class="footer-credit">@Neking · lvshaomeng806@gmail.com</span>
+      <span>01 · Q–U GRAPH</span>
+    </div>
+
+    <div class="cover-hint">按 <kbd>→</kbd> 开始 · 按 <kbd>D</kbd> 打开批注</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 02 — QUESTION ================= -->
+<section data-transition="slide">
+  <div class="slide-frame">
+    <header class="slide-header">
+      <div class="header-left"><span class="chapter-index">01</span><span class="chapter-name">题目呈现</span></div>
+      <span class="header-meta">QUESTION</span>
+    </header>
+    <main class="slide-main">
+      <div class="question-layout">
+        <div class="question-text">
+          <div class="eyebrow rise">READ THE QUESTION</div>
+          <h2 class="question-heading rise d1">充电、拉开、放电</h2>
+
+          <p class="question-body rise d2">梳齿状可变电容器：上端<span class="emphasis">固定极板</span>，下端<span class="emphasis">动极板</span>可上下运动。接入电路分三步：①动极板最高处，S 接 a，电源<span class="emphasis">充电</span>；②充电结束 S 接 b 空置，动极板<span class="emphasis">向下</span>运动；③动极板最低处，S 接 c，经 R <span class="emphasis">放电</span>。</p>
+          <p class="question-body stack-20 rise d3">关于该过程，下列图像可能正确的是？</p>
+
+          <div class="question-options rise d4">
+            <div class="option"><span class="option-letter">A.</span><span>Q–U 图，②水平、③斜率更小</span></div>
+            <div class="option"><span class="option-letter">B.</span><span>Q–U 图，②竖直、③斜率更大</span></div>
+            <div class="option"><span class="option-letter">C.</span><span>U–C 图，②为右下曲线</span></div>
+            <div class="option"><span class="option-letter">D.</span><span>U–C 图，②为倾斜直线</span></div>
+          </div>
+        </div>
+
+        <div class="question-visual fade d2">
+          <div class="visual-caption"><span>物理情境</span><span>三挡开关电路</span></div>
+          <svg viewBox="0 0 650 520" role="img" aria-label="电路图：电源 E、三挡开关 S、电容 C、电阻 R">
+            <g transform="translate(300 245) scale(0.9)">
+              <use href="#circuitG"/>
+            </g>
+            <text x="325" y="470" text-anchor="middle" class="svg-small">a 充电 · b 空置（Q 恒定）· c 放电</text>
+          </svg>
+        </div>
+      </div>
+    </main>
+    <footer class="slide-footer">
+      <span class="footer-topic">先定守恒量，再定图线形状</span>
+      <span class="footer-credit">@Neking · lvshaomeng806@gmail.com</span>
+      <span class="footer-page">02 / 08</span>
+    </footer>
+  </div>
+</section>
+
+<!-- ================= SLIDE 03 — PHYSICAL PROCESS ================= -->
+<section data-transition="slide">
+  <div class="slide-frame">
+    <header class="slide-header">
+      <div class="header-left"><span class="chapter-index">02</span><span class="chapter-name">物理过程</span></div>
+      <span class="header-meta">STAGE 1 &amp; 2</span>
+    </header>
+    <main class="slide-main">
+      <div class="process-layout">
+        <div class="process-intro">
+          <div>
+            <div class="eyebrow rise">STAGE 1 &amp; 2</div>
+            <h2 class="process-title rise d1">两个阶段，极板与图像如何对应？</h2>
+          </div>
+          <span class="process-tag rise d2">①充电 · ②拉开</span>
+        </div>
+
+        <!-- SVG 内文字全部 tspan / Unicode，零 HTML 标签 -->
+        <svg class="process-svg fade d2" viewBox="0 0 1400 500" role="img" aria-label="阶段一极板间距小电容大，阶段二断开后拉开间距增大电容减小">
+          <g transform="translate(70 0)">
+            <text x="0" y="55" class="svg-label">阶段 ① · 充电（S 接 a）</text>
+            <text x="0" y="92" class="svg-small">动极板最高，d 最小，C = C₁ 最大</text>
+            <rect x="0" y="130" width="520" height="270" rx="6" fill="rgba(101,185,255,.03)" stroke="rgba(180,205,235,.2)"/>
+
+            <use href="#fixPlateG" transform="translate(255 190) scale(0.6)"/>
+            <use href="#movePlateG" transform="translate(255 262) scale(0.6)"/>
+            <path d="M120 219 V231 M114 219 H126 M114 231 H126" stroke="#8fa2ba" stroke-width="2.5" fill="none"/>
+            <text x="98" y="231" text-anchor="end" font-family="Newsreader, serif" font-size="22" fill="#8fa2ba" font-style="italic">d</text>
+
+            <text x="260" y="352" text-anchor="middle" class="svg-label">
+              <tspan font-style="italic">Q</tspan><tspan dy="-5"> = </tspan><tspan font-style="italic">C</tspan><tspan class="tsub" dy="5">1</tspan><tspan dy="-5">U</tspan><tspan dy="5">：过原点直线</tspan>
+            </text>
+            <text x="260" y="388" text-anchor="middle" class="svg-small">充电中 Q、U 同步增大，斜率就是 C₁</text>
+          </g>
+
+          <g transform="translate(650 260)">
+            <path class="glow-blue" d="M-55 0 H100" stroke="#65b9ff" stroke-width="4" fill="none" marker-end="url(#arrowBlue)" stroke-linecap="round"/>
+            <text x="20" y="-32" text-anchor="middle" class="svg-small">S 接 b</text>
+            <text x="20" y="42" text-anchor="middle" class="svg-small">极板下移</text>
+          </g>
+
+          <g transform="translate(810 0)">
+            <text x="0" y="55" class="svg-label">阶段 ② · 断开拉开（S 接 b）</text>
+            <text x="0" y="92" class="svg-small">Q 不变，d 增大，C 减小 → U 增大</text>
+            <rect x="0" y="130" width="520" height="270" rx="6" fill="rgba(255,179,107,.03)" stroke="rgba(180,205,235,.2)"/>
+
+            <use href="#fixPlateG" transform="translate(255 190) scale(0.6)"/>
+            <use href="#movePlateG" transform="translate(255 300) scale(0.6)"/>
+            <g class="glow-blue"><use href="#motionG" transform="translate(255 340) scale(0.6)"/></g>
+            <path d="M120 219 V269 M114 219 H126 M114 269 H126" stroke="#8fa2ba" stroke-width="2.5" fill="none"/>
+            <text x="98" y="250" text-anchor="end" font-family="Newsreader, serif" font-size="22" fill="#8fa2ba" font-style="italic">d</text>
+
+            <text x="260" y="352" text-anchor="middle" class="svg-label">
+              <tspan font-style="italic">Q</tspan><tspan dy="-5"> 不变：水平右移</tspan>
+            </text>
+            <text x="260" y="388" text-anchor="middle" class="svg-small">
+              <tspan font-style="italic">U</tspan><tspan dy="-5"> = </tspan><tspan font-style="italic">Q</tspan><tspan dy="-5">/</tspan><tspan font-style="italic">C</tspan><tspan dy="-5"> 增大，</tspan><tspan font-style="italic">C</tspan><tspan dy="-5"> = </tspan><tspan font-style="italic">Q</tspan><tspan dy="-5">/</tspan><tspan font-style="italic">U</tspan><tspan dy="-5"> 减小</tspan>
+            </text>
+          </g>
+        </svg>
+
+        <div class="process-note rise d3">
+          <span class="process-note-mark"></span>
+          <span>③ S 接 c 放电：动极板已到最低处，电容恒为 C₂（C₂ &lt; C₁），Q、U 沿过原点直线同步减小回到 O。</span>
+        </div>
+      </div>
+    </main>
+    <footer class="slide-footer">
+      <span class="footer-topic">斜率就是电容</span>
+      <span class="footer-credit">@Neking · lvshaomeng806@gmail.com</span>
+      <span class="footer-page">03 / 08</span>
+    </footer>
+  </div>
+</section>
+
+<!-- ================= SLIDE 04 — MODEL ================= -->
+<section data-transition="slide">
+  <div class="slide-frame">
+    <header class="slide-header">
+      <div class="header-left"><span class="chapter-index">03</span><span class="chapter-name">建立模型</span></div>
+      <span class="header-meta">THREE SEGMENTS</span>
+    </header>
+    <main class="slide-main">
+      <div class="model-layout">
+        <div class="model-copy">
+          <div class="eyebrow rise">WHY THREE SEGMENTS</div>
+          <h2 class="model-headline rise d1">为什么图像<br>是三段拼接？</h2>
+          <p class="model-explanation rise d2">每个阶段只有一个量保持不变：① <span class="blue">C 不变</span>（充电），② <span class="orange">Q 不变</span>（断开拉开），③ <span class="blue">C 又不变</span>（放电）。</p>
+          <p class="model-explanation stack-24 rise d3">守恒量决定图线形状：C 不变就是过原点直线，Q 不变就是水平段（U–C 图上则是双曲线一支）。</p>
+        </div>
+
+        <div class="model-visual">
+          <div class="model-equation rise d2">
+            <div class="label">平行板电容</div>
+            <div class="formula"><span class="var">C</span> = ε<sub>r</sub><span class="var">S</span> / 4π<span class="var">kd</span></div>
+            <div class="explain">动极板下移 → d 增大 → C 减小</div>
+          </div>
+          <div class="model-equation rise d3">
+            <div class="label">斜率的含义（Q–U 图）</div>
+            <div class="formula"><span class="var">Q</span> = <span class="var">C</span><span class="var">U</span>，斜率 = <span class="var">C</span></div>
+            <div class="explain">过原点直线的斜率就是电容</div>
+          </div>
+          <div class="model-equation rise d4">
+            <div class="label">阶段 ②（Q 恒定）</div>
+            <div class="formula"><span class="var">U</span> = <span class="var">Q</span> / <span class="var">C</span> ∝ 1 / <span class="var">C</span></div>
+            <div class="direction-line">
+              <span class="direction-tag">Q 恒定</span>
+              <svg viewBox="0 0 500 84" role="img" aria-label="Q 恒定时 C 减小 U 增大">
+                <path d="M30 42 H470" stroke="#ffb36b" stroke-width="4" fill="none" marker-end="url(#arrowOrange)" stroke-linecap="round"/>
+                <text x="30" y="25" class="svg-small">C 减小</text>
+                <text x="470" y="25" text-anchor="end" class="svg-small">U 增大</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <footer class="slide-footer">
+      <span class="footer-topic">图线形状由守恒量决定</span>
+      <span class="footer-credit">@Neking · lvshaomeng806@gmail.com</span>
+      <span class="footer-page">04 / 08</span>
+    </footer>
+  </div>
+</section>
+
+<!-- ================= SLIDE 05 — DERIVATION ================= -->
+<section data-transition="slide">
+  <div class="slide-frame">
+    <header class="slide-header">
+      <div class="header-left"><span class="chapter-index">04</span><span class="chapter-name">推导关系</span></div>
+      <span class="header-meta">STAGES TO GRAPH</span>
+    </header>
+    <main class="slide-main">
+      <div class="derivation-layout">
+        <div class="derivation-copy">
+          <div class="eyebrow rise">FROM STAGES TO GRAPH</div>
+          <h2 class="derivation-heading rise d1">三个阶段<br>各画一段</h2>
+          <p class="derivation-description rise d2">先判每段的守恒量，再定图线形状：①③ 是过原点直线，② 是水平段。</p>
+          <p class="derivation-description stack-24 rise d3">斜率大的直线在前（C₁），斜率小的在后（C₂），顺序不能乱。</p>
+        </div>
+
+        <div class="derivation-steps">
+          <div class="derivation-step rise d2">
+            <div class="derivation-step-label">STEP 01 / 充电（C = C₁ 恒定）</div>
+            <div class="derivation-formula"><span class="var">Q</span> = <span class="var">C</span>₁<span class="var">U</span>，过原点直线，斜率大</div>
+          </div>
+          <div class="derivation-step rise d3">
+            <div class="derivation-step-label">STEP 02 / 断开拉开（Q 恒定）</div>
+            <div class="derivation-formula"><span class="var">Q</span> 不变，<span class="var">U</span> = <span class="var">Q</span>/<span class="var">C</span> 增大，水平右移</div>
+          </div>
+          <div class="derivation-step rise d4">
+            <div class="derivation-step-label">STEP 03 / 放电（C = C₂ 恒定）</div>
+            <div class="derivation-formula"><span class="var">Q</span> = <span class="var">C</span>₂<span class="var">U</span>，过原点直线，斜率小</div>
+          </div>
+
+          <div class="derivation-insight rise d5">
+            <div class="derivation-insight-label">关键理解 / KEY INSIGHT</div>
+            <div class="derivation-insight-text">斜率就是电容：①③ 两条直线，② 一条水平线</div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <footer class="slide-footer">
+      <span class="footer-topic">守恒量定形状</span>
+      <span class="footer-credit">@Neking · lvshaomeng806@gmail.com</span>
+      <span class="footer-page">05 / 08</span>
+    </footer>
+  </div>
+</section>
+
+<!-- ================= SLIDE 06 — CALCULATION ================= -->
+<section data-transition="slide">
+  <div class="slide-frame">
+    <header class="slide-header">
+      <div class="header-left"><span class="chapter-index">05</span><span class="chapter-name">图像检验</span></div>
+      <span class="header-meta">GRAPH CHECK</span>
+    </header>
+    <main class="slide-main">
+      <div class="calculation-layout">
+        <div class="calculation-intro">
+          <div>
+            <div class="eyebrow rise">PLUG IN THE GRAPH</div>
+            <h2 class="calculation-title rise d1">逐段检验图线形状</h2>
+          </div>
+          <span class="eyebrow rise d2">SLOPE = C</span>
+        </div>
+
+        <div class="calculation-body">
+          <div class="calculation-formula">
+            <div class="calculation-line rise d2">①：<span class="var">Q</span> = <span class="var">C</span>₁<span class="var">U</span>，斜率 <span class="var">C</span>₁（大）</div>
+            <div class="calculation-line rise d3">②：<span class="var">Q</span> 不变，<span class="var">U</span> = <span class="var">Q</span>/<span class="var">C</span> 增大</div>
+            <div class="calculation-line rise d4">③：<span class="var">Q</span> = <span class="var">C</span>₂<span class="var">U</span>，斜率 <span class="var">C</span>₂ &lt; <span class="var">C</span>₁</div>
+
+            <div class="calculation-result rise d5">
+              <div class="calculation-result-label">正确图线的判据</div>
+              <div class="calculation-result-value">斜率 = 电容</div>
+              <div class="calculation-result-note">①③ 过原点、斜率一大一小；② 水平（Q 恒定）</div>
+            </div>
+          </div>
+
+          <div class="calculation-visual fade d3">
+            <svg viewBox="0 0 650 430" role="img" aria-label="Q-U 图像三段轨迹与斜率标注">
+              <g transform="translate(140 235) scale(1.0)">
+                <use href="#quG"/>
+                <text x="30" y="-108" class="svg-label svg-blue">斜率 C₁</text>
+                <text x="196" y="-26" class="svg-label svg-green">斜率 C₂</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <div class="calculation-footnote rise d5">U–C 图（C、D）中 ② 必须是双曲线一支 <span class="var">U</span> = <span class="var">Q</span>/<span class="var">C</span>：C 减半则 U 翻倍——<span class="orange">不是直线，走向也不能画反</span>。</div>
+      </div>
+    </main>
+    <footer class="slide-footer">
+      <span class="footer-topic">判据：斜率与守恒量</span>
+      <span class="footer-credit">@Neking · lvshaomeng806@gmail.com</span>
+      <span class="footer-page">06 / 08</span>
+    </footer>
+  </div>
+</section>
+
+<!-- ================= SLIDE 07 — ANSWER ================= -->
+<section data-transition="fade">
+  <div class="slide-frame">
+    <header class="slide-header">
+      <div class="header-left"><span class="chapter-index">06</span><span class="chapter-name">答案揭晓</span></div>
+      <span class="header-meta">FINAL ANSWER</span>
+    </header>
+    <main class="slide-main">
+      <div class="answer-layout">
+        <div class="answer-main">
+          <div class="answer-kicker rise">CORRECT ANSWER</div>
+          <div class="answer-value rise d1">
+            <span class="answer-letter">A</span>
+            <span class="answer-unit">Q–U 三角回线</span>
+          </div>
+          <p class="answer-direction rise d2">
+            ①充电沿过原点直线（斜率 C₁）；②Q 恒定水平右移；③放电沿斜率更小的直线回原点。<br>
+            B 的 ② 竖直（U 不变）不可能；C、D 的 ② 形状或走向错。
+          </p>
+        </div>
+
+        <div class="answer-visual">
+          <svg class="fade d2" viewBox="0 0 650 460" role="img" aria-label="正确 Q-U 图像结论示意">
+            <g transform="translate(135 245) scale(1.0)">
+              <use href="#quG"/>
+              <text x="30" y="-108" class="svg-label svg-blue">C₁ 大</text>
+              <text x="196" y="-26" class="svg-label svg-green">C₂ 小</text>
+            </g>
+
+            <path class="glow-green" d="M120 415 H540" stroke="#6bd6ae" stroke-width="4" fill="none" marker-end="url(#arrowGreen)" stroke-linecap="round"/>
+            <text x="130" y="400" class="svg-label svg-green">A：①③ 过原点，② 水平</text>
+          </svg>
+
+          <div class="answer-summary rise d3">
+            <span class="green" style="font-weight:700;">图像三问</span>
+            哪个量守恒？图线什么形状？斜率或面积代表什么？三问答完，任何图像选项都能逐段对号入座。
+          </div>
+        </div>
+      </div>
+    </main>
+    <footer class="slide-footer">
+      <span class="footer-topic">核心：Q = CU，斜率 = C</span>
+      <span class="footer-credit">@Neking · lvshaomeng806@gmail.com</span>
+      <span class="footer-page">07 / 08</span>
+    </footer>
+  </div>
+</section>
+
+<!-- ================= SLIDE 08 — ERROR ANALYSIS ================= -->
+<section data-transition="slide">
+  <div class="slide-frame">
+    <header class="slide-header">
+      <div class="header-left"><span class="chapter-index">07</span><span class="chapter-name">错题排查</span></div>
+      <span class="header-meta">ERROR ANALYSIS</span>
+    </header>
+    <main class="slide-main">
+      <div class="error-layout">
+        <div class="error-head">
+          <div>
+            <div class="eyebrow rise red">SPOT THE TRAPS</div>
+            <h2 class="slide-title rise d1">这道题最容易犯哪些错误？</h2>
+          </div>
+          <span class="process-tag rise d2">两个高频陷阱</span>
+        </div>
+
+        <div class="error-columns">
+          <div>
+            <div class="error-card rise d2">
+              <div class="error-title"><span class="error-num">ERROR 01</span>守恒量判错（B）</div>
+              <div class="error-desc">S 接 b 后电容器<span class="green">孤立</span>，电荷无处可去，守恒的是 <span class="calc-inline"><span class="var">Q</span></span> 而不是 U。② 应为水平段（U 增大）；B 画成竖直段（U 不变、Q 变），错。</div>
+            </div>
+            <div class="error-card rise d3">
+              <div class="error-title"><span class="error-num">ERROR 02</span>图线形状与走向错（C / D）</div>
+              <div class="error-desc">U–C 图中 ② 是双曲线一支 <span class="calc-inline"><span class="var">U</span> = <span class="var">Q</span>/<span class="var">C</span></span>：C 减小时 U 应<span class="green">上升</span>。C 的走向画反，D 把双曲线画成直线，均错。</div>
+            </div>
+          </div>
+
+          <div class="note-card rise d4">
+            <div class="note-title">学霸笔记</div>
+            <div class="note-body">
+              遇到“电容器图像”类问题，默念口诀：
+              <div class="note-motto">先定守恒量，再定图线形；<br>斜率是电容，反比是双曲线。</div>
+              两条常识先行：断开（S 接 b）则 Q 恒定，接电源则 U 恒定；平行板电容 C ∝ S/d，d 增大 C 减小。
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <footer class="slide-footer">
+      <span class="footer-topic">掌握图像判定的核心逻辑</span>
+      <span class="footer-credit">@Neking · lvshaomeng806@gmail.com</span>
+      <span class="footer-page">08 / 08</span>
+    </footer>
+  </div>
+</section>
+
+</div>
+</div>
+
+<!-- ═══ 批注层（固定模块）：D 开合 · H/P/E 工具 · [ ] 粗细 · 1-4 颜色
+     C/Delete 清本页 · Shift+C 清全部 · Ctrl+Z 撤销 · Ctrl+Shift+Z 重做 ═══ -->
+<canvas class="anno-canvas" id="annoCanvas" aria-hidden="true"></canvas>
+<div class="brush-cursor" id="brushCursor" aria-hidden="true"></div>
+
+<div class="anno-dock" id="annoDock">
+  <button class="anno-fab" id="annoFab" data-tip="批注工具 · D" aria-expanded="false" aria-controls="annoRail" aria-label="批注工具">
+    <svg class="fab-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9.5 14.5l5.2-5.2 3 3-5.2 5.2-3-3z"/>
+      <path d="M6.5 14.5l3 3-2.7 2.7H4.2l-.4-2.6 2.7-3.1z"/>
+      <path d="M13 20.2h7"/>
+    </svg>
+    <svg class="fab-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 6l12 12M18 6L6 18"/>
+    </svg>
+    <span class="fab-dot" id="fabDot"></span>
+  </button>
+
+  <div class="anno-rail" id="annoRail" role="toolbar" aria-label="荧光笔与书写工具">
+    <button class="anno-tool on" id="annoToggle" data-tip="暂停绘制 / 继续" aria-pressed="true" aria-label="暂停绘制">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 5v14M15 5v14"/>
+      </svg>
+    </button>
+    <div class="anno-sep-v"></div>
+    <button class="anno-tool mode active" data-mode="hl" data-tip="荧光笔 · H" aria-pressed="true" aria-label="荧光笔">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9.5 14.5l5.2-5.2 3 3-5.2 5.2-3-3z"/>
+        <path d="M6.5 14.5l3 3-2.7 2.7H4.2l-.4-2.6 2.7-3.1z"/>
+        <path d="M13 20.2h7"/>
+      </svg>
+    </button>
+    <button class="anno-tool mode" data-mode="pen" data-tip="书写 · P" aria-pressed="false" aria-label="书写">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 20h8"/>
+        <path d="M15.5 4.5l4 4L8 20H4v-4L15.5 4.5z"/>
+      </svg>
+    </button>
+    <button class="anno-tool mode" data-mode="erase" data-tip="橡皮 · E" aria-pressed="false" aria-label="橡皮">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7.5 20.2h12"/>
+        <path d="M13.5 4.5l6 6-7 7H8.2l-3.4-3.4a1.4 1.4 0 0 1 0-2z"/>
+      </svg>
+    </button>
+    <button class="anno-tool" id="annoSize" data-tip="笔刷粗细 · [  ]" aria-label="笔刷粗细">
+      <span id="annoSizeLabel">M</span>
+    </button>
+    <div class="anno-sep-v"></div>
+    <div class="anno-colors" role="group" aria-label="颜色">
+      <button class="anno-swatch active" data-color="#ffe066" style="background:#ffe066" aria-label="黄色"></button>
+      <button class="anno-swatch" data-color="#7fe7ff" style="background:#7fe7ff" aria-label="青色"></button>
+      <button class="anno-swatch" data-color="#ff9ecd" style="background:#ff9ecd" aria-label="粉色"></button>
+      <button class="anno-swatch" data-color="#8ef0b4" style="background:#8ef0b4" aria-label="绿色"></button>
+    </div>
+    <div class="anno-sep-v"></div>
+    <button class="anno-tool" id="annoUndo" data-tip="撤销 · Ctrl+Z" aria-label="撤销" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 9h6"/><path d="M4 9l3-3M4 9l3 3"/>
+        <path d="M5.5 12.5a7.5 7.5 0 1 0 2.2-5.3"/>
+      </svg>
+    </button>
+    <button class="anno-tool" id="annoClear" data-tip="清除本页 · C / Delete" aria-label="清除本页">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 7h14"/><path d="M9 7V5h6v2"/>
+        <path d="M7 7l1 12h8l1-12"/><path d="M10.5 10.5v5M13.5 10.5v5"/>
+      </svg>
+    </button>
+    <button class="anno-tool" id="annoClearAll" data-tip="清除全部 · Shift+C" aria-label="清除全部">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 7h16"/><path d="M6.5 7l1 12h9l1-12"/>
+        <path d="M12 4v3"/><path d="M4.5 3.5l15 15"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<div class="viewport-tip" role="status">建议横屏或更大屏幕 · 以保持排版比例</div>
+<div class="grain" aria-hidden="true"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+<script>
+  /* ================= Reveal 初始化 ================= */
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  Reveal.initialize({
+    width: 1600,
+    height: 900,
+    margin: 0,
+    minScale: 0.2,
+    maxScale: 2.0,
+    hash: true,
+    keyboard: true,
+    controls: true,
+    progress: true,
+    slideNumber: false,
+    overview: true,
+    center: false,
+    disableLayout: false,
+    transition: prefersReducedMotion ? "none" : "slide",
+    transitionSpeed: "default",
+    backgroundTransition: prefersReducedMotion ? "none" : "fade",
+    fragments: false,
+    touch: true,
+    accessibility: { enabled: true }
+  });
+
+  /* ================= 批注系统 v3 ================= */
+  (function () {
+    const DESIGN_W = 1600;
+    const canvas = document.getElementById('annoCanvas');
+    const ctx = canvas.getContext('2d');
+    const dock = document.getElementById('annoDock');
+    const fab = document.getElementById('annoFab');
+    const fabDot = document.getElementById('fabDot');
+    const brush = document.getElementById('brushCursor');
+    const toggleBtn = document.getElementById('annoToggle');
+    const sizeBtn = document.getElementById('annoSize');
+    const sizeLabel = document.getElementById('annoSizeLabel');
+    const undoBtn = document.getElementById('annoUndo');
+    const clearBtn = document.getElementById('annoClear');
+    const clearAllBtn = document.getElementById('annoClearAll');
+
+    const MODES = {
+      hl:    { width: 26,  alpha: 0.30, erase: false },
+      pen:   { width: 3.6, alpha: 0.92, erase: false },
+      erase: { width: 72,  alpha: 1,    erase: true }
+    };
+    const SIZES = [0.6, 1, 1.7];
+    const SIZE_TAGS = ['S', 'M', 'L'];
+
+    let open = false, paused = false;
+    let mode = 'hl', color = '#ffe066', sizeIdx = 1;
+    let drawing = false, activeId = null, current = null;
+    let rafPending = false;
+    const pages = {};
+
+    function pageKey() {
+      const i = Reveal.getIndices();
+      return (i.h || 0) + '-' + (i.v || 0);
+    }
+    function pageData() {
+      const k = pageKey();
+      return pages[k] || (pages[k] = { strokes: [], redo: [] });
+    }
+    function slideBox() {
+      const el = Reveal.getCurrentSlide();
+      if (!el) return { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+      return el.getBoundingClientRect();
+    }
+    function scale() { return slideBox().width / DESIGN_W; }
+
+    function resize() {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(window.innerWidth * dpr);
+      canvas.height = Math.round(window.innerHeight * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      setBrushStyle();
+      redraw();
+    }
+
+    function toNorm(clientX, clientY) {
+      const r = slideBox();
+      return { x: (clientX - r.left) / r.width, y: (clientY - r.top) / r.height };
+    }
+
+    function strokePath(pts, W, H) {
+      if (pts.length === 1) {
+        const p = pts[0];
+        ctx.beginPath();
+        ctx.arc(p.x * W, p.y * H, ctx.lineWidth / 2, 0, Math.PI * 2);
+        ctx.fill();
+        return;
+      }
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x * W, pts[0].y * H);
+      if (pts.length === 2) {
+        ctx.lineTo(pts[1].x * W, pts[1].y * H);
+      } else {
+        for (let i = 1; i < pts.length - 1; i++) {
+          const a = pts[i], b = pts[i + 1];
+          ctx.quadraticCurveTo(a.x * W, a.y * H, (a.x + b.x) / 2 * W, (a.y + b.y) / 2 * H);
+        }
+        const last = pts[pts.length - 1];
+        ctx.lineTo(last.x * W, last.y * H);
+      }
+      ctx.stroke();
+    }
+
+    function drawStroke(s, r) {
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = Math.max(0.6, s.w * scale());
+      ctx.strokeStyle = s.color;
+      ctx.fillStyle = s.color;
+      ctx.globalAlpha = s.mode === 'hl' ? 0.30 : 0.92;
+      strokePath(s.points, r.width, r.height);
+      ctx.globalAlpha = 1;
+    }
+
+    function redraw() {
+      const r = slideBox();
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      const pd = pageData();
+      for (const s of pd.strokes) drawStroke(s, r);
+      if (current) drawStroke(current, r);
+    }
+    function scheduleRedraw() {
+      if (rafPending) return;
+      rafPending = true;
+      requestAnimationFrame(() => { rafPending = false; redraw(); });
+    }
+
+    function brushWidthDesign() {
+      return (mode === 'erase' ? MODES.erase.width : MODES[mode].width) * SIZES[sizeIdx];
+    }
+    function hexToRgba(hex, a) {
+      const h = hex.replace('#', '');
+      const n = parseInt(h, 16);
+      return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+    }
+    function setBrushStyle() {
+      const d = Math.max(9, brushWidthDesign() * scale());
+      brush.style.width = d + 'px';
+      brush.style.height = d + 'px';
+      if (mode === 'erase') {
+        brush.style.borderColor = 'rgba(255, 133, 133, 0.9)';
+        brush.style.background = 'rgba(255, 133, 133, 0.12)';
+      } else {
+        brush.style.borderColor = color;
+        brush.style.background = hexToRgba(color, 0.14);
+      }
+      fabDot.style.background = color;
+    }
+    function moveBrush(x, y) {
+      brush.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
+    }
+    function showBrush() { document.body.classList.add('brush-visible'); }
+    function hideBrush() { document.body.classList.remove('brush-visible'); }
+
+    function drawingAllowed() { return open && !paused; }
+    function isUI(e) {
+      return e.target.closest('.anno-dock, .reveal .controls, .reveal .progress, a, button, kbd, input, textarea');
+    }
+
+    document.addEventListener('pointerdown', e => {
+      if (!drawingAllowed() || isUI(e)) return;
+      e.preventDefault();
+      if (mode === 'erase') { eraseAt(e); activeId = e.pointerId; return; }
+      if (activeId !== null) return;
+      activeId = e.pointerId;
+      drawing = true;
+      const pressure = (e.pointerType === 'pen' && e.pressure > 0) ? (0.65 + 0.9 * e.pressure) : 1;
+      current = { mode, color, w: brushWidthDesign() * pressure, points: [toNorm(e.clientX, e.clientY)] };
+      scheduleRedraw();
+    }, { passive: false });
+
+    document.addEventListener('pointermove', e => {
+      if (!open || paused) return;
+      moveBrush(e.clientX, e.clientY);
+      if (isUI(e)) hideBrush(); else showBrush();
+      if (mode === 'erase') {
+        if (activeId === e.pointerId && (e.buttons || e.pressure > 0)) eraseAt(e);
+        return;
+      }
+      if (!drawing || e.pointerId !== activeId || !current) return;
+      const p = toNorm(e.clientX, e.clientY);
+      const last = current.points[current.points.length - 1];
+      const r = slideBox();
+      if (Math.hypot((p.x - last.x) * r.width, (p.y - last.y) * r.height) < 1.1) return;
+      current.points.push(p);
+      scheduleRedraw();
+    });
+
+    function endStroke(e) {
+      if (e && e.pointerId !== activeId) return;
+      activeId = null;
+      if (!drawing || !current) return;
+      drawing = false;
+      const pd = pageData();
+      pd.strokes.push(current);
+      pd.redo.length = 0;
+      current = null;
+      updateUndoState();
+      scheduleRedraw();
+    }
+    document.addEventListener('pointerup', endStroke);
+    document.addEventListener('pointercancel', endStroke);
+    document.addEventListener('pointerleave', hideBrush);
+
+    function eraseAt(e) {
+      const r = slideBox();
+      const nx = (e.clientX - r.left) / r.width;
+      const ny = (e.clientY - r.top) / r.height;
+      const rad = (MODES.erase.width * SIZES[sizeIdx]) / 2 + 6;
+      const k = r.width / DESIGN_W;
+      const pd = pageData();
+      let removed = false;
+      for (let i = pd.strokes.length - 1; i >= 0; i--) {
+        const hit = pd.strokes[i].points.some(p =>
+          Math.hypot((p.x - nx) * r.width, (p.y - ny) * r.height) < rad * k);
+        if (hit) { pd.strokes.splice(i, 1); removed = true; }
+      }
+      if (removed) { pd.redo.length = 0; updateUndoState(); scheduleRedraw(); }
+    }
+
+    function undo() {
+      const pd = pageData();
+      if (!pd.strokes.length) return;
+      pd.redo.push(pd.strokes.pop());
+      updateUndoState(); scheduleRedraw();
+    }
+    function redo() {
+      const pd = pageData();
+      if (!pd.redo.length) return;
+      pd.strokes.push(pd.redo.pop());
+      updateUndoState(); scheduleRedraw();
+    }
+    function clearPage() {
+      const pd = pageData();
+      pd.strokes.length = 0; pd.redo.length = 0;
+      updateUndoState(); scheduleRedraw();
+    }
+    function clearAll() {
+      for (const k in pages) { pages[k].strokes.length = 0; pages[k].redo.length = 0; }
+      updateUndoState(); scheduleRedraw();
+    }
+    function updateUndoState() { undoBtn.disabled = !pageData().strokes.length; }
+
+    function setOpen(v) {
+      open = v;
+      dock.classList.toggle('open', open);
+      fab.setAttribute('aria-expanded', String(open));
+      if (!open) {
+        paused = false;
+        document.body.classList.remove('anno-on');
+        hideBrush();
+        current = null; drawing = false; activeId = null;
+      } else {
+        syncBody();
+      }
+      syncToggleBtn();
+      scheduleRedraw();
+    }
+    function setPaused(v) {
+      paused = v;
+      dock.classList.toggle('paused', paused);
+      syncBody();
+      syncToggleBtn();
+      if (paused) { hideBrush(); current = null; drawing = false; activeId = null; }
+    }
+    function syncBody() {
+      document.body.classList.toggle('anno-on', open && !paused);
+      canvas.style.pointerEvents = 'none';
+      Reveal.configure({ touch: !(open && !paused) });
+    }
+    function syncToggleBtn() {
+      const active = open && !paused;
+      toggleBtn.classList.toggle('on', active);
+      toggleBtn.setAttribute('aria-pressed', String(active));
+    }
+
+    function setMode(m) {
+      mode = m;
+      document.querySelectorAll('.anno-tool.mode').forEach(b => {
+        const on = b.dataset.mode === m;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+      setBrushStyle();
+    }
+    function setSize(idx) {
+      sizeIdx = Math.max(0, Math.min(SIZES.length - 1, idx));
+      sizeLabel.textContent = SIZE_TAGS[sizeIdx];
+      setBrushStyle();
+    }
+    function pickColor(idx) {
+      const sws = document.querySelectorAll('.anno-swatch');
+      const sw = sws[Math.max(0, Math.min(sws.length - 1, idx))];
+      if (!sw) return;
+      color = sw.dataset.color;
+      sws.forEach(s => s.classList.toggle('active', s === sw));
+      setBrushStyle();
+    }
+
+    fab.addEventListener('click', () => setOpen(!open));
+    toggleBtn.addEventListener('click', () => setPaused(!paused));
+    document.querySelectorAll('.anno-tool.mode').forEach(btn =>
+      btn.addEventListener('click', () => setMode(btn.dataset.mode)));
+    document.querySelectorAll('.anno-swatch').forEach((sw, i) =>
+      sw.addEventListener('click', () => pickColor(i)));
+    sizeBtn.addEventListener('click', () => setSize((sizeIdx + 1) % SIZES.length));
+    undoBtn.addEventListener('click', undo);
+    clearBtn.addEventListener('click', clearPage);
+    clearAllBtn.addEventListener('click', clearAll);
+
+    dock.addEventListener('pointerdown', e => e.stopPropagation());
+    dock.addEventListener('keydown', e => e.stopPropagation());
+    dock.addEventListener('mouseover', hideBrush);
+
+    function block(e) { e.preventDefault(); e.stopPropagation(); }
+
+    document.addEventListener('keydown', e => {
+      const tag = (e.target.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea') return;
+      if (e.ctrlKey || e.metaKey) {
+        if (!open) return;
+        const k = e.key.toLowerCase();
+        if (k === 'z') { e.shiftKey ? redo() : undo(); block(e); }
+        else if (k === 'y') { redo(); block(e); }
+        return;
+      }
+      const k = e.key.toLowerCase();
+      if (k === 'd') { setOpen(!open); block(e); return; }
+      if (!open) return;
+      switch (true) {
+        case e.key === 'Escape':        setOpen(false); block(e); break;
+        case e.key === 'Delete':        clearPage(); block(e); break;
+        case k === 'h':                 setMode('hl'); block(e); break;
+        case k === 'p':                 setMode('pen'); block(e); break;
+        case k === 'e':                 setMode('erase'); block(e); break;
+        case k === 'c' && e.shiftKey:   clearAll(); block(e); break;
+        case k === 'c':                 clearPage(); block(e); break;
+        case e.key === '[':             setSize(sizeIdx - 1); block(e); break;
+        case e.key === ']':             setSize(sizeIdx + 1); block(e); break;
+        case ['1','2','3','4'].includes(e.key): pickColor(+e.key - 1); block(e); break;
+      }
+    }, true);
+
+    window.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', () => setTimeout(resize, 120));
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', resize);
+      window.visualViewport.addEventListener('scroll', scheduleRedraw);
+    }
+    Reveal.on('resize', resize);
+    Reveal.on('slidechanged', () => { updateUndoState(); scheduleRedraw(); });
+
+    (function watchDpr() {
+      let dpr = window.devicePixelRatio;
+      setInterval(() => {
+        if (window.devicePixelRatio !== dpr) { dpr = window.devicePixelRatio; resize(); }
+      }, 800);
+    })();
+
+    setBrushStyle();
+    resize();
+  })();
+</script>
+</body>
+</html>

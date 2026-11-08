@@ -1,29 +1,46 @@
----
-title: 页面标题
-desc: 一句话说明，会显示在首页归档和分享卡片里
-field: web
-type: w
-published: 2026.11
----
 <!--
-  ══════════ 挂载页模板 ══════════
-  本文件不参与构建（.njk 不在构建格式内），复制改名即可：
-    cp pages/_template.njk pages/my-page.html
+  ═════════ 独立页面起步模板（_ 前缀不会被发布） ═════════
+  用法：cp pages/_template.njk pages/<领域>/my-page.html
 
-  1. 改上面 --- 之间的 front matter：
-     title     必填 · 归档标题
-     desc      必填 · 一句说明（归档 + 分享卡片）
-     field     必填 · 领域 id：web design tools lab books life photo
-     type      必填 · w=我写的  p=我做的  t=我试的  c=对话
-     published 必填 · YYYY.MM（注意：不能叫 date，那是 Eleventy 保留键）
-     og_image  可选 · 分享卡片配图，如 /og.png
-  2. 正文只写片段（不要 <html>/<body>，外壳由框架注入）
-  3. git add + git commit —— 提交时自动构建挂载，无需手动跑命令
-  4. 发布后地址：https://zerophix.github.io/<文件名>/
+  · 一个目录 = 一个领域；目录里每个 html = 一个完整独立页面
+  · 自带 <style>/<script>，挂载时**原样发布**，不注入任何外壳
+  · <title> 会成为首页列表里显示的标题
+  · 同目录可放 css/js/图片，相对路径引用，会一并发布
+  · 页面地址：https://zerophix.github.io/<领域>/<页面名>/
+  · git add + git commit 即自动挂载（pre-commit 构建，校验失败会拦住提交）
+  · 校验：必须是完整 <html> 文档、必须有 <title>、必须放在领域目录里
 -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>页面标题</title>
+<style>
+  :root{
+    --paper:#f0ede6; --ink:#1b1917; --ink-soft:#4a453f;
+    --muted:#6f675e; --line:#d6d0c4; --accent:#27457e;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:'Noto Serif SC','Songti SC',serif;line-height:1.85;
+    padding:clamp(32px,6vw,80px) clamp(20px,6vw,80px);
+  }
+  h1{font-weight:900;font-size:clamp(28px,5vw,48px);line-height:1.3;margin:0 0 .6em}
+  p{max-width:46rem;font-weight:300;color:var(--ink-soft);font-size:1.02rem;line-height:2.1}
+  a{color:var(--accent)}
+  .back{font-family:'JetBrains Mono',monospace;font-size:.75rem;letter-spacing:.16em;
+    color:var(--muted);text-decoration:none}
+  .back:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+<p class="back"><a href="/">← 返回首页</a></p>
 <h1>页面标题</h1>
-
-<p>正文从这里开始。这段 HTML 会<strong>原样输出</strong>——写代码示例里的 <code>{{</code> 或 <code>{%</code> 都不会被吃掉。</p>
-
-<h2>二级标题</h2>
-<p>样式继承全站设计：衬线正文、纸墨配色、夜读模式、移动端适配都已就绪。</p>
+<p>这是完整独立页面的起点：自己的样式、自己的脚本，挂载框架原样发布，不改一行。</p>
+<script>
+// 自己的脚本写这里
+</script>
+</body>
+</html>

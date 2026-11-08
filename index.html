@@ -3,34 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- ══════════ 模板：站点标题与描述（改站点身份时同步改 data.js 的 site） ══════════ -->
-<title>ZeroPhix — 一个人的博客，几本分册</title>
-<meta name="description" content="ZeroPhix · 个人博客。按领域分成几册：我自己写的文章、一行行手写出来的 HTML 页面、小实验，以及少量对话留档。">
+<!-- ══════════ 站点身份 ══════════
+     title / description 为留白位（待站长填写）；
+     品牌、年份、链接等事实数据在 data.js 的 site 里。 -->
+<title>ZeroPhix</title>
+<meta name="description" content="">
 <meta name="theme-color" content="#f0ede6" id="themeColor">
 <link rel="canonical" href="https://zerophix.github.io/">
 <!-- 分享卡片（微信 / Twitter / Discord 等抓取 og:*） -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ZeroPhix">
-<meta property="og:title" content="ZeroPhix — 一个人的博客，几本分册">
-<meta property="og:description" content="ZeroPhix · 个人博客。按领域分成几册：我自己写的文章、一行行手写出来的 HTML 页面、小实验，以及少量对话留档。">
+<meta property="og:title" content="ZeroPhix">
+<meta property="og:description" content="">
 <meta property="og:url" content="https://zerophix.github.io/">
 <meta property="og:image" content="https://zerophix.github.io/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="zh_CN">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="ZeroPhix — 一个人的博客，几本分册">
-<meta name="twitter:description" content="ZeroPhix · 个人博客。按领域分成几册：我自己写的文章、一行行手写出来的 HTML 页面、小实验，以及少量对话留档。">
+<meta name="twitter:title" content="ZeroPhix">
+<meta name="twitter:description" content="">
 <meta name="twitter:image" content="https://zerophix.github.io/og.png">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebSite",
   "name": "ZeroPhix",
-  "alternateName": "一个人的博客，几本分册",
   "url": "https://zerophix.github.io/",
   "inLanguage": "zh-CN",
-  "description": "ZeroPhix · 个人博客。按领域分成几册：我自己写的文章、一行行手写出来的 HTML 页面、小实验，以及少量对话留档。",
   "publisher": {
     "@type": "Person",
     "name": "ZeroPhix",
@@ -43,7 +43,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Noto+Serif+SC:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=82918e89">
+<link rel="stylesheet" href="style.css?v=9e530b7b">
 </head>
 <body>
 
@@ -59,10 +59,7 @@
 
     <nav class="nav" id="nav" aria-label="主导航">
       <a href="#fields">领域</a>
-      <a href="#works">作品</a>
-      <a href="#process">方法</a>
-      <a href="#stack">技术栈</a>
-      <a href="#archive">归档</a>
+      <a href="#pages">页面</a>
       <a href="#about">关于</a>
     </nav>
 
@@ -75,74 +72,42 @@
 
 <main id="top">
 
-  <!-- 无 JS 降级：内容由脚本渲染，先给提示和静态导航 -->
+  <!-- 无 JS 降级：领域墙与页面列表由脚本渲染，先给提示和静态导航 -->
   <noscript>
-    <div class="wrap" style="padding-top:clamp(32px,5vw,64px)">
-      <p class="empty" style="border-top:1.5px solid var(--ink);padding-top:28px">
-        领域墙与归档由 JavaScript 渲染 · 请开启脚本后刷新
+    <div class="wrap ns-wrap">
+      <p class="empty ns-note">
+        领域墙与页面列表由 JavaScript 渲染 · 请开启脚本后刷新
       </p>
-      <p class="mono" style="text-align:center;margin:0 0 clamp(24px,4vw,48px)">
+      <p class="mono ns-nav">
         仍可直接前往：
-        <a class="ul" href="#fields" style="color:var(--blue)">领域</a> ·
-        <a class="ul" href="#archive" style="color:var(--blue)">归档</a> ·
-        <a class="ul" href="#about" style="color:var(--blue)">关于</a>
+        <a href="#fields">领域</a> ·
+        <a href="#pages">页面</a> ·
+        <a href="#about">关于</a>
       </p>
     </div>
   </noscript>
 
-  <!-- ══════════ 开场 ══════════ -->
+  <!-- ══════════ 开场（文案留白位） ══════════ -->
   <section class="intro">
     <div class="wrap">
-      <div class="intro-grid">
+      <div class="eyebrow">
+        <span class="ln" aria-hidden="true"></span>
+        <span class="mono" data-site="eyebrow">ZeroPhix · 2023 —</span>
+      </div>
 
-        <div>
-          <div class="eyebrow">
-            <span class="ln" aria-hidden="true"></span>
-            <span class="mono" data-site="eyebrow">ZeroPhix · 一个人的博客 · 2023 —</span>
-          </div>
+      <h1><span class="ln"><i>ZeroPhix</i></span></h1>
 
-          <h1>
-            <span class="ln"><i>一个人的博客，</i></span>
-            <span class="ln"><i>几本<span class="uline">分册</span>。</i></span>
-          </h1>
-
-          <p class="lead">
-            前端、设计、读书、工具、生活……<b>每个领域一册</b>。
-            册里是我写下的文章、一行行手写出来的 HTML 页面、小实验，也留了少量对话。
-            <b>册子随时能加，首页不用改。</b>
-          </p>
-
-          <div class="acts">
-            <a class="btn btn--fill" href="#fields">
-              浏览领域
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-            </a>
-            <a class="btn btn--ghost" href="#archive">看全部条目</a>
-          </div>
-        </div>
-
-        <div>
-          <div class="porthole">
-            <div class="pw-frame" id="pwFrame">
-              <div class="tile"><div class="big">天气页：让温度退到角落</div></div>
-            </div>
-            <div class="pw-cap">
-              <span class="mono">活体小窗 · 自己写的页面</span>
-              <a href="works/01-weather.html" id="pwLink">打开 ↗</a>
-            </div>
-          </div>
-
-          <div class="recent">
-            <h2>最近更新 / Latest<span class="r" id="recentCount"></span></h2>
-            <div id="recent"></div>
-          </div>
-        </div>
-
+      <div class="acts">
+        <a class="btn btn--fill" href="#fields">
+          浏览领域
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <a class="btn btn--ghost" href="#pages">全部页面</a>
       </div>
     </div>
   </section>
 
-  <!-- ══════════ 领域墙 ══════════ -->
+  <!-- ══════════ 领域墙（pages/ 下的目录） ══════════ -->
   <section class="sec" id="fields">
     <div class="wrap">
       <div class="sec-h">
@@ -150,390 +115,42 @@
           <span class="mono">01 / Fields</span>
           <h2>领域</h2>
         </div>
-        <p class="note">
-          一册一领域。左边的书脊是编号，卡底那条是<b>条目构成</b>——
-          四种深浅依次是 写的 / 做的 / 试的 / 对话。
-        </p>
       </div>
       <div class="fields" id="fields-wall"><noscript><p class="empty">领域墙需要 JavaScript · 请开启脚本</p></noscript></div>
-      <div class="legend" id="fields-legend"></div>
     </div>
   </section>
 
-  <!-- ══════════ 精选作品 ══════════ -->
-  <section class="sec" id="works">
+  <!-- ══════════ 全部页面（按领域分组） ══════════ -->
+  <section class="sec" id="pages">
     <div class="wrap">
       <div class="sec-h">
         <div class="l">
-          <span class="mono">02 / Works</span>
-          <h2>精选作品</h2>
+          <span class="mono">02 / Pages</span>
+          <h2>全部页面</h2>
         </div>
-        <p class="note">归档里<b>动手做出来的那部分</b>——小页面、小工具，都是能点开用的东西，不是截图。</p>
       </div>
-      <div class="featlist" id="featlist"></div>
+      <div id="pageList"><noscript><p class="empty">页面列表需要 JavaScript · 请开启脚本</p></noscript></div>
     </div>
   </section>
 
-  <!-- ══════════ 工作方法 ══════════ -->
-  <section class="sec" id="process">
-    <div class="wrap">
-      <div class="sec-h">
-        <div class="l">
-          <span class="mono">03 / Process</span>
-          <h2>工作方法</h2>
-        </div>
-        <p class="note">四步，顺序不变。<b>每一步都有产出物</b>——一个具体问题、一次结构取舍、一篇写完的稿子，和一条归档记录。</p>
-      </div>
-
-      <div class="steps">
-        <div class="step" data-reveal>
-          <span class="n">STEP 01</span>
-          <h3>找问题 <em>Discover</em></h3>
-          <p>把"今天学到了点什么"翻译成一个具体问题。答不上来的先放着——放进册子的每一条，都得先有答案。</p>
-        </div>
-        <div class="step" data-reveal style="--d:90ms">
-          <span class="n">STEP 02</span>
-          <h3>定结构 <em>Architect</em></h3>
-          <p>它归哪一册、给谁看、和已有的条目怎么区分。册子的意义就在这里：新领域开一册，首页不用改。</p>
-        </div>
-        <div class="step" data-reveal style="--d:180ms">
-          <span class="n">STEP 03</span>
-          <h3>写出来 <em>Build</em></h3>
-          <p>先写完，再写好。HTML 一行行手写，配色改到第七遍也算进度——大部分结论都是改出来的。</p>
-        </div>
-        <div class="step" data-reveal style="--d:270ms">
-          <span class="n">STEP 04</span>
-          <h3>放进册子 <em>Ship</em></h3>
-          <p>标好形式与日期，归档，收工。不追求好看，只求下次翻的时候，还看得懂当时为什么这么做。</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══════════ 技术栈 ══════════ -->
-  <section class="sec" id="stack">
-    <div class="wrap">
-      <div class="sec-h">
-        <div class="l">
-          <span class="mono">04 / Stack</span>
-          <h2>技术栈全景</h2>
-        </div>
-        <p class="note">不是学过什么的清单，而是<b>这个站点本身是怎么造出来的</b>。四根支柱一眼看构成，点开才看明细——先看结构，再看词条。</p>
-      </div>
-
-      <div class="stack-note" data-reveal>
-        <span class="lv"><i class="dot d1"></i> 页面 · Pages</span>
-        <span class="lv"><i class="dot d2"></i> 框架 · Mount</span>
-        <span class="lv"><i class="dot d3"></i> 链路 · Ship</span>
-        <span class="new-badge">✦ 挂载框架 · 2026 新增</span>
-      </div>
-
-      <div class="spectrum">
-        <div class="sp-row" data-p="p01" data-reveal>
-          <div class="p-id">P01</div>
-          <div class="p-name">页面基座 <em>Frontend</em>
-            <span class="kw">HTML · CSS · 原生 JS · 字体与主题</span>
-          </div>
-          <div class="sp-bar"><i></i></div>
-          <div class="sp-val">—<em> 项</em></div>
-        </div>
-        <div class="sp-row" data-p="p02" data-reveal>
-          <div class="p-id">P02</div>
-          <div class="p-name">挂载框架 <em>Mount</em>
-            <span class="kw">Eleventy · front matter · pre-commit</span>
-          </div>
-          <div class="sp-bar"><i></i></div>
-          <div class="sp-val">—<em> 项</em></div>
-        </div>
-        <div class="sp-row" data-p="p03" data-reveal>
-          <div class="p-id">P03</div>
-          <div class="p-name">质量保障 <em>Quality</em>
-            <span class="kw">Playwright · axe-core · 设计对拍</span>
-          </div>
-          <div class="sp-bar"><i></i></div>
-          <div class="sp-val">—<em> 项</em></div>
-        </div>
-        <div class="sp-row" data-p="p04" data-reveal>
-          <div class="p-id">P04</div>
-          <div class="p-name">发布链路 <em>Ship</em>
-            <span class="kw">GitHub Pages · sitemap · 分享卡</span>
-          </div>
-          <div class="sp-bar"><i></i></div>
-          <div class="sp-val">—<em> 项</em></div>
-        </div>
-      </div>
-
-      <div class="pillar open" data-p="p01">
-        <button class="pillar-head" type="button" aria-expanded="true">
-          <span class="p-id">P01</span>
-          <span class="p-name">
-            <h3>页面基座</h3><span class="en">Frontend</span>
-            <span class="p-desc">零框架的三件套：结构、样式、交互，全部手写。</span>
-          </span>
-          <span class="p-meta">4 组 · <b>13 项</b><br>0 依赖 · 0 打包</span>
-          <span class="p-toggle" aria-hidden="true">＋</span>
-        </button>
-        <div class="pillar-body"><div class="inner"><div class="pillar-grid">
-          <div class="grp">
-            <div class="grp-h"><i class="chipdot"></i>结构</div>
-            <ul>
-              <li>语义化 HTML5</li>
-              <li>无 JS 降级提示</li>
-              <li>meta / OG / JSON-LD</li>
-            </ul>
-          </div>
-          <div class="grp">
-            <div class="grp-h"><i class="chipdot"></i>样式</div>
-            <ul>
-              <li>CSS 自定义属性</li>
-              <li>Grid / Flexbox</li>
-              <li>clamp 流式排版</li>
-              <li>深浅色主题</li>
-              <li>打印样式</li>
-            </ul>
-          </div>
-          <div class="grp">
-            <div class="grp-h"><i class="chipdot"></i>交互</div>
-            <ul>
-              <li>原生 JavaScript</li>
-              <li>IntersectionObserver</li>
-              <li>localStorage 主题</li>
-            </ul>
-          </div>
-          <div class="grp">
-            <div class="grp-h"><i class="chipdot"></i>字体</div>
-            <ul>
-              <li>Noto Serif SC</li>
-              <li>JetBrains Mono</li>
-            </ul>
-          </div>
-        </div></div></div>
-      </div>
-
-      <div class="pillar hot" data-p="p02">
-        <button class="pillar-head" type="button" aria-expanded="false">
-          <span class="p-id">P02</span>
-          <span class="p-name">
-            <h3>挂载框架</h3><span class="en">Mount</span>
-            <span class="p-desc">往 pages/ 丢一个文件，提交即全站生效。</span>
-          </span>
-          <span class="p-meta">3 组 · <b>9 项</b><br>提交即发布</span>
-          <span class="p-toggle" aria-hidden="true">＋</span>
-        </button>
-        <div class="pillar-body"><div class="inner"><div class="pillar-grid">
-          <div class="grp">
-            <div class="grp-h"><i class="chipdot"></i>构建</div>
-            <ul>
-              <li>Eleventy 3</li>
-              <li>front matter</li>
-              <li>Nunjucks 外壳</li>
-            </ul>
-          </div>
-          <div class="grp">
-            <div class="grp-h"><i class="chipdot"></i>门禁</div>
-            <ul>
-              <li>字段校验</li>
-              <li>防覆盖检查</li>
-              <li>拦截非法提交</li>
-            </ul>
-          </div>
-          <div class="grp">
-            <div class="grp-h"><i class="chipdot"></i>生命周期</div>
-            <ul>
-              <li>自动暂存生成物</li>
-              <li>孤儿输出下架</li>
-              <li>模板一键起步</li>
-            </ul>
-          </div>
-        </div></div></div>
-      </div>
-
-      <div class="pillar" data-p="p03">
-        <button class="pillar-head" type="button" aria-expanded="false">
-          <span class="p-id">P03</span>
-          <span class="p-name">
-            <h3>质量保障</h3><span class="en">Quality</span>
-            <span class="p-desc">六套测试盯着每次改动， axe 违规必须为零。</span>
-          </span>
-          <span class="p-meta">3 组 · <b>12 项</b><br>6 套 · axe 0</span>
-          <span class="p-toggle" aria-hidden="true">＋</span>
-        </button>
-        <div class="pillar-body"><div class="inner"><div class="pillar-grid">
-          <div class="grp">
-            <div class="grp-h"><i class="chipdot"></i>测试套件</div>
-            <ul>
-              <li>冒烟 39 断言</li>
-              <li>全站审计</li>
-              <li>作品页 23 断言</li>
-              <li>占位页回归</li>
-              <li>设计对拍 28 项</li>
-              <li>挂载验收 19 项</li>
-            </ul>
-          </div>
-          <div class="grp">
-            <div class="grp-h"><i class="chipdot"></i>无障碍</div>
-            <ul>
-              <li>axe-core</li>
-              <li>WCAG 4.5:1</li>
-              <li>语义地标</li>
-            </ul>
-          </div>
-          <div class="grp">
-            <div class="grp-h"><i class="chipdot"></i>回归</div>
-            <ul>
-              <li>无 JS 降级</li>
-              <li>移动端断点</li>
-              <li>主题三态切换</li>
-            </ul>
-          </div>
-        </div></div></div>
-      </div>
-
-      <div class="pillar" data-p="p04">
-        <button class="pillar-head" type="button" aria-expanded="false">
-          <span class="p-id">P04</span>
-          <span class="p-name">
-            <h3>发布链路</h3><span class="en">Ship</span>
-            <span class="p-desc">推 main 即上线，构建约五秒，出事能重触发。</span>
-          </span>
-          <span class="p-meta">4 组 · <b>10 项</b><br>构建 ≈5s</span>
-          <span class="p-toggle" aria-hidden="true">＋</span>
-        </button>
-        <div class="pillar-body"><div class="inner"><div class="pillar-grid">
-          <div class="grp">
-            <div class="grp-h"><i class="chipdot"></i>托管</div>
-            <ul>
-              <li>GitHub Pages</li>
-              <li>HTTPS / HSTS</li>
-              <li>.nojekyll</li>
-            </ul>
-          </div>
-          <div class="grp">
-            <div class="grp-h"><i class="chipdot"></i>索引</div>
-            <ul>
-              <li>sitemap.xml</li>
-              <li>robots.txt</li>
-              <li>canonical</li>
-            </ul>
-          </div>
-          <div class="grp">
-            <div class="grp-h"><i class="chipdot"></i>分享</div>
-            <ul>
-              <li>OG 分享卡 ×2</li>
-              <li>主题色联动</li>
-            </ul>
-          </div>
-          <div class="grp">
-            <div class="grp-h"><i class="chipdot"></i>监控</div>
-            <ul>
-              <li>gh CLI 构建状态</li>
-              <li>卡死构建重触发</li>
-            </ul>
-          </div>
-        </div></div></div>
-      </div>
-
-      <div class="foundation" data-reveal>
-        <div class="f-t">
-          <div class="sn">P00</div>
-          <h4>地基</h4>
-          <div class="en">Foundation</div>
-        </div>
-        <ul>
-          <li>语义化 HTML</li>
-          <li>渐进增强</li>
-          <li>可访问性 WCAG</li>
-          <li>网格与弹性盒</li>
-          <li>中文排版</li>
-          <li>响应式断点</li>
-          <li>内容与样式分离</li>
-          <li>性能预算</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══════════ 归档 ══════════ -->
-  <section class="sec" id="archive">
-    <div class="wrap">
-      <div class="sec-h">
-        <div class="l">
-          <span class="mono">05 / Archive</span>
-          <h2>归档</h2>
-        </div>
-        <p class="note">全部条目按年份排。两条轴可以叠着用：<b>领域 × 形式</b>，再加一个关键词。</p>
-      </div>
-
-      <div class="controls">
-        <div class="crow">
-          <span class="lbl">领域</span>
-          <div class="chips" id="fieldChips" role="group" aria-label="按领域筛选"></div>
-        </div>
-        <div class="crow">
-          <span class="lbl">形式</span>
-          <div class="chips" id="typeChips" role="group" aria-label="按形式筛选"></div>
-          <div class="searchbox">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>
-            <label class="sr-only" for="q">搜索标题或说明</label>
-            <input id="q" type="search" placeholder="搜索" autocomplete="off">
-          </div>
-        </div>
-      </div>
-
-      <p class="counter" id="counter"></p>
-      <div id="archiveBody"><noscript><p class="empty">归档列表需要 JavaScript · 请开启脚本</p></noscript></div>
-    </div>
-  </section>
-
-  <!-- ══════════ 关于 ══════════ -->
+  <!-- ══════════ 关于（正文留白位） ══════════ -->
   <section class="sec" id="about">
     <div class="wrap">
       <div class="sec-h">
         <div class="l">
-          <span class="mono">06 / About</span>
+          <span class="mono">03 / About</span>
           <h2>关于</h2>
         </div>
-        <p class="note">ZeroPhix 是我一个人在写的博客。没有排期，没有计划表，只有分册。</p>
       </div>
 
       <div class="about-grid">
-        <div class="about">
-          <p>我把这里当一套分册的笔记本，不是作品集。</p>
-          <p>
-            <b>大部分条目是我自己写出来的</b>——一篇文章、一个小页面、一次失败的配色、一段抄了十遍才记住的 path 命令。
-            有些东西是和 AI 一起想的，我会照实标成"对话"，但它只是其中一册，不是这个博客的主题。
-          </p>
-          <p>
-            分册的意义在于：今天写前端，明天可能开始记读书，后天又多一册摄影。
-            <b>新领域只需要开一册，不用重做首页。</b>这是我这次重构唯一想解决的事。
-          </p>
-          <p>如果你也在学东西，欢迎随便翻。<b>看到不好的地方，告诉我。</b></p>
-        </div>
+        <div class="about"></div>
 
         <dl class="colophon">
-          <div><dt>博客 / Site</dt><dd><b data-site="brand">ZeroPhix</b><br><span data-site="since">个人博客 · 2023—</span><br>持续更新，没有排期</dd></div>
-          <div><dt>结构 / Structure</dt><dd>首页 → 领域 → 条目<br>领域 × 形式，两条正交轴</dd></div>
+          <div><dt>博客 / Site</dt><dd><b data-site="brand">ZeroPhix</b><br><span data-site="since">2023—</span></dd></div>
           <div><dt>技术 / Stack</dt><dd>纯 HTML · CSS · JavaScript<br>Eleventy 挂载 · 无打包器</dd></div>
-          <div><dt>字体 / Type</dt><dd>Fraunces · Noto Serif SC<br>Noto Sans SC · IBM Plex Mono</dd></div>
+          <div><dt>字体 / Type</dt><dd>Noto Serif SC<br>JetBrains Mono</dd></div>
         </dl>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══════════ 联系 ══════════ -->
-  <section class="contact" id="contact">
-    <div class="wrap">
-      <h2 data-reveal>有个想法？<br><span class="it">一起把它写进册子。</span></h2>
-      <p class="lead" data-reveal style="--d:90ms">
-        合作、纠错，或者只想聊聊某一册……都欢迎。信会送到我这里，看到就回。
-      </p>
-      <div class="contact-cta" data-reveal style="--d:180ms">
-        <a class="btn btn--fill" href="mailto:zerophix@users.noreply.github.com" data-site-href="email">
-          写封信给我
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </a>
-        <a class="btn btn--ghost" href="https://github.com/zerophix" target="_blank" rel="noopener" data-site-href="github">GitHub ↗</a>
-        <a class="btn btn--ghost" href="code.html">作品页 ↗</a>
       </div>
     </div>
   </section>
@@ -546,20 +163,19 @@
       <div class="foot-links">
         <a href="#fields">领域 / Fields</a>
         <a href="https://github.com/zerophix" target="_blank" rel="noopener" data-site-href="github">GitHub</a>
-        <a href="code.html">作品 / Code</a>
         <a href="mailto:zerophix@users.noreply.github.com" data-site-href="email">联系 / Email</a>
         <a href="#top">回到顶部 / Top</a>
       </div>
-      <p class="mono" style="margin:0" data-site="brandline">ZeroPhix · 一个人的博客</p>
+      <p class="mono" data-site="brandline">ZeroPhix</p>
     </div>
-    <p class="say">学到新的就往对应那册里放一件。不追求好看，只求下次翻的时候，还看得懂当时为什么这么做。</p>
   </div>
 </footer>
 
 <!-- 数据层 → 行为层（模板 index.html 不含内容数据） -->
-<script src="data.js?v=931e001e"></script>
-<script src="mounted.js?v=f3be0ed0"></script>
-<script src="app.js?v=99a0e4ee"></script>
+<script src="data.js?v=ccc671a6"></script>
+<script src="mounted.js?v=08b5c005"></script>
+<script src="theme.js?v=474ec528"></script>
+<script src="app.js?v=14e092dd"></script>
 
 </body>
 </html>

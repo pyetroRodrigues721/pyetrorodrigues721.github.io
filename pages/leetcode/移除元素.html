@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<meta name="color-scheme" content="dark">
+<title>LeetCode 27 · 移除元素｜从信息结构推导双指针机制</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Noto+Serif+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css">
+
+<style>
+/* ================= 全局变量 ================= */
+:root{
+ --r-background-color:#0b1220;--slide-w:1600px;--slide-h:900px;
+ --page-x:100px;--page-top:52px;--page-bottom:38px;--header-h:78px;--footer-h:62px;
+ --bg:#0b1220;--text:#f2f6fc;--muted:#a1b0c5;--subtle:#8295ad;--blue:#65b9ff;--orange:#ffb36b;--green:#6bd6ae;--red:#ff8585;--pink:#ff9ecd;--cyan:#7fe7ff;--yellow:#f6e05e;
+ --line:rgba(180,205,235,.12);--line2:rgba(180,205,235,.25);--surface:rgba(101,185,255,.055);--surface2:rgba(255,255,255,.035);
+ --font:"Newsreader","Noto Serif SC","Songti SC",serif;--mono:"IBM Plex Mono",monospace;--ease:cubic-bezier(.22,.7,.24,1)
+}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased}
+.reveal-viewport,.reveal{background-color:var(--bg);background-image:radial-gradient(ellipse 120% 100% at 82% 8%,rgba(101,185,255,.085),transparent 55%),radial-gradient(ellipse 85% 85% at 8% 92%,rgba(107,214,174,.045),transparent 55%),linear-gradient(rgba(180,205,235,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(180,205,235,.025) 1px,transparent 1px);background-size:100% 100%,100% 100%,88px 88px,88px 88px;background-attachment:fixed}
+.reveal{width:100%;height:100%;font-size:24px;color:var(--text)}.reveal .slides{text-align:left}.reveal .slides section{width:var(--slide-w);height:var(--slide-h);padding:var(--page-top) var(--page-x) var(--page-bottom);overflow:hidden;background:transparent;box-shadow:none;max-width:none}.reveal .slides section *{min-width:0}.reveal .slides section img,.reveal .slides section svg{max-width:100%}
+.reveal h1,.reveal h2,.reveal h3,.reveal p{margin:0;color:var(--text)}.reveal h1,.reveal h2,.reveal h3{font-weight:700;letter-spacing:-.025em}.reveal p{line-height:1.65;color:var(--muted)}
+
+/* ================= 版式骨架 ================= */
+.slide-frame{width:100%;height:100%;display:grid;grid-template-rows:var(--header-h) minmax(0,1fr) var(--footer-h)}.slide-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:20px}.header-left{display:flex;align-items:center;gap:20px}.chapter-index{font:600 16px var(--mono);color:var(--blue);position:relative}.chapter-index:after{content:"";position:absolute;left:0;bottom:-23px;width:100%;height:2px;background:var(--blue)}.chapter-name{font-size:18px;color:var(--muted)}.header-meta{font:14px var(--mono);letter-spacing:.13em;color:var(--subtle)}
+.slide-main{position:relative;min-height:0;padding-top:22px}.slide-footer{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border-top:1px solid var(--line);padding-top:13px;color:var(--subtle);font-size:14px}.footer-left{justify-self:start}.footer-right{justify-self:end;font:13px var(--mono)}.global-concepts{display:flex;gap:18px;align-items:center;justify-content:center;font:12px var(--mono);letter-spacing:.04em;color:var(--subtle)}.global-concepts span{white-space:nowrap}.global-concepts b{color:var(--blue);font-weight:500}
+
+/* ================= 工具类 ================= */
+.eyebrow{display:inline-block;margin-bottom:14px;font:600 14px var(--mono);letter-spacing:.14em;color:var(--blue)}.section-title{font-size:43px;line-height:1.22;margin-bottom:20px!important}.muted{color:var(--muted)}.blue{color:var(--blue)}.orange{color:var(--orange)}.green{color:var(--green)}.red{color:var(--red)}.cyan{color:var(--cyan)}.pink{color:var(--pink)}.yellow{color:var(--yellow)}.mono{font-family:var(--mono)}.small{font-size:16px}.tiny{font-size:13px}.lead{font-size:22px;line-height:1.65;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line2);border-radius:13px;padding:22px}.card.soft{background:var(--surface2);border-color:var(--line)}.card h3{font-size:21px;margin-bottom:12px}.card p{font-size:17px;line-height:1.6}.tag{display:inline-flex;align-items:center;padding:5px 10px;border:1px solid var(--line2);border-radius:6px;font:12px var(--mono);color:var(--muted);letter-spacing:.03em}.pill{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:99px;background:rgba(101,185,255,.1);border:1px solid rgba(101,185,255,.25);font:13px var(--mono);color:var(--blue)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.two-col{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;height:100%}.stack{display:flex;flex-direction:column;gap:16px}.rule{height:1px;background:var(--line);margin:12px 0}.bullet-list{display:grid;gap:12px}.bullet{display:flex;gap:12px;align-items:flex-start;font-size:18px;line-height:1.55;color:var(--muted)}.bullet:before{content:"";width:7px;height:7px;flex:none;margin-top:10px;border-radius:50%;background:var(--blue)}
+
+/* ================= 封面 ================= */
+.cover-layout{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;height:100%;align-items:center}.cover-title{font-size:88px;line-height:1.08;font-weight:900;margin:0 0 24px}.cover-sub{font-size:26px;line-height:1.55;color:var(--muted);max-width:720px;border-left:3px solid var(--blue);padding-left:22px}.cover-visual{display:flex;justify-content:center;align-items:center}.cover-visual svg{width:100%;max-width:620px;filter:drop-shadow(0 0 30px rgba(101,185,255,0.08))}
+
+/* ================= 数组与空间切分图 ================= */
+.array{display:flex;gap:10px;justify-content:center;align-items:flex-start;position:relative;padding:38px 8px 12px}.cell{width:84px;height:76px;border:1px solid var(--line2);border-radius:9px;background:rgba(255,255,255,.035);display:flex;align-items:center;justify-content:center;position:relative;font:24px var(--mono);color:var(--text);transition:.25s}.cell small{position:absolute;bottom:-26px;color:var(--subtle);font:12px var(--mono)}.cell.keep{border-color:rgba(107,214,174,.7);background:rgba(107,214,174,.12);color:var(--green)}.cell.drop{border-color:rgba(255,133,133,.6);background:rgba(255,133,133,.10);color:var(--red)}.cell.scan{outline:2px solid var(--orange);outline-offset:4px}.cell.write{box-shadow:0 0 0 2px rgba(101,185,255,.55) inset}.array-label{font:13px var(--mono);color:var(--subtle);text-align:center;margin-top:22px}
+
+/* 空间切分三段进度条 */
+.partition-bar { display:flex; height:32px; border-radius:8px; overflow:hidden; margin:20px 0; border:1px solid var(--line2); }
+.partition-retained { background:var(--green); display:flex; align-items:center; justify-content:center; color:#0b1220; font-weight:bold; font-size:14px; transition: width 0.3s; }
+.partition-discarded { background:rgba(255,133,133,0.4); display:flex; align-items:center; justify-content:center; color:var(--red); font-weight:bold; font-size:14px; transition: width 0.3s; }
+.partition-unprocessed { background:rgba(101,185,255,0.1); flex:1; display:flex; align-items:center; justify-content:center; color:var(--blue); font-size:14px; transition: width 0.3s; }
+
+/* ================= 流程图与推导图 ================= */
+.flow-wrap{background:rgba(5,10,20,.36);border:1px solid var(--line);border-radius:14px;padding:18px 22px}.flow-svg{width:100%;height:100%;display:block}.flow-svg text{font-family:"Noto Serif SC",serif}.flow-caption{display:flex;gap:12px;align-items:center;color:var(--muted);font-size:15px;margin-top:10px}.legend-dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px}
+
+/* ================= 交互实验室 ================= */
+.lab-layout{display:grid;grid-template-columns:1.12fr .88fr;gap:28px;height:100%}.lab-left,.lab-right{min-height:0}.lab-left{display:flex;flex-direction:column;justify-content:flex-start;gap:24px}.lab-array{margin:8px 0 20px}.lab-status{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.metric{padding:12px 14px;background:var(--surface2);border:1px solid var(--line);border-radius:9px}.metric label{display:block;color:var(--subtle);font:12px var(--mono);margin-bottom:6px}.metric strong{font:20px var(--mono);color:var(--text)}.lab-log{min-height:122px;padding:18px;background:rgba(101,185,255,.06);border:1px solid rgba(101,185,255,.2);border-radius:12px}.lab-log .decision{font-size:21px;color:var(--text);margin-bottom:8px}.lab-log p{font-size:16px}.lab-controls{display:flex;gap:10px;flex-wrap:wrap}.btn{border:1px solid var(--line2);background:rgba(255,255,255,.05);color:var(--text);border-radius:8px;padding:10px 16px;font:14px var(--mono);cursor:pointer;transition:.2s}.btn:hover{border-color:var(--blue);color:var(--blue)}.btn.primary{background:rgba(101,185,255,.14);border-color:rgba(101,185,255,.55);color:var(--blue)}.btn:disabled{opacity:.35;cursor:not-allowed}.lab-right{display:flex;flex-direction:column;gap:14px}.state-track{display:flex;height:16px;border-radius:99px;overflow:hidden;background:rgba(255,255,255,.06);margin:12px 0}.track-done{background:var(--green);transition:width .3s}.track-left{background:rgba(101,185,255,.35);flex:1}
+
+/* ================= macOS 代码窗口（深蓝科技风环境融合版） ================= */
+.mac-window{
+  display:flex; flex-direction:column;
+  background: rgba(11, 18, 32, 0.85); 
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(101, 185, 255, 0.2); 
+  border-radius: 12px; overflow: hidden;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 1px rgba(101, 185, 255, 0.5) inset;
+}
+.mac-header{
+  display:flex; align-items:center; padding:10px 16px;
+  background: rgba(255, 255, 255, 0.03); 
+  border-bottom: 1px solid rgba(101, 185, 255, 0.1); 
+  position:relative;
+}
+.mac-dots{display:flex;gap:8px;margin-right:20px}
+.mac-dot{width:12px;height:12px;border-radius:50%;opacity:0.8}
+.mac-dot.red{background:#ff5f56}.mac-dot.yellow{background:#ffbd2e}.mac-dot.green{background:#27c93f}
+.code-tabs{display:flex;gap:4px}
+.code-tab{
+  padding:6px 16px; border-radius:6px; border:none; 
+  background:transparent; color:#8295ad;
+  font:13px var(--mono); cursor:pointer; transition:.2s;
+}
+.code-tab:hover{color:#f2f6fc}
+.code-tab.active{
+  background: rgba(101, 185, 255, 0.1); 
+  color: var(--blue);
+}
+.mac-filename{position:absolute;left:50%;transform:translateX(-50%);color:#8295ad;font:13px var(--mono);pointer-events:none}
+.code-pane{display:none;padding:20px 24px;flex:1;overflow-y:auto}
+.code-pane::-webkit-scrollbar { width: 8px; height: 8px; }
+.code-pane::-webkit-scrollbar-track { background: transparent; }
+.code-pane::-webkit-scrollbar-thumb { background: rgba(101,185,255,0.15); border-radius: 4px; }
+.code-pane::-webkit-scrollbar-thumb:hover { background: rgba(101,185,255,0.3); }
+.code-pane.active{display:block}
+
+.code-pane pre code.hljs, .mini-mac pre code.hljs { 
+  background: transparent !important; 
+  padding: 0 !important; 
+  font-family: var(--mono) !important; 
+  font-size: 15px; line-height: 1.8; 
+  color: #d8e2ee;
+}
+.mini-mac pre code.hljs { font-size: 13.5px; }
+
+.code-note{
+  padding:12px 20px; 
+  background: rgba(101, 185, 255, 0.05); 
+  border-top: 1px solid rgba(101, 185, 255, 0.1); 
+  font-size: 14px; color: var(--muted);
+}
+
+.mini-mac{
+  background: rgba(11, 18, 32, 0.85); 
+  border: 1px solid rgba(101, 185, 255, 0.2); 
+  border-radius:8px; overflow:hidden; display:flex; flex-direction:column; 
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3); margin-top:8px;
+}
+.mini-mac .mac-header{padding:8px 12px; background: rgba(255,255,255,0.03);}
+.mini-mac .mac-dots{gap:6px;margin-right:0}
+.mini-mac .mac-dot{width:9px;height:9px}
+.mini-mac .mac-filename{font-size:11px}
+.mini-mac pre{margin:0;padding:14px 16px;white-space:pre;overflow-x:auto;font-family:var(--mono)}
+
+/* ---------- 自定义代码高亮颜色（统一为科技冷色调） ---------- */
+.hljs-keyword, .hljs-selector-tag, .hljs-literal, .hljs-section, .hljs-link { color: #ff9ecd; } 
+.hljs-function .hljs-keyword { color: #65b9ff; } 
+.hljs-built_in, .hljs-type { color: #7fe7ff; } 
+.hljs-title, .hljs-function { color: #f2f6fc; font-weight: 500; } 
+.hljs-string, .hljs-number { color: #6bd6ae; } 
+.hljs-comment, .hljs-quote { color: #8295ad; font-style: italic; } 
+.hljs-variable, .hljs-template-variable, .hljs-attribute, .hljs-tag, .hljs-name, .hljs-regexp, .hljs-link, .hljs-selector-id, .hljs-selector-class { color: #ffb36b; } 
+
+/* ================= Reveal 控件 ================= */
+.reveal .controls{right:28px;bottom:24px}.reveal .controls button{color:var(--blue)!important;opacity:.45}.reveal .controls button:hover:not([disabled]){opacity:1;filter:drop-shadow(0 0 8px rgba(101,185,255,.4))}.reveal .progress{height:3px;color:var(--blue)}
+
+/* ================= 页面精准修正 ================= */
+.reveal .slides section:nth-of-type(12) .slide-main { display: flex; flex-direction: column; }
+.reveal .slides section:nth-of-type(12) .lab-layout { flex: 1; min-height: 0; }
+.reveal .slides section:nth-of-type(12) .lab-right { overflow-y: auto; padding-right: 8px; }
+.reveal .slides section:nth-of-type(12) .lab-right::-webkit-scrollbar { width: 6px; }
+.reveal .slides section:nth-of-type(12) .lab-right::-webkit-scrollbar-track { background: transparent; }
+.reveal .slides section:nth-of-type(12) .lab-right::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+
+.reveal .slides section:nth-of-type(10) .slide-main,
+.reveal .slides section:nth-of-type(11) .slide-main { display: flex; flex-direction: column; height: 100%; }
+.reveal .slides section:nth-of-type(10) .flow-wrap,
+.reveal .slides section:nth-of-type(11) .flow-wrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.reveal .slides section:nth-of-type(10) .flow-svg,
+.reveal .slides section:nth-of-type(11) .flow-svg { width: 100%; height: 100%; max-height: none; }
+.reveal .slides section:nth-of-type(10) .flow-wrap { margin-bottom: 6px; }
+.reveal .slides section:nth-of-type(11) .grid2 { margin-top: 12px !important; flex: none; }
+.reveal .slides section:nth-of-type(11) .card { padding: 14px 17px; }
+
+.reveal .slides section:nth-of-type(4) .slide-main { display: flex; flex-direction: column; justify-content: center;}
+.reveal .slides section:nth-of-type(9) .slide-main { display: flex; flex-direction: column; height: 100%; }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- 01 封面 -->
+<section data-transition="fade">
+ <div class="slide-frame" style="grid-template-rows:1fr 62px">
+  <div class="cover-layout">
+   <div>
+    <div class="eyebrow">ALGORITHM ANALYSIS · LEETCODE 27</div>
+    <h1 class="cover-title">移除元素</h1>
+    <!-- 修改了这里的文案，更大气凝练 -->
+    <div class="cover-sub">从数组边界与约束条件出发，推演双指针的空间切分机制。</div>
+    <div style="display:flex;gap:10px;margin-top:28px;flex-wrap:wrap"><span class="pill">空间建模</span><span class="pill">机制推导</span><span class="pill">动态切分</span></div>
+    <!-- 作者署名 -->
+    <div style="margin-top: 36px; font-size: 15px; color: var(--subtle); font-family: var(--mono); letter-spacing: 0.05em;">
+      Presented by <span style="color:var(--text); font-weight:500;">@neking</span> &lt;lvshaomeng806@gmail.com&gt;
+    </div>
+   </div>
+   <div class="cover-visual">
+    <svg viewBox="0 0 560 430" role="img" aria-label="快慢指针扫描数组示意图">
+     <circle cx="280" cy="205" r="170" fill="none" stroke="rgba(101,185,255,.16)" stroke-width="1.5" stroke-dasharray="7 10"/>
+     <path d="M60 205 H500" stroke="rgba(180,205,235,.16)" stroke-width="1"/>
+     <g transform="translate(121 155)">
+      <rect x="0" y="0" width="72" height="72" rx="9" fill="rgba(255,133,133,.12)" stroke="#ff8585"/><text x="36" y="46" fill="#ff8585" font-size="27" text-anchor="middle">3</text>
+      <rect x="82" y="0" width="72" height="72" rx="9" fill="rgba(107,214,174,.12)" stroke="#6bd6ae"/><text x="118" y="46" fill="#6bd6ae" font-size="27" text-anchor="middle">2</text>
+      <rect x="164" y="0" width="72" height="72" rx="9" fill="rgba(107,214,174,.12)" stroke="#6bd6ae"/><text x="200" y="46" fill="#6bd6ae" font-size="27" text-anchor="middle">2</text>
+      <rect x="246" y="0" width="72" height="72" rx="9" fill="rgba(255,133,133,.12)" stroke="#ff8585"/><text x="282" y="46" fill="#ff8585" font-size="27" text-anchor="middle">3</text>
+      <text x="36" y="105" fill="#8295ad" font-size="14" text-anchor="middle">0</text><text x="118" y="105" fill="#8295ad" font-size="14" text-anchor="middle">1</text><text x="200" y="105" fill="#8295ad" font-size="14" text-anchor="middle">2</text><text x="282" y="105" fill="#8295ad" font-size="14" text-anchor="middle">3</text>
+      <path d="M36 -20 V-5" stroke="#ffb36b" stroke-width="2"/><polygon points="36,-5 32,-12 40,-12" fill="#ffb36b"/>
+      <text x="36" y="-30" fill="#ffb36b" font-size="15" text-anchor="middle" font-family="var(--mono)">fast</text>
+      <path d="M36 128 V113" stroke="#65b9ff" stroke-width="2"/><polygon points="36,113 32,120 40,120" fill="#65b9ff"/>
+      <text x="36" y="150" fill="#65b9ff" font-size="15" text-anchor="middle" font-family="var(--mono)">slow</text>
+     </g>
+     <text x="280" y="410" fill="#a1b0c5" font-size="17" text-anchor="middle">扫描输入 · 筛选质点 · 原地重建有效前缀</text>
+    </svg>
+   </div>
+  </div>
+  <footer class="slide-footer" style="border:0"><div class="footer-left">数据结构与算法 · 单题分析</div><div class="global-concepts"><span><b>空间</b> 定义范围</span><span><b>质点</b> 承载数据</span><span><b>约束</b> 决定规则</span><span><b>熵减</b> 驱动收敛</span></div><div class="footer-right">01 / 15</div></footer>
+ </div>
+</section>
+
+<!-- 02 题目理解 -->
+<section data-transition="slide">
+ <div class="slide-frame">
+  <header class="slide-header"><div class="header-left"><span class="chapter-index">01</span><span class="chapter-name">题目理解</span></div><span class="header-meta">PROBLEM</span></header>
+  <main class="slide-main">
+   <div class="two-col">
+    <div class="stack">
+     <div><div class="eyebrow">QUESTION</div><h2 class="section-title">究竟需要解决什么？</h2><p class="lead">原地移除所有数值等于 <span class="mono cyan">val</span> 的元素，并返回移除后数组的新长度。有效元素必须位于数组前 <span class="mono cyan">k</span> 个位置。</p></div>
+     <div class="card"><h3 class="orange">输入与输出</h3><div class="bullet-list"><div class="bullet">输入：数组 nums、目标值 val。</div><div class="bullet">输出：有效元素数量 k。</div><div class="bullet">特殊要求：原地修改，尾部无需清理。</div></div></div>
+    </div>
+    <div class="stack" style="justify-content:center">
+     <div class="card soft"><div class="eyebrow">EXAMPLE</div><div class="mono" style="font-size:22px;line-height:2"><span class="muted">nums = </span>[3, 2, 2, 3]<br><span class="muted">val&nbsp; = </span>3<br><span class="muted">output = </span><span class="green">2</span></div><div class="rule"></div><div class="array" style="padding-top:12px"><div class="cell drop">3</div><div class="cell keep">2</div><div class="cell keep">2</div><div class="cell drop">3</div></div><div class="array-label">输入数组 · 红色表示需要排除的元素</div></div>
+     <div class="card"><div class="eyebrow">VALID PREFIX</div><div class="array" style="padding-top:12px"><div class="cell keep">2</div><div class="cell keep">2</div><div class="cell">?</div><div class="cell">?</div></div><div class="array-label">只检查前 k = 2 个位置，尾部无需清理</div></div>
+    </div>
+   </div>
+  </main>
+  <footer class="slide-footer"><div class="footer-left">将自然语言题目转化为明确的问题目标</div><div class="global-concepts"><span><b>信息空间</b> nums</span><span><b>信息质点</b> nums[i]</span></div><div class="footer-right">02 / 15</div></footer>
+ </div>
+</section>
+
+<!-- 03 信息空间 -->
+<section data-transition="slide">
+ <div class="slide-frame">
+  <header class="slide-header"><div class="header-left"><span class="chapter-index">02</span><span class="chapter-name">信息空间</span></div><span class="header-meta">DATA SPACE</span></header>
+  <main class="slide-main">
+   <div class="eyebrow">WHERE IS THE DATA?</div><h2 class="section-title">数组提供连续的索引空间</h2>
+   <div class="card" style="padding:40px 34px;text-align:center;margin-top:40px">
+     <div class="array" style="justify-content:center">
+       <div class="cell">3<small>i = 0</small></div>
+       <div class="cell">2<small>i = 1</small></div>
+       <div class="cell">2<small>i = 2</small></div>
+       <div class="cell">3<small>i = 3</small></div>
+     </div>
+     <div class="grid2" style="margin-top:40px;text-align:left">
+       <div><h3 class="blue">物理存储范围</h3><p>连续的内存块，存放了具体的数值。</p></div>
+       <div><h3 class="cyan">逻辑索引范围</h3><p>索引域为 <span class="mono cyan">[0, n)</span>，算法工作的区间。</p></div>
+     </div>
+   </div>
+  </main>
+  <footer class="slide-footer"><div class="footer-left">明确数据结构提供的工作区间</div><div class="global-concepts"><span><b>空间</b> [0,n)</span><span><b>索引</b> 确定访问方式</span></div><div class="footer-right">03 / 15</div></footer>
+ </div>
+</section>
+
+<!-- 04 数据结构固有结构 -->
+<section data-transition="slide">
+ <div class="slide-frame">
+  <header class="slide-header"><div class="header-left"><span class="chapter-index">03</span><span class="chapter-name">数据结构固有结构</span></div><span class="header-meta">INHERENT STRUCTURE</span></header>
+  <main class="slide-main">
+   <div class="eyebrow">WHAT ARE THE NATURAL BOUNDARIES?</div><h2 class="section-title">数组具有天然的左边界与右边界</h2>
+   
+   <div class="card soft" style="padding:40px 30px;margin-bottom:24px">
+     <div style="position:relative;max-width:800px;margin:0 auto">
+       <div style="display:flex;justify-content:space-between;color:var(--cyan);font:14px var(--mono);margin-bottom:12px">
+         <span>起始端 (index 0)</span>
+         <span>右侧排他边界 (index n)</span>
+       </div>
+       <div style="display:flex;align-items:center;border-left:2px solid var(--cyan);border-right:2px solid var(--cyan);padding:10px 0;background:rgba(101,185,255,.05);position:relative">
+         <div class="array" style="padding:0;gap:10px;justify-content:center;width:100%">
+           <div class="cell">3</div><div class="cell">2</div><div class="cell">2</div><div class="cell">3</div>
+         </div>
+         <div style="position:absolute;left:-2px;top:0;bottom:0;width:2px;background:var(--cyan)"></div>
+         <div style="position:absolute;right:-2px;top:0;bottom:0;width:2px;background:var(--cyan)"></div>
+       </div>
+       <div style="display:flex;justify-content:space-between;color:var(--subtle);font:12px var(--mono);margin-top:12px">
+         <span>逻辑边界 [0, n)</span>
+         <span>可按索引顺序访问</span>
+       </div>
+     </div>
+   </div>
+
+   <div class="grid2">
+     <div class="card"><h3 class="green">提供了什么结构基础？</h3><p>连续的索引位置和确定的终止位置。这使得我们可以在索引轴上建立区间，并顺序访问处理。</p></div>
+     <div class="card"><h3 class="orange">需要注意的区别</h3><p>数组本身只提供了一个连续的区间，<strong>它内部并不包含任何指针</strong>。指针是算法为了切分空间而建立的“逻辑边界”。</p></div>
+   </div>
+  </main>
+  <footer class="slide-footer"><div class="footer-left">数据结构提供空间与边界，是算法设计的起点</div><div class="global-concepts"><span><b>左边界</b> 起始</span><span><b>右边界</b> 终点</span></div><div class="footer-right">04 / 15</div></footer>
+ </div>
+</section>
+
+<!-- 05 信息质点 -->
+<section data-transition="slide">
+ <div class="slide-frame">
+  <header class="slide-header"><div class="header-left"><span class="chapter-index">04</span><span class="chapter-name">信息质点</span></div><span class="header-meta">PARTICLES</span></header>
+  <main class="slide-main">
+   <div class="eyebrow">WHAT DO WE PROCESS?</div><h2 class="section-title">数组元素是待处理的信息质点</h2>
+   <div class="grid2" style="align-items:center;margin-bottom:22px">
+     <div class="card">
+       <h3 class="orange">质点属性</h3>
+       <div class="mono" style="font-size:24px;margin:12px 0">nums[i] = value</div>
+       <p><strong>位置 i</strong> 决定如何访问，<strong>数值 value</strong> 决定如何处理。</p>
+     </div>
+     <div class="card soft">
+       <h3>处理动作</h3>
+       <div class="bullet-list" style="margin-top:16px">
+         <div class="bullet">读取：获取当前位置的值</div>
+         <div class="bullet">比较：判断是否满足保留条件</div>
+         <div class="bullet">分类：决定保留还是排除</div>
+       </div>
+     </div>
+   </div>
+  </main>
+  <footer class="slide-footer"><div class="footer-left">明确处理对象及其属性</div><div class="global-concepts"><span><b>质点</b> 元素值</span><span><b>动作</b> 读、判、写</span></div><div class="footer-right">05 / 15</div></footer>
+ </div>
+</section>
+
+<!-- 06 约束条件 -->
+<section data-transition="slide">
+ <div class="slide-frame">
+  <header class="slide-header"><div class="header-left"><span class="chapter-index">05</span><span class="chapter-name">约束条件</span></div><span class="header-meta">CONSTRAINTS</span></header>
+  <main class="slide-main">
+   <div class="eyebrow">WHAT RULES MUST WE FOLLOW?</div><h2 class="section-title">将题目约束转化为操作规则</h2>
+   <div class="grid2" style="margin-bottom:20px">
+    <div class="card"><div class="eyebrow">题目约束</div><h3 class="pink">原地修改</h3><p>不能另建一个数组作为最终结果。需要在原数组已有位置上完成覆盖。</p><div class="rule"></div><div class="tag">不创建额外大空间</div></div>
+    <div class="card"><div class="eyebrow">结果约束</div><h3 class="green">有效前缀</h3><p>处理结束后，前 <span class="mono cyan">k</span> 个元素必须是不等于 val 的有效元素。</p><div class="rule"></div><div class="tag">维护连续有效区间</div></div>
+   </div>
+   <div class="card soft">
+    <h3 class="orange">推导结果</h3>
+    <p>因为必须“原地”且保留“有效前缀”，我们必须一边扫描原数组，一边把符合条件的元素覆盖写入到前面的有效区域内。这就产生了“读取”和“写入”两个动作的分离需求。</p>
+   </div>
+  </main>
+  <footer class="slide-footer"><div class="footer-left">约束条件决定了算法能采取的操作</div><div class="global-concepts"><span><b>约束</b> 决定操作</span></div><div class="footer-right">06 / 15</div></footer>
+ </div>
+</section>
+
+<!-- 07 熵减目标 -->
+<section data-transition="slide">
+ <div class="slide-frame">
+  <header class="slide-header"><div class="header-left"><span class="chapter-index">06</span><span class="chapter-name">熵减目标</span></div><span class="header-meta">ENTROPY REDUCTION</span></header>
+  <main class="slide-main">
+   <div class="eyebrow">HOW DOES THE PROBLEM CONVERGE?</div><h2 class="section-title">问题如何逐步收敛？</h2>
+   <div class="grid2" style="margin-bottom:22px">
+    <div class="card">
+     <h3 class="green">宏观目标</h3>
+     <div class="mono" style="font-size:24px;margin:12px 0">未处理信息 → 0</div>
+     <p>消除所有尚未决策的元素，直到所有信息质点都完成分类。</p>
+    </div>
+    <div class="card">
+     <h3 class="blue">微观指标</h3>
+     <div class="mono" style="font-size:24px;margin:12px 0">Φ = n - fast</div>
+     <p>用来衡量剩余的工作量。每处理一个元素，未决策工作量就减少 1。</p>
+    </div>
+   </div>
+   <div class="card soft">
+    <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">状态势能观察</h3><span class="tag">Φ → 0</span></div>
+    <div style="display:flex;gap:8px;margin:22px 0 12px"><div class="state-track" style="flex:1;margin:0;height:24px"><div style="width:0%;background:var(--green)" id="entropyDone"></div><div style="width:100%;background:rgba(101,185,255,.28)" id="entropyLeft"></div></div></div>
+    <div class="grid2"><p>指标下降条件：<span class="mono cyan">fast = fast + 1</span><br>因此 <span class="mono green">Φ 逐步收敛</span></p><p>终止条件：<span class="mono cyan">fast = n</span><br>此时 <span class="mono green">Φ = 0</span></p></div>
+   </div>
+  </main>
+  <footer class="slide-footer"><div class="footer-left">从宏观目标与微观指标看问题收敛</div><div class="global-concepts"><span><b>未处理</b> 递减</span><span><b>有效前缀</b> 递增</span></div><div class="footer-right">07 / 15</div></footer>
+ </div>
+</section>
+
+<!-- 08 信息空间划分 -->
+<section data-transition="slide">
+ <div class="slide-frame">
+  <header class="slide-header"><div class="header-left"><span class="chapter-index">07</span><span class="chapter-name">信息空间划分</span></div><span class="header-meta">SPACE PARTITIONING</span></header>
+  <main class="slide-main">
+   <div class="eyebrow">HOW DO WE DIVIDE THE SPACE?</div><h2 class="section-title">处理过程中形成哪些区域？</h2>
+   
+   <div class="card soft" style="margin-bottom:24px; padding:30px">
+     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+       <h3 style="margin:0">空间三分（Partitioning）</h3>
+       <span class="tag">动态切分中</span>
+     </div>
+     <div class="partition-bar">
+       <div class="partition-retained" style="width:30%">已保留 [0, slow)</div>
+       <div class="partition-discarded" style="width:20%">已排除 [slow, fast)</div>
+       <div class="partition-unprocessed">未处理 [fast, n)</div>
+     </div>
+     <div class="grid4" style="margin-top:16px;font-size:14px;color:var(--muted)">
+       <div><span class="green">■</span> 有效结果区（保留）</div>
+       <div><span class="red">■</span> 已处理废弃区</div>
+       <div><span class="blue">■</span> 未处理区域</div>
+       <div><span class="cyan">■</span> 逻辑边界（指针）</div>
+     </div>
+   </div>
+
+   <div class="grid2">
+    <div class="card">
+     <h3 class="green">区域职责</h3>
+     <p><span class="mono cyan">[0, slow)</span>：已确认保留的有效元素。<br><span class="mono cyan">[slow, fast)</span>：已处理，但不属于有效结果的废弃区。<br><span class="mono cyan">[fast, n)</span>：尚未处理的元素。</p>
+    </div>
+    <div class="card">
+     <h3 class="orange">边界的职责</h3>
+     <p><span class="mono cyan">slow</span> 是有效结果区的右侧边界。<br><span class="mono cyan">fast</span> 是未处理区的左侧边界。<br>这两个逻辑边界共同维护了数组的处理状态。</p>
+    </div>
+   </div>
+  </main>
+  <footer class="slide-footer"><div class="footer-left">空间划分是为了明确不同区域的职责</div><div class="global-concepts"><span><b>三区域</b> 保留·废弃·未处理</span></div><div class="footer-right">08 / 15</div></footer>
+ </div>
+</section>
+
+<!-- 09 双指针推导 -->
+<section data-transition="slide">
+ <div class="slide-frame">
+  <header class="slide-header"><div class="header-left"><span class="chapter-index">08</span><span class="chapter-name">双指针推导</span></div><span class="header-meta">POINTER DERIVATION</span></header>
+  <main class="slide-main">
+   <div class="eyebrow">WHY DO WE NEED TWO POINTERS?</div><h2 class="section-title">从空间划分推导出逻辑边界</h2>
+   
+   <div class="flow-wrap" style="flex:1;display:flex;align-items:center;justify-content:center;padding:30px">
+     <svg class="flow-svg" viewBox="0 0 1200 460" style="max-height:460px">
+       <defs>
+         <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8295ad"/></marker>
+       </defs>
+       
+       <!-- 左侧：扫描边界 -->
+       <g transform="translate(200, 50)">
+         <rect x="-120" y="0" width="240" height="60" rx="8" fill="rgba(101,185,255,.1)" stroke="#65b9ff"/>
+         <text x="0" y="35" fill="#f2f6fc" font-size="18" text-anchor="middle" font-weight="bold">未处理区 [fast, n)</text>
+         <text x="0" y="80" fill="#a1b0c5" font-size="15" text-anchor="middle">需要遍历并分类信息质点</text>
+         
+         <path d="M0 100 V160" stroke="#8295ad" stroke-width="2" marker-end="url(#arrow)"/>
+         
+         <rect x="-100" y="170" width="200" height="60" rx="8" fill="rgba(255,179,107,.1)" stroke="#ffb36b"/>
+         <text x="0" y="205" fill="#ffb36b" font-size="18" text-anchor="middle" font-weight="bold">读取 nums[i]</text>
+         
+         <path d="M0 240 V300" stroke="#8295ad" stroke-width="2" marker-end="url(#arrow)"/>
+         
+         <rect x="-80" y="310" width="160" height="50" rx="25" fill="#17352f" stroke="#6bd6ae" stroke-width="2"/>
+         <text x="0" y="340" fill="#6bd6ae" font-size="20" text-anchor="middle" font-weight="bold" font-family="var(--mono)">fast 扫描游标</text>
+       </g>
+
+       <!-- 右侧：结果边界 -->
+       <g transform="translate(600, 50)">
+         <rect x="-120" y="0" width="240" height="60" rx="8" fill="rgba(255,158,205,.1)" stroke="#ff9ecd"/>
+         <text x="0" y="35" fill="#f2f6fc" font-size="18" text-anchor="middle" font-weight="bold">保留区 [0, slow)</text>
+         <text x="0" y="80" fill="#a1b0c5" font-size="15" text-anchor="middle">需要维护有效结果边界</text>
+         
+         <path d="M0 100 V160" stroke="#8295ad" stroke-width="2" marker-end="url(#arrow)"/>
+         
+         <rect x="-100" y="170" width="200" height="60" rx="8" fill="rgba(101,185,255,.1)" stroke="#65b9ff"/>
+         <text x="0" y="205" fill="#65b9ff" font-size="18" text-anchor="middle" font-weight="bold">原地写入覆盖</text>
+         
+         <path d="M0 240 V300" stroke="#8295ad" stroke-width="2" marker-end="url(#arrow)"/>
+         
+         <rect x="-80" y="310" width="160" height="50" rx="25" fill="#17352f" stroke="#6bd6ae" stroke-width="2"/>
+         <text x="0" y="340" fill="#6bd6ae" font-size="20" text-anchor="middle" font-weight="bold" font-family="var(--mono)">slow 写入边界</text>
+       </g>
+
+       <!-- 汇聚 -->
+       <g transform="translate(1000, 50)">
+         <rect x="-120" y="0" width="240" height="60" rx="8" fill="rgba(107,214,174,.1)" stroke="#6bd6ae"/>
+         <text x="0" y="35" fill="#f2f6fc" font-size="18" text-anchor="middle" font-weight="bold">双指针协同</text>
+         
+         <path d="M0 100 V160" stroke="#8295ad" stroke-width="2" marker-end="url(#arrow)"/>
+         
+         <rect x="-100" y="170" width="200" height="60" rx="8" fill="rgba(101,185,255,.1)" stroke="#65b9ff"/>
+         <text x="0" y="195" fill="#65b9ff" font-size="16" text-anchor="middle">读取 → 判断 → 写入</text>
+         <text x="0" y="215" fill="#a1b0c5" font-size="14" text-anchor="middle">边遍历边切分</text>
+
+         <path d="M0 240 V300" stroke="#8295ad" stroke-width="2" marker-end="url(#arrow)"/>
+         
+         <rect x="-80" y="310" width="160" height="50" rx="25" fill="#173149" stroke="#65b9ff" stroke-width="2"/>
+         <text x="0" y="340" fill="#65b9ff" font-size="18" text-anchor="middle" font-weight="bold">返回 slow</text>
+       </g>
+
+       <!-- 下方连接线 -->
+       <path d="M0 365 H1120" stroke="#8295ad" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#arrow)"/>
+     </svg>
+   </div>
+  </main>
+  <footer class="slide-footer"><div class="footer-left">两个逻辑边界分别负责扫描与重建</div><div class="global-concepts"><span><b>fast</b> 扫描边界</span><span><b>slow</b> 结果边界</span></div><div class="footer-right">09 / 15</div></footer>
+ </div>
+</section>
+
+<!-- 10 整体处理流程 -->
+<section data-transition="slide">
+ <div class="slide-frame">
+  <header class="slide-header"><div class="header-left"><span class="chapter-index">09</span><span class="chapter-name">整体处理流程</span></div><span class="header-meta">ALGORITHM FLOW · 01</span></header>
+  <main class="slide-main">
+   <div class="eyebrow">FROM INITIALIZATION TO TERMINATION</div><h2 class="section-title">算法从开始到结束的整体执行过程</h2>
+   <div class="flow-wrap">
+    <svg class="flow-svg" viewBox="0 0 1320 650" aria-label="移除元素整体流程图">
+     <defs><marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L0 6 L9 3 z" fill="#8295ad"/></marker></defs>
+     <g fill="none" stroke="#8295ad" stroke-width="2.2" marker-end="url(#arr)">
+      <path d="M660 90 V140"/>
+      <path d="M660 200 V250"/>
+      <path d="M490 300 H270 V400"/>
+      <path d="M830 300 H1050 V400"/>
+      <path d="M1050 480 V505 H660 V530"/>
+      <path d="M660 580 V620 H1250 V300 H830" stroke-dasharray="6 6"/>
+     </g>
+     <rect x="520" y="30" width="280" height="60" rx="13" fill="#173149" stroke="#65b9ff" stroke-width="2"/><text x="660" y="67" fill="#f2f6fc" font-size="23" text-anchor="middle">开始</text>
+     <rect x="500" y="140" width="320" height="60" rx="12" fill="#172a3e" stroke="#65b9ff" stroke-width="2"/><text x="660" y="178" fill="#f2f6fc" font-size="22" text-anchor="middle">初始化：slow = 0，fast = 0</text>
+     <path d="M660 250 L830 300 L660 350 L490 300 Z" fill="#302b25" stroke="#ffb36b" stroke-width="2"/><text x="660" y="307" fill="#ffb36b" font-size="21" text-anchor="middle">fast &lt; nums.length ?</text>
+     <text x="270" y="280" fill="#ff8585" font-size="17">否</text><text x="1050" y="280" fill="#6bd6ae" font-size="17">是</text>
+     <rect x="120" y="400" width="300" height="80" rx="12" fill="#17352f" stroke="#6bd6ae" stroke-width="2"/><text x="270" y="436" fill="#6bd6ae" font-size="21" text-anchor="middle">返回 slow</text><text x="270" y="462" fill="#a1b0c5" font-size="15" text-anchor="middle">得到有效长度 k</text>
+     <rect x="900" y="400" width="300" height="80" rx="12" fill="#172a3e" stroke="#65b9ff" stroke-width="2"/><text x="1050" y="436" fill="#f2f6fc" font-size="21" text-anchor="middle">读取 nums[fast]</text><text x="1050" y="462" fill="#a1b0c5" font-size="15" text-anchor="middle">处理当前信息质点</text>
+     <rect x="510" y="530" width="300" height="50" rx="10" fill="#172a3e" stroke="#65b9ff" stroke-width="2"/><text x="660" y="560" fill="#65b9ff" font-size="18" text-anchor="middle">fast++ · 未处理范围缩小</text>
+     <text x="1015" y="610" fill="#8295ad" font-size="15" text-anchor="middle">进入下一轮判断</text>
+    </svg>
+   </div>
+   <div class="flow-caption"><span><i class="legend-dot" style="background:var(--blue)"></i>状态初始化 / 数据读取</span><span><i class="legend-dot" style="background:var(--orange)"></i>循环判断</span><span><i class="legend-dot" style="background:var(--green)"></i>终止输出</span></div>
+  </main>
+  <footer class="slide-footer"><div class="footer-left">控制流：从开始条件到终止条件的演进</div><div class="global-concepts"><span><b>fast</b> 控制扫描</span><span><b>slow</b> 控制结果</span></div><div class="footer-right">10 / 15</div></footer>
+ </div>
+</section>
+
+<!-- 11 分支处理流程 -->
+<section data-transition="slide">
+ <div class="slide-frame">
+  <header class="slide-header"><div class="header-left"><span class="chapter-index">10</span><span class="chapter-name">分支处理流程</span></div><span class="header-meta">ALGORITHM FLOW · 02</span></header>
+  <main class="slide-main">
+   <div class="eyebrow">ELEMENT-LEVEL DECISION</div><h2 class="section-title">保留和排除分别发生什么？</h2>
+   <div class="flow-wrap">
+    <svg class="flow-svg" viewBox="0 0 1320 520" aria-label="当前元素保留或跳过的分支流程图">
+     <defs><marker id="arr2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0 L0 6 L9 3 z" fill="#8295ad"/></marker></defs>
+     <g fill="none" stroke="#8295ad" stroke-width="2.2" marker-end="url(#arr2)">
+      <path d="M660 80 V120"/>
+      <path d="M500 170 H320 V280"/>
+      <path d="M820 170 H1000 V280"/>
+      <path d="M320 360 V390 H660 V420"/>
+      <path d="M1000 360 V390 H660 V420"/>
+     </g>
+     <rect x="510" y="20" width="300" height="60" rx="12" fill="#172a3e" stroke="#65b9ff" stroke-width="2"/><text x="660" y="58" fill="#f2f6fc" font-size="21" text-anchor="middle">读取 nums[fast]</text>
+     <path d="M660 120 L820 170 L660 220 L500 170 Z" fill="#302b25" stroke="#ffb36b" stroke-width="2"/><text x="660" y="177" fill="#ffb36b" font-size="21" text-anchor="middle">nums[fast] == val ?</text>
+     <text x="320" y="150" fill="#ff8585" font-size="18">是：划入废弃区</text><text x="1000" y="150" fill="#6bd6ae" font-size="18">否：划入保留区</text>
+     <rect x="160" y="280" width="320" height="80" rx="12" fill="#38262c" stroke="#ff8585" stroke-width="2"/><text x="320" y="316" fill="#ff8585" font-size="21" text-anchor="middle">不写入</text><text x="320" y="342" fill="#c4a9ae" font-size="16" text-anchor="middle">slow 边界不生长</text>
+     <rect x="840" y="280" width="320" height="80" rx="12" fill="#17352f" stroke="#6bd6ae" stroke-width="2"/><text x="1000" y="316" fill="#6bd6ae" font-size="21" text-anchor="middle">nums[slow] = nums[fast]</text><text x="1000" y="342" fill="#b7d8cb" font-size="16" text-anchor="middle">保留区边界扩张，slow++</text>
+     <rect x="510" y="420" width="300" height="50" rx="10" fill="#172a3e" stroke="#65b9ff" stroke-width="2"/><text x="660" y="451" fill="#65b9ff" font-size="18" text-anchor="middle">fast++ · 下一轮</text>
+    </svg>
+   </div>
+   <div class="grid2" style="margin-top:18px">
+    <div class="card soft"><h3 class="red">命中删除条件</h3><p>当前元素被判定为废弃，<span class="mono cyan">fast</span> 继续向后切分，<span class="mono cyan">slow</span> 的保留区不扩张。</p></div>
+    <div class="card soft"><h3 class="green">满足保留条件</h3><p>当前元素被划入保留区，覆盖到 <span class="mono cyan">slow</span> 位置，<span class="mono cyan">slow</span> 边界向右生长。</p></div>
+   </div>
+  </main>
+  <footer class="slide-footer"><div class="footer-left">分支判断决定了当前空间块的最终归属</div><div class="global-concepts"><span><b>相等</b> 废弃</span><span><b>不等</b> 保留</span></div><div class="footer-right">11 / 15</div></footer>
+ </div>
+</section>
+
+<!-- 12 动态执行实验室 -->
+<section data-transition="slide" id="walkthrough">
+ <div class="slide-frame">
+  <header class="slide-header"><div class="header-left"><span class="chapter-index">11</span><span class="chapter-name">动态执行实验室</span></div><span class="header-meta">INTERACTIVE TRACE</span></header>
+  <main class="slide-main">
+   <div class="eyebrow">WATCH THE SPACE PARTITION CHANGE</div><h2 class="section-title" style="margin-bottom:12px">每一步状态如何变化？</h2>
+   <div class="lab-layout">
+    <div class="lab-left">
+     <div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="tag">nums = [3, 2, 2, 3]</span><span class="tag">val = 3</span></div>
+      <div class="array lab-array" id="labArray">
+       <div class="cell drop">3<small>0</small></div><div class="cell">2<small>1</small></div><div class="cell">2<small>2</small></div><div class="cell">3<small>3</small></div>
+      </div>
+      <div class="lab-status">
+       <div class="metric"><label>fast · 切分游标</label><strong id="fastVal">0</strong></div><div class="metric"><label>slow · 保留边界</label><strong id="slowVal">0</strong></div><div class="metric"><label>保留区长度</label><strong id="validVal">0</strong></div><div class="metric"><label>未处理数量 Φ</label><strong id="phiVal">4</strong></div>
+      </div>
+     </div>
+     <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="lab-log"><div class="decision" id="labDecision">准备开始：读取 nums[0]</div><p id="labExplanation">初始时，整个数组都是未处理区，切分游标 fast 和保留边界 slow 都在 0。</p></div>
+      <div class="lab-controls"><button class="btn primary" id="stepBtn">单步执行 →</button><button class="btn" id="autoBtn">自动播放</button><button class="btn" id="resetBtn">重置</button></div>
+     </div>
+    </div>
+    <div class="lab-right">
+     <div class="card soft">
+       <div class="eyebrow">SPACE PARTITION</div><h3>空间切分状态</h3>
+       <!-- 动态切分条 -->
+       <div class="partition-bar" style="height:24px; margin:16px 0;">
+         <div class="partition-retained" id="trackRetained" style="width:0%"></div>
+         <div class="partition-discarded" id="trackDiscarded" style="width:0%"></div>
+         <div class="partition-unprocessed" id="trackUnprocessed">100%</div>
+       </div>
+       <div class="grid4" style="font-size:12px; margin-top:10px; gap:8px">
+         <div><span class="green">■</span> 保留区</div>
+         <div><span class="red">■</span> 废弃区</div>
+         <div><span class="blue">■</span> 未处理区</div>
+         <div><span class="mono">fast</span> 推进</div>
+       </div>
+       <div class="rule"></div>
+       <p class="small">有效前缀：<span class="mono green">[0, slow)</span></p>
+       <p class="small">废弃区间：<span class="mono red">[slow, fast)</span></p>
+       <p class="small">未处理区：<span class="mono blue">[fast, n)</span></p>
+     </div>
+     <div class="card soft">
+      <div class="eyebrow">CURRENT RULE</div><h3>本轮决策规则</h3>
+      <div class="mini-mac">
+        <div class="mac-header">
+          <div class="mac-dots"><span class="mac-dot red"></span><span class="mac-dot yellow"></span><span class="mac-dot green"></span></div>
+          <div class="mac-filename">rule.py</div>
+        </div>
+        <pre><code class="language-python">if nums[fast] != val:
+    nums[slow] = nums[fast]
+    slow += 1
+fast += 1</code></pre>
+      </div>
+     </div>
+    </div>
+   </div>
+  </main>
+  <footer class="slide-footer"><div class="footer-left">逐轮观察：读取 → 判断 → 切分空间 → 游标推进</div><div class="global-concepts"><span><b>Φ</b> = n - fast</span><span><b>k</b> = slow</span></div><div class="footer-right">12 / 15</div></footer>
+ </div>
+</section>
+
+<!-- 13 代码实现 -->
+<section data-transition="slide">
+ <div class="slide-frame">
+  <header class="slide-header"><div class="header-left"><span class="chapter-index">12</span><span class="chapter-name">代码实现</span></div><span class="header-meta">IMPLEMENTATION</span></header>
+  <main class="slide-main">
+   <div class="eyebrow">TRANSLATE FLOW INTO CODE</div><h2 class="section-title" style="margin-bottom:14px">如何实现这套处理流程？</h2>
+   <div class="mac-window" style="height:100%">
+    <div class="mac-header">
+     <div class="mac-dots"><span class="mac-dot red"></span><span class="mac-dot yellow"></span><span class="mac-dot green"></span></div>
+     <div class="code-tabs">
+      <button class="code-tab active" data-code="java" data-title="Solution.java">Java</button>
+      <button class="code-tab" data-code="python" data-title="Solution.py">Python 3</button>
+      <button class="code-tab" data-code="cpp" data-title="Solution.cpp">C++</button>
+     </div>
+     <div class="mac-filename" id="macFilename">Solution.java</div>
+    </div>
+
+    <div class="code-pane active" id="pane-java">
+      <pre><code class="language-java">class Solution {
+    public int removeElement(int[] nums, int val) {
+        int slow = 0;
+
+        for (int fast = 0; fast &lt; nums.length; fast++) {
+            if (nums[fast] != val) {
+                nums[slow] = nums[fast];
+                slow++;
+            }
+        }
+
+        return slow;
+    }
+}</code></pre>
+    </div>
+    
+    <div class="code-pane" id="pane-python">
+      <pre><code class="language-python">class Solution:
+    def removeElement(self, nums: List[int], val: int) -&gt; int:
+        slow = 0
+
+        for fast in range(len(nums)):
+            if nums[fast] != val:
+                nums[slow] = nums[fast]
+                slow += 1
+
+        return slow</code></pre>
+    </div>
+
+    <div class="code-pane" id="pane-cpp">
+      <pre><code class="language-cpp">class Solution {
+public:
+    int removeElement(vector&lt;int&gt;&amp; nums, int val) {
+        int slow = 0;
+
+        for (int fast = 0; fast &lt; nums.size(); fast++) {
+            if (nums[fast] != val) {
+                nums[slow] = nums[fast];
+                slow++;
+            }
+        }
+
+        return slow;
+    }
+};</code></pre>
+    </div>
+    
+    <div class="code-note">映射关系：<span class="mono cyan">fast</span> 对应遍历与切分游标；<span class="mono cyan">if</span> 对应空间归属判断；赋值与 <span class="mono cyan">slow++</span> 对应保留区边界生长；<span class="mono cyan">return slow</span> 对应终态结果输出。</div>
+   </div>
+  </main>
+  <footer class="slide-footer"><div class="footer-left">把推导出的逻辑边界翻译成变量</div><div class="global-concepts"><span><b>流程</b> 决定结构</span><span><b>代码</b> 落实结构</span></div><div class="footer-right">13 / 15</div></footer>
+ </div>
+</section>
+
+<!-- 14 正确性验证 -->
+<section data-transition="slide">
+ <div class="slide-frame">
+  <header class="slide-header"><div class="header-left"><span class="chapter-index">13</span><span class="chapter-name">正确性与复杂度验证</span></div><span class="header-meta">CORRECTNESS</span></header>
+  <main class="slide-main">
+   <div class="eyebrow">WHY DOES IT WORK?</div><h2 class="section-title">如何证明算法一定正确？</h2>
+   <div class="grid2" style="margin-bottom:20px">
+    <div class="card" style="border-left:3px solid var(--green)"><h3 class="green">不变量 A · 保留区</h3><p>每轮开始时，<span class="mono cyan">nums[0:slow]</span> 中的所有元素都不等于 <span class="mono cyan">val</span>，且保持原有相对顺序。</p></div>
+    <div class="card" style="border-left:3px solid var(--blue)"><h3 class="blue">不变量 B · 未处理区</h3><p>每轮开始时，<span class="mono cyan">nums[fast:n]</span> 中的元素尚未被本算法检查，等待逐个切分归属。</p></div>
+   </div>
+   <div class="card soft">
+    <h3>三个时刻验证</h3>
+    <div class="grid4" style="margin-top:18px">
+     <div><div class="eyebrow">INITIAL</div><strong>初始化</strong><p class="small">slow = 0，保留区为空，天然满足不变量。</p></div>
+     <div><div class="eyebrow">MAINTAIN</div><strong>维持</strong><p class="small">相等则划入废弃区；不等则写入保留区末尾。</p></div>
+     <div><div class="eyebrow">TERMINATE</div><strong>终止</strong><p class="small">fast = n，所有空间都已切分完毕。</p></div>
+     <div><div class="eyebrow">CONCLUDE</div><strong>结论</strong><p class="small">前 slow 个元素全部满足条件，返回 slow。</p></div>
+    </div>
+   </div>
+   <div class="grid2" style="margin-top:18px">
+    <div class="card soft"><h3 class="green">时间复杂度</h3><p>fast 指针只向右移动，最多遍历数组一次，所以操作次数为 O(n)。</p></div>
+    <div class="card soft"><h3 class="blue">空间复杂度</h3><p>算法只在原数组上直接进行覆盖操作，没有分配额外的数组，因此为 O(1)。</p></div>
+   </div>
+  </main>
+  <footer class="slide-footer"><div class="footer-left">正确性来自不变量；性能来自对空间的原地复用</div><div class="global-concepts"><span><b>初始化</b></span><span><b>维持</b></span><span><b>终止</b></span></div><div class="footer-right">14 / 15</div></footer>
+ </div>
+</section>
+
+<!-- 15 总结与知识迁移 -->
+<section data-transition="fade">
+ <div class="slide-frame">
+  <header class="slide-header"><div class="header-left"><span class="chapter-index">14</span><span class="chapter-name">总结与知识迁移</span></div><span class="header-meta">SUMMARY</span></header>
+  <main class="slide-main">
+   <div class="eyebrow">ONE COMPLETE MODEL</div><h2 class="section-title">这套分析方法如何复用？</h2>
+   
+   <div class="card soft" style="margin-bottom:24px; padding:30px; text-align:center; background:rgba(101,185,255,.08)">
+     <div style="font-size:22px; font-weight:bold; line-height:1.8; color:var(--text)">
+       <span class="blue">数据结构</span> 决定可利用的空间结构<br>
+       <span class="orange">题目约束</span> 决定空间如何划分<br>
+       <span class="green">熵减目标</span> 决定状态如何收敛<br>
+       <span class="cyan">算法边界与机制</span> 完成具体的空间切分与处理
+     </div>
+   </div>
+
+   <div class="grid4" style="margin-bottom:24px">
+    <div class="card"><div class="eyebrow">SPACE</div><h3 class="blue">信息空间</h3><p>连续索引空间 <span class="mono">[0,n)</span></p></div>
+    <div class="card"><div class="eyebrow">CONSTRAINT</div><h3 style="color:var(--pink)">约束条件</h3><p>只保留 <span class="mono">!= val</span> 的元素</p></div>
+    <div class="card"><div class="eyebrow">BOUNDARY</div><h3 class="orange">逻辑边界</h3><p>fast 切分，slow 重建</p></div>
+    <div class="card"><div class="eyebrow">ENTROPY</div><h3 class="green">熵减目标</h3><p>未处理数量 <span class="mono">n-fast → 0</span></p></div>
+   </div>
+
+   <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px">
+     <p class="small">算法的本质：利用数据结构的边界，在满足约束的前提下，通过逻辑边界游标的移动，完成空间的切分与重建。</p>
+     <span class="pill">认知闭环：题目 → 结构 → 推导 → 流程 → 代码</span>
+   </div>
+  </main>
+  <footer class="slide-footer"><div class="footer-left">从题目到模型，建立可迁移的算法分析体系</div><div class="global-concepts"><span><b>建模</b> → <b>推导</b> → <b>验证</b></span></div><div class="footer-right" style="font-size:12px;">@neking · 15 / 15</div></footer>
+ </div>
+</section>
+
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+
+<script>
+hljs.highlightAll();
+
+Reveal.initialize({width:1600,height:900,hash:true,controls:true,progress:true,center:false,slideNumber:false,transition:'slide',backgroundTransition:'fade',keyboard:true,overview:true,margin:0,minScale:.2,maxScale:1,disableLayout:false});
+
+const input = [3,2,2,3], target = 3;
+let trace = [], traceIndex = 0, timer = null;
+function buildTrace(){
+ let a=input.slice(), slow=0, frames=[];
+ frames.push({a:a.slice(),fast:0,slow,done:0,phi:4,title:'准备开始：读取 nums[0]',desc:'初始时，整个数组都是未处理区，切分游标 fast 和保留边界 slow 都在 0。',kind:'start'});
+ for(let fast=0;fast<a.length;fast++){
+  const value=a[fast];
+  if(value!==target){
+   a[slow]=a[fast];
+   frames.push({a:a.slice(),fast,slow,done:fast,phi:a.length-fast,title:`nums[${fast}] = ${value}，满足保留条件`,desc:`当前元素不等于 val。将它归入保留区，覆盖到 slow 位置，slow 向右扩张。`,kind:'keep',write:slow});
+   slow++;
+  }else{
+   frames.push({a:a.slice(),fast,slow,done:fast,phi:a.length-fast,title:`nums[${fast}] = ${value}，命中删除条件`,desc:'当前元素等于 val。它被划入废弃区，不写入保留区；slow 边界保持不变。',kind:'drop'});
+  }
+  frames.push({a:a.slice(),fast:fast+1,slow,done:fast+1,phi:a.length-fast-1,title:fast===a.length-1?'所有元素切分完毕':'推进 fast，切分下一块空间',desc:fast===a.length-1?`fast 已到达数组长度 ${a.length}，未处理范围为空，返回 slow = ${slow}。`:`未处理区间缩小，fast 向右移动。`,kind:'advance'});
+ }
+ frames.push({a:a.slice(),fast:a.length,slow,done:a.length,phi:0,title:`处理结束：返回 k = ${slow}`,desc:`前 ${slow} 个位置构成有效保留区：[${a.slice(0,slow).join(', ')}]。尾部废弃区不作要求。`,kind:'end'});
+ return frames;
+}
+trace=buildTrace();
+const $=id=>document.getElementById(id);
+function renderTrace(){
+ const f=trace[traceIndex];
+ const array=$('labArray'); array.innerHTML='';
+ f.a.forEach((v,i)=>{
+  const d=document.createElement('div');d.className='cell';d.innerHTML=`${v}<small>${i}</small>`;
+  if(i<f.slow)d.classList.add('keep');
+  if(i===f.fast && f.fast<input.length)d.classList.add('scan');
+  if(f.kind==='drop' && i===f.fast)d.classList.add('drop');
+  if(f.kind==='keep' && i===f.write)d.classList.add('write');
+  array.appendChild(d);
+ });
+ $('fastVal').textContent=f.fast;
+ $('slowVal').textContent=f.slow;$('validVal').textContent=f.slow;$('phiVal').textContent=f.phi;
+ $('labDecision').textContent=f.title;$('labExplanation').textContent=f.desc;
+ 
+ // 更新空间切分条
+ const pRetained = (f.slow / input.length) * 100;
+ const pDiscarded = ((f.fast - f.slow) / input.length) * 100;
+ const pUnprocessed = 100 - pRetained - pDiscarded;
+ 
+ const trackRet = $('trackRetained');
+ const trackDis = $('trackDiscarded');
+ const trackUnp = $('trackUnprocessed');
+ if (trackRet && trackDis && trackUnp) {
+   trackRet.style.width = pRetained + '%';
+   trackDis.style.width = pDiscarded + '%';
+   trackUnp.style.width = pUnprocessed + '%';
+   trackUnp.textContent = pUnprocessed > 15 ? pUnprocessed.toFixed(0) + '%' : '';
+ }
+ 
+ $('stepBtn').disabled=traceIndex>=trace.length-1;
+ $('entropyDone')?.style.setProperty('width',(f.done/input.length*100)+'%');
+ $('entropyLeft')?.style.setProperty('width',((input.length-f.done)/input.length*100)+'%');
+}
+function stopAuto(){if(timer){clearInterval(timer);timer=null;}$('autoBtn').textContent='自动播放';}
+$('stepBtn').addEventListener('click',()=>{stopAuto();if(traceIndex<trace.length-1){traceIndex++;renderTrace();}});
+$('resetBtn').addEventListener('click',()=>{stopAuto();traceIndex=0;renderTrace();});
+$('autoBtn').addEventListener('click',()=>{if(timer){stopAuto();return;}if(traceIndex>=trace.length-1)traceIndex=0;$('autoBtn').textContent='暂停播放';renderTrace();timer=setInterval(()=>{if(traceIndex<trace.length-1){traceIndex++;renderTrace();}else stopAuto();},1150);});
+renderTrace();
+
+document.querySelectorAll('.code-tab[data-code]').forEach(btn=>btn.addEventListener('click',()=>{
+ document.querySelectorAll('.code-tab[data-code]').forEach(b=>b.classList.toggle('active',b===btn));
+ document.querySelectorAll('.code-pane').forEach(p=>p.classList.remove('active'));
+ const pane=document.getElementById('pane-'+btn.dataset.code);if(pane)pane.classList.add('active');
+ const filename = document.getElementById('macFilename');
+ if(filename && btn.dataset.title) {
+   filename.textContent = btn.dataset.title;
+ }
+}));
+</script>
+</body>
+</html>

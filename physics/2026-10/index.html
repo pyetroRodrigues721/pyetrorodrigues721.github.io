@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<meta name="color-scheme" content="dark">
+<title>电子磁谱仪 · 落点几何与能量判定</title>
+
+<!--
+  物理习题讲解 · 模板 v2.3 ｜ @Neking · lvshaomeng806@gmail.com
+  v2.3 新增 ★ Auto-fit 自适应模块：
+    slide-main 有 overflow:hidden，内容超高会被裁掉。
+    旧做法只能缩小图形凑合；现在改为定量测量内容边界，
+    超出画布就整体等比收缩（transform: scale）——图形该多大就多大，
+    溢出由 auto-fit 优雅降级，再也不会裁切或裁到看不见。
+    用法：正常写内容，忘了垂直预算也不会爆版。
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Noto+Serif+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css">
+
+<style>
+/* =========================================================
+   01. DESIGN TOKENS
+========================================================= */
+:root {
+  --r-background-color: #0b1220;
+  --slide-w: 1600px;
+  --slide-h: 900px;
+  --page-x: 100px;
+  --page-top: 56px;
+  --page-bottom: 44px;
+  --header-h: 84px;
+  --footer-h: 48px;
+  --bg-void: #0b1220;
+  --text: #f2f6fc;
+  --muted: #a1b0c5;
+  --subtle: #8fa2ba;
+  --blue: #65b9ff;
+  --orange: #ffb36b;
+  --green: #6bd6ae;
+  --red: #ff8585;
+  --surface-blue:   rgba(101, 185, 255, 0.05);
+  --surface-red:    rgba(255, 133, 133, 0.05);
+  --surface-green:  rgba(107, 214, 174, 0.06);
+  --border-red:     rgba(255, 133, 133, 0.22);
+  --border-green:   rgba(107, 214, 174, 0.22);
+  --line: rgba(180, 205, 235, 0.10);
+  --line-strong: rgba(180, 205, 235, 0.25);
+  --font: "Newsreader", "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-mono: "IBM Plex Mono", "Noto Serif SC", "PingFang SC", monospace;
+  --font-number: "Newsreader", "Times New Roman", serif;
+  --fs-display: 78px; --fs-h1: 46px; --fs-lead: 26px; --fs-body: 22px;
+  --fs-caption: 18px; --fs-label: 15px; --fs-equation: 54px;
+  --fs-step: 46px; --fs-mega: 118px;
+  --lh-cover: 1.16; --lh-title: 1.24; --lh-body: 1.72; --lh-equation: 1.4;
+  --gap-eyebrow: 56px;
+  --ease-out: cubic-bezier(0.22, 0.7, 0.24, 1);
+}
+
+/* =========================================================
+   02. RESET & BACKGROUND
+========================================================= */
+* { box-sizing: border-box; }
+html, body {
+  width: 100%; height: 100%; height: 100dvh;
+  margin: 0; overflow: hidden; background-color: var(--bg-void);
+  overscroll-behavior: none;
+}
+body {
+  font-family: var(--font); color: var(--text); font-weight: 400;
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  font-optical-sizing: auto;
+}
+body.anno-on { user-select: none; -webkit-user-select: none; cursor: none; touch-action: none; }
+
+.reveal-viewport, body {
+  background-color: var(--bg-void);
+  background-image:
+    radial-gradient(ellipse 120% 100% at 82% 8%, rgba(101,185,255,.085), transparent 55%),
+    radial-gradient(ellipse 85% 85% at 8% 92%, rgba(107,214,174,.045), transparent 55%),
+    linear-gradient(rgba(180,205,235,.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(180,205,235,.028) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 88px 88px, 88px 88px;
+  background-attachment: fixed;
+}
+.grain {
+  position: fixed; inset: 0; pointer-events: none; z-index: 60; opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+::selection { background: rgba(101,185,255,.28); color: var(--text); }
+
+.reveal {
+  width: 100%; height: 100%; font-family: var(--font); color: var(--text);
+  font-size: var(--fs-lead); font-synthesis: none; -webkit-font-synthesis: none;
+}
+.reveal .slides { text-align: left; }
+.reveal .slides section {
+  width: var(--slide-w); height: var(--slide-h);
+  padding: var(--page-top) var(--page-x) var(--page-bottom);
+  box-sizing: border-box; overflow: hidden;
+  background: transparent; color: var(--text); box-shadow: none;
+}
+.reveal h1, .reveal h2, .reveal h3, .reveal p { color: inherit; font-family: var(--font); }
+.reveal h1, .reveal h2, .reveal h3 { font-weight: 700; letter-spacing: -.02em; text-wrap: balance; }
+.reveal p { line-height: var(--lh-body); text-wrap: pretty; }
+:where(.reveal h1, .reveal h2, .reveal h3, .reveal p) { margin: 0; }
+.reveal sub, .reveal sup { font-size: .55em; font-style: normal; font-family: inherit; font-weight: 500; letter-spacing: 0; }
+.reveal sub { vertical-align: -.22em; }
+.reveal sup { vertical-align: .45em; }
+
+/* =========================================================
+   03. TYPOGRAPHY
+========================================================= */
+.cover-title, .slide-title { font-weight: 900; letter-spacing: -.02em; text-wrap: balance; }
+.cover-title { font-size: var(--fs-display); line-height: var(--lh-cover); }
+.slide-title, .question-heading, .process-title, .model-headline,
+.derivation-heading, .calculation-title {
+  font-size: var(--fs-h1); line-height: var(--lh-title); font-weight: 700;
+}
+.reveal .question-heading, .reveal .process-title, .reveal .model-headline,
+.reveal .derivation-heading, .reveal .calculation-title, .reveal .slide-title { margin-top: var(--gap-eyebrow); }
+
+.eyebrow, .label, .chapter-index, .header-meta,
+.derivation-step-label, .calculation-result-label, .answer-kicker {
+  font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 600; letter-spacing: .16em;
+}
+.number, .answer-unit, .calculation-result-value, .footer-page {
+  font-family: var(--font-number), var(--font);
+  font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "tnum" 1, "lnum" 1;
+}
+.model-equation .formula, .derivation-formula, .calculation-line {
+  font-family: var(--font-number), var(--font); font-size: var(--fs-equation);
+  line-height: var(--lh-equation); font-weight: 500;
+  font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "tnum" 1, "lnum" 1;
+}
+.derivation-formula { font-size: var(--fs-step); line-height: 1.35; }
+.var { font-style: italic; font-family: "Newsreader", "Times New Roman", serif; font-weight: 500; }
+.blue { color: var(--blue); }
+.orange { color: var(--orange); }
+.green { color: var(--green); }
+.red { color: var(--red); }
+.calc-inline { font-family: var(--font-number); font-weight: 500; font-variant-numeric: lining-nums tabular-nums; }
+.calc-inline sub { font-size: .66em; }
+
+/* =========================================================
+   04. SLIDE FRAME
+========================================================= */
+.slide-frame { width: 100%; height: 100%; display: grid; grid-template-rows: var(--header-h) minmax(0, 1fr) var(--footer-h); }
+.slide-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  border-bottom: 1px solid var(--line); padding-bottom: 24px;
+}
+.header-left { display: flex; align-items: center; gap: 20px; }
+.chapter-index { color: var(--blue); font-size: 16px; position: relative; }
+.chapter-index::after {
+  content: ""; position: absolute; left: 0; bottom: -26px; width: 100%; height: 2px; background: var(--blue);
+}
+.chapter-name { color: var(--muted); font-size: 17px; font-weight: 400; letter-spacing: .04em; }
+.header-meta { color: var(--subtle); }
+.slide-main { position: relative; min-height: 0; overflow: hidden; padding-top: 32px; }
+.slide-footer {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  color: var(--subtle); font-size: 14px; letter-spacing: .06em;
+  border-top: 1px solid var(--line); padding-top: 20px; padding-bottom: 12px;
+}
+.footer-topic { color: var(--muted); }
+.footer-credit { color: var(--subtle); font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; opacity: .65; }
+
+.svg-label { fill: var(--muted); font-size: 22px; font-family: var(--font); }
+.svg-small { fill: var(--subtle); font-size: var(--fs-caption); font-family: var(--font); }
+.svg-blue { fill: var(--blue); }
+.svg-orange { fill: var(--orange); }
+.svg-green { fill: var(--green); }
+.svg-red { fill: var(--red); }
+.tsub { font-size: .58em; }
+.glow-blue { filter: drop-shadow(0 0 10px rgba(101,185,255,.45)); }
+.glow-orange { filter: drop-shadow(0 0 12px rgba(255,179,107,.4)); }
+.glow-green { filter: drop-shadow(0 0 12px rgba(107,214,174,.4)); }
+.visual-caption {
+  display: flex; justify-content: space-between;
+  color: var(--subtle); font-family: var(--font-mono); font-size: 14px; letter-spacing: .12em;
+}
+
+/* =========================================================
+   05. SLIDE 01 — COVER
+========================================================= */
+.cover { position: relative; display: grid; grid-template-rows: 1fr 64px; height: 100%; }
+.cover-content { display: grid; grid-template-columns: .95fr 1.05fr; align-items: center; }
+.cover-copy { padding-right: 36px; }
+.cover-kicker {
+  display: flex; align-items: center; gap: 20px; margin-bottom: var(--gap-eyebrow);
+  color: var(--blue); font-family: var(--font-mono); font-size: var(--fs-label); font-weight: 600; letter-spacing: .22em;
+}
+.accent-rule { width: 64px; height: 3px; background: var(--blue); }
+.cover-title .accent { color: var(--blue); text-shadow: 0 0 42px rgba(101,185,255,.35); }
+.reveal .cover-description { max-width: 560px; margin-top: 32px; color: var(--muted); font-size: var(--fs-lead); }
+.cover-divider { width: 100%; height: 1px; margin-top: 40px; background: var(--line-strong); }
+.cover-meta {
+  display: flex; gap: 32px; margin-top: 24px; color: var(--subtle);
+  font-family: var(--font-mono); font-size: 14px; letter-spacing: .08em;
+}
+.cover-meta span { display: flex; align-items: center; gap: 10px; }
+.cover-meta span::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--blue); opacity: .7; }
+.cover-visual { display: flex; align-items: center; justify-content: center; height: 100%; }
+.cover-visual svg { width: 100%; height: 100%; overflow: visible; }
+.cover-bottom {
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--line); padding-top: 20px;
+  color: var(--subtle); font-family: var(--font-mono); font-size: 13px; letter-spacing: .12em;
+}
+.cover-hint {
+  position: absolute; right: var(--page-x); bottom: 96px;
+  color: var(--subtle); font-family: var(--font-mono); font-size: 13px;
+  letter-spacing: .1em; animation: hintPulse 2.6s ease-in-out infinite;
+}
+.cover-hint kbd {
+  padding: 4px 8px; border: 1px solid var(--line-strong); border-radius: 5px;
+  color: var(--muted); font-family: inherit; font-size: 12px;
+}
+.orbit-ring { transform-box: view-box; transform-origin: 360px 300px; animation: spin 70s linear infinite; }
+.peak-pulse { transform-box: fill-box; transform-origin: center; animation: peakPulse 2.6s ease-in-out infinite alternate; }
+
+/* =========================================================
+   06. SLIDE 02 — QUESTION
+========================================================= */
+.question-layout { display: grid; grid-template-columns: 1.12fr .88fr; gap: 56px; height: 100%; }
+.reveal .question-heading { margin-bottom: 24px; }
+.question-body { color: var(--muted); font-size: var(--fs-lead); font-variant-numeric: lining-nums tabular-nums; }
+.question-body .emphasis { color: var(--text); font-weight: 700; white-space: nowrap; }
+.question-options {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px;
+  margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--line);
+}
+.option {
+  display: flex; align-items: baseline; gap: 16px;
+  padding: 16px 20px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--surface-blue); color: var(--muted);
+  font-size: var(--fs-body); white-space: nowrap; font-variant-numeric: lining-nums tabular-nums;
+  transition: border-color 240ms ease, background 240ms ease;
+}
+.option:hover { border-color: rgba(101,185,255,.35); background: rgba(101,185,255,.09); }
+.option.wide { grid-column: 1 / -1; }
+.option-letter { color: var(--blue); font-weight: 700; font-family: var(--font-mono); font-size: 17px; letter-spacing: .06em; }
+.question-visual svg { width: 100%; height: 480px; overflow: visible; }
+
+/* =========================================================
+   07. SLIDE 03 — PROCESS
+========================================================= */
+.process-layout { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 24px; height: 100%; }
+.process-intro { display: flex; justify-content: space-between; align-items: flex-end; }
+.process-tag { color: var(--orange); font-family: var(--font-mono); font-size: var(--fs-caption); letter-spacing: .08em; padding-bottom: 6px; }
+.process-svg { width: 100%; height: 100%; min-height: 0; }
+.process-note {
+  display: flex; align-items: center; gap: 20px;
+  padding-top: 20px; border-top: 1px solid var(--line);
+  color: var(--muted); font-size: var(--fs-caption);
+}
+.process-note-mark { width: 7px; height: 7px; background: var(--green); border-radius: 50%; flex: none; }
+
+/* =========================================================
+   08. SLIDE 04 — MODEL
+========================================================= */
+.model-layout { display: grid; grid-template-columns: .9fr 1.1fr; gap: 72px; height: 100%; }
+.model-copy { display: flex; flex-direction: column; justify-content: center; }
+.reveal .model-headline { margin-bottom: 28px; }
+.model-explanation { color: var(--muted); font-size: var(--fs-lead); }
+.model-visual { display: flex; flex-direction: column; justify-content: center; }
+.model-equation { padding: 28px 0; border-bottom: 1px solid var(--line); }
+.model-equation:first-child { border-top: 1px solid var(--line); }
+.model-equation .explain { margin-top: 12px; color: var(--subtle); font-size: var(--fs-caption); }
+.direction-line { display: flex; align-items: center; gap: 20px; margin-top: 24px; }
+.direction-line svg { width: 100%; height: 76px; }
+.direction-tag { color: var(--orange); font-size: 18px; white-space: nowrap; }
+
+/* =========================================================
+   09. SLIDE 05 — DERIVATION
+========================================================= */
+.derivation-layout { display: grid; grid-template-columns: .78fr 1.22fr; gap: 64px; height: 100%; }
+.derivation-copy { display: flex; flex-direction: column; justify-content: center; }
+.reveal .derivation-heading { margin-bottom: 24px; }
+.derivation-description { color: var(--muted); font-size: var(--fs-lead); }
+.derivation-steps { display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.derivation-step { position: relative; padding: 20px 0 20px 28px; border-left: 2px solid rgba(101,185,255,.18); }
+.derivation-step-label { color: var(--subtle); margin-bottom: 12px; }
+.derivation-step .derivation-formula { white-space: nowrap; }
+.derivation-insight {
+  margin-top: 20px; padding: 24px 28px; background: var(--surface-blue);
+  border: 1px solid rgba(101,185,255,.22); border-left: 3px solid var(--blue); border-radius: 12px;
+}
+.derivation-insight-label { color: var(--blue); margin-bottom: 12px; }
+.derivation-insight-text { color: var(--text); font-size: 26px; line-height: 1.5; font-weight: 700; }
+
+/* =========================================================
+   10. SLIDE 06 — CALCULATION
+========================================================= */
+.calculation-layout { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 24px; height: 100%; }
+.calculation-intro { display: flex; align-items: flex-end; justify-content: space-between; }
+.calculation-body { display: grid; grid-template-columns: 1fr .85fr; gap: 56px; }
+.calculation-formula { display: flex; flex-direction: column; justify-content: center; }
+.calculation-line { font-size: 42px; white-space: nowrap; }
+.calculation-line + .calculation-line { margin-top: 12px; }
+.calculation-result { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--line); }
+.calculation-result-label { color: var(--subtle); margin-bottom: 16px; }
+.calculation-result-value {
+  color: var(--orange); font-size: 66px; line-height: 1.2; font-weight: 700; white-space: nowrap;
+  text-shadow: 0 0 36px rgba(255,179,107,.25);
+}
+.calculation-result-note { margin-top: 12px; color: var(--subtle); font-size: var(--fs-caption); }
+.calculation-visual svg { width: 100%; height: 380px; overflow: visible; }
+.calculation-footnote { color: var(--muted); font-size: var(--fs-caption); padding-top: 20px; border-top: 1px solid var(--line); }
+
+/* =========================================================
+   11. SLIDE 07 — ANSWER
+========================================================= */
+.answer-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; height: 100%; }
+.answer-main { display: flex; flex-direction: column; justify-content: center; }
+.answer-kicker { color: var(--subtle); margin-bottom: 48px; }
+.answer-value { display: flex; align-items: baseline; gap: 24px; }
+.answer-letter {
+  font-family: var(--font-mono); font-size: var(--fs-mega); line-height: .9; color: var(--green);
+  font-weight: 600; letter-spacing: -.04em; text-shadow: 0 0 48px rgba(107,214,174,.35);
+}
+.answer-unit { font-size: 38px; line-height: 1.3; color: var(--text); font-weight: 400; white-space: nowrap; }
+.reveal .answer-direction { margin-top: 32px; color: var(--muted); font-size: var(--fs-lead); line-height: 1.75; }
+.answer-visual { display: flex; flex-direction: column; justify-content: center; }
+.answer-visual svg { width: 100%; height: 430px; overflow: visible; }
+.answer-summary { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 17px; line-height: 1.8; }
+
+/* =========================================================
+   12. SLIDE 08 — ERROR ANALYSIS
+========================================================= */
+.error-layout { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 36px; height: 100%; }
+.error-head { display: flex; align-items: flex-end; justify-content: space-between; }
+.error-columns { display: grid; grid-template-columns: 1.16fr .84fr; gap: 44px; align-items: start; align-content: start; }
+.error-card {
+  padding: 24px 28px; background: var(--surface-red);
+  border: 1px solid var(--border-red); border-left: 3px solid var(--red); border-radius: 12px; margin-bottom: 20px;
+}
+.error-title {
+  display: flex; align-items: center; gap: 12px; color: var(--red);
+  font-weight: 700; font-size: 19px; margin-bottom: 12px; letter-spacing: .03em;
+}
+.error-num {
+  font-family: var(--font-mono); font-size: 13px; font-weight: 600; letter-spacing: .12em;
+  color: rgba(255,133,133,.75); border: 1px solid var(--border-red); border-radius: 5px; padding: 4px 8px;
+}
+.error-desc { color: var(--muted); font-size: 17px; line-height: 1.75; }
+.note-card {
+  background: var(--surface-green); border: 1px solid var(--border-green);
+  border-left: 3px solid var(--green); padding: 24px 28px; border-radius: 12px;
+}
+.note-title { display: flex; align-items: center; gap: 12px; color: var(--green); font-weight: 700; font-size: 19px; margin-bottom: 16px; }
+.note-body { color: var(--muted); font-size: 17px; line-height: 1.85; }
+.note-motto {
+  margin: 16px 0; padding: 16px 24px; background: var(--surface-green); border-radius: 10px;
+  color: var(--text); font-size: 21px; line-height: 1.9; font-weight: 700;
+}
+
+/* =========================================================
+   13. REVEAL UI
+========================================================= */
+.reveal .controls {
+  right: 24px; bottom: 18px; color: var(--blue); opacity: .35;
+  transform: scale(.68); transform-origin: bottom right; transition: opacity 240ms ease;
+}
+.reveal .controls:hover { opacity: .9; }
+.reveal .controls button:focus-visible { outline: 2px solid var(--blue); opacity: 1; }
+.reveal .progress { height: 2px; color: var(--blue); background: rgba(180,205,235,.05); }
+.reveal .slide-number { display: none; }
+
+/* =========================================================
+   14. AUTO-FIT 适配系统（v2.3 新增）
+========================================================= */
+/* 测量时禁用动画，取元素自然位置 */
+.measuring .rise, .measuring .fade, .measuring .rule-anim {
+  animation: none !important; opacity: 1 !important; transform: none !important;
+}
+
+/* =========================================================
+   15. ANNOTATION
+========================================================= */
+.anno-canvas { position: fixed; inset: 0; z-index: 45; pointer-events: none; touch-action: none; }
+.brush-cursor {
+  position: fixed; left: 0; top: 0; z-index: 65; width: 24px; height: 24px;
+  border: 1.5px solid #ffe066; border-radius: 50%; background: rgba(255,224,102,.14);
+  pointer-events: none; transform: translate3d(-400px,-400px,0) translate(-50%,-50%); opacity: 0;
+  transition: opacity 120ms ease, width 140ms ease, height 140ms ease, border-color 140ms ease, background 140ms ease;
+  will-change: transform;
+}
+body.anno-on.brush-visible .brush-cursor { opacity: 1; }
+.anno-dock {
+  position: fixed; left: max(18px, env(safe-area-inset-left, 0px)); top: 50%;
+  transform: translateY(-50%); display: flex; align-items: center; gap: 10px; z-index: 70;
+}
+.anno-fab {
+  position: relative; flex: none; width: 52px; height: 52px; border-radius: 50%;
+  appearance: none; cursor: pointer; background: rgba(16,24,39,.94); border: 1px solid var(--line-strong);
+  color: var(--muted); display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  transition: color 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+.anno-fab:hover { color: var(--text); transform: scale(1.05); }
+.anno-fab:focus-visible { outline: 2px solid var(--blue); }
+.anno-fab svg { width: 22px; height: 22px; }
+.anno-fab .fab-close { display: none; }
+.anno-dock.open .anno-fab .fab-open { display: none; }
+.anno-dock.open .anno-fab .fab-close { display: block; }
+.anno-dock.open .anno-fab { color: var(--green); border-color: rgba(107,214,174,.5); }
+.fab-dot {
+  position: absolute; right: 3px; bottom: 3px; width: 11px; height: 11px; border-radius: 50%;
+  border: 2px solid rgba(16,24,39,.95); background: #ffe066;
+}
+.anno-fab::after, .anno-tool::after {
+  content: attr(data-tip);
+  position: absolute; left: calc(100% + 14px); top: 50%;
+  transform: translateY(-50%) translateX(-6px);
+  background: rgba(16,24,39,.96); border: 1px solid var(--line-strong); border-radius: 9px;
+  color: var(--muted); font-family: var(--font-mono); font-size: 12px; font-weight: 500;
+  letter-spacing: .08em; padding: 8px 12px; white-space: nowrap;
+  opacity: 0; pointer-events: none; transition: opacity 160ms ease, transform 160ms ease;
+}
+.anno-fab:hover::after, .anno-tool:hover::after { opacity: 1; transform: translateY(-50%) translateX(0); }
+.anno-rail {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 8px; border-radius: 18px;
+  background: rgba(16,24,39,.93); border: 1px solid var(--line-strong);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  opacity: 0; transform: translateX(-12px) scale(.96); pointer-events: none; visibility: hidden;
+  transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out), visibility 0s linear 220ms;
+}
+.anno-dock.open .anno-rail {
+  opacity: 1; transform: translateX(0) scale(1); pointer-events: auto; visibility: visible;
+  transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out);
+}
+.anno-dock.open.paused .anno-rail { opacity: .45; }
+.anno-tool {
+  position: relative; appearance: none; background: transparent; border: 1px solid transparent;
+  border-radius: 11px; width: 40px; height: 40px; padding: 0; display: flex; align-items: center;
+  justify-content: center; color: var(--muted); cursor: pointer; font-family: var(--font-mono);
+  font-size: 13px; font-weight: 600; letter-spacing: .08em;
+  transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+.anno-tool svg { width: 21px; height: 21px; }
+.anno-tool:hover { color: var(--text); border-color: var(--line-strong); }
+.anno-tool:focus-visible { outline: 2px solid var(--blue); }
+.anno-tool.active { color: var(--blue); border-color: rgba(101,185,255,.45); background: var(--surface-blue); }
+.anno-tool.on { color: var(--green); border-color: rgba(107,214,174,.5); background: var(--surface-green); }
+.anno-tool:disabled { opacity: .32; cursor: default; }
+.anno-sep-v { width: 26px; height: 1px; background: var(--line-strong); margin: 5px 0; flex: none; }
+.anno-colors { display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 3px 0; }
+.anno-swatch {
+  width: 17px; height: 17px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0;
+  transition: transform 150ms ease, border-color 150ms ease;
+}
+.anno-swatch:hover { transform: scale(1.18); }
+.anno-swatch.active { border-color: var(--text); transform: scale(1.18); }
+
+@media (max-width: 860px), (max-height: 560px) {
+  .anno-dock {
+    left: 50%; right: auto; top: auto; bottom: max(14px, env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%); flex-direction: column-reverse; align-items: center; gap: 8px;
+    max-width: calc(100vw - 20px);
+  }
+  .anno-rail {
+    flex-direction: row; flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 20px);
+    transform: translateY(12px) scale(.96);
+  }
+  .anno-dock.open .anno-rail { transform: translateY(0) scale(1); }
+  .anno-sep-v { width: 1px; height: 22px; margin: 0 4px; }
+  .anno-colors { flex-direction: row; padding: 0 3px; }
+  .anno-tool::after, .anno-fab::after {
+    left: 50%; top: auto; bottom: calc(100% + 12px); transform: translateX(-50%) translateY(6px);
+  }
+  .anno-tool:hover::after, .anno-fab:hover::after { transform: translateX(-50%) translateY(0); }
+}
+
+/* =========================================================
+   16. MOTION
+========================================================= */
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeOnly { from { opacity: 0; } to { opacity: 1; } }
+@keyframes drawRule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes peakPulse { from { opacity: .65; transform: scale(1); } to { opacity: 1; transform: scale(1.18); } }
+@keyframes hintPulse { 0%, 100% { opacity: .55; } 50% { opacity: .9; } }
+
+.reveal .slides section.present .rise { animation: rise .75s var(--ease-out) both; }
+.reveal .slides section.present .fade { animation: fadeOnly 1s ease both; }
+.reveal .slides section.present .d1 { animation-delay: .10s; }
+.reveal .slides section.present .d2 { animation-delay: .20s; }
+.reveal .slides section.present .d3 { animation-delay: .30s; }
+.reveal .slides section.present .d4 { animation-delay: .40s; }
+.reveal .slides section.present .d5 { animation-delay: .50s; }
+.reveal .slides section.present .d6 { animation-delay: .60s; }
+.reveal .slides section.present .rule-anim { transform-origin: left center; animation: drawRule .9s var(--ease-out) both; }
+
+/* =========================================================
+   17. RESPONSIVE / PRINT
+========================================================= */
+.viewport-tip { display: none; }
+@media (max-width: 720px) and (orientation: portrait) {
+  .viewport-tip {
+    display: block; position: fixed; left: 50%; bottom: calc(180px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%); padding: 10px 20px; border-radius: 999px;
+    background: rgba(16,24,39,.92); border: 1px solid var(--line-strong);
+    color: var(--muted); font-family: var(--font-mono); font-size: 13px;
+    letter-spacing: .06em; z-index: 100;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    white-space: nowrap; max-width: calc(100vw - 24px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+@media print {
+  @page { size: 1600px 900px; margin: 0; }
+  html, body { overflow: visible; background: white; }
+  .reveal .slides section { position: relative; display: block !important; page-break-after: always; }
+  .reveal .controls, .reveal .progress, .cover-hint, .viewport-tip,
+  .grain, .anno-dock, .anno-canvas, .brush-cursor { display: none !important; }
+}
+
+/* =========================================================
+   18. 间距工具类
+========================================================= */
+.reveal .stack-16 { margin-top: 16px; }
+.reveal .stack-20 { margin-top: 20px; }
+.reveal .stack-24 { margin-top: 24px; }
+.reveal .stack-32 { margin-top: 32px; }
+.reveal .stack-48 { margin-top: 48px; }
+</style>
+</head>
+
+<body>
+
+<!-- SVG 资产：禁 HTML 标签；符号内上下标 tspan；缩放铁律 75~85% 填充 -->
+<svg width="0" height="0" style="position:absolute;pointer-events:none" aria-hidden="true" focusable="false">
+  <defs>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#65b9ff"/></marker>
+    <marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#ffb36b"/></marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#6bd6ae"/></marker>
+
+    <g id="spectroG">
+      <rect x="0" y="0" width="300" height="200" fill="rgba(101,185,255,.04)" stroke="rgba(180,205,235,.55)" stroke-width="3"/>
+      <path d="M-70 200 H-14" stroke="rgba(180,205,235,.6)" stroke-width="3.5" marker-end="url(#arrowBlue)"/>
+      <circle cx="0" cy="200" r="5" fill="#8fa2ba"/>
+      <path d="M0 200 A 40 40 0 0 0 0 120" stroke="#65b9ff" stroke-width="3.5" fill="none" marker-end="url(#arrowBlue)"/>
+      <path d="M0 200 A 149 149 0 0 0 140 0" stroke="#ffb36b" stroke-width="3.5" fill="none" marker-end="url(#arrowOrange)"/>
+      <path d="M0 200 A 545 545 0 0 0 300 110" stroke="#6bd6ae" stroke-width="3.5" fill="none" marker-end="url(#arrowGreen)"/>
+      <circle cx="0" cy="120" r="6" fill="#65b9ff"/><circle cx="140" cy="0" r="6" fill="#ffb36b"/><circle cx="300" cy="110" r="6" fill="#6bd6ae"/>
+      <circle cx="252" cy="58" r="11" fill="none" stroke="#8fa2ba" stroke-width="2.5"/><circle cx="252" cy="58" r="3.5" fill="#8fa2ba"/>
+      <text x="274" y="67" font-family="Newsreader, serif" font-size="24" fill="#a1b0c5" font-style="italic">B</text>
+      <text x="58" y="150" font-family="Newsreader, Noto Serif SC, serif" font-size="19" fill="#65b9ff">电子1</text>
+      <text x="168" y="44" font-family="Newsreader, Noto Serif SC, serif" font-size="19" fill="#ffb36b">电子2</text>
+      <text x="206" y="122" font-family="Newsreader, Noto Serif SC, serif" font-size="19" fill="#6bd6ae">电子3</text>
+      <path d="M-40 0 V200 M-48 0 H-32 M-48 200 H-32" stroke="#8fa2ba" stroke-width="2.5" fill="none"/>
+      <text x="-58" y="106" text-anchor="end" font-family="Newsreader, serif" font-size="20" fill="#8fa2ba" font-style="italic">b</text>
+      <path d="M-16 120 V200 M-22 120 H-10 M-22 200 H-10" stroke="#65b9ff" stroke-width="2.5" fill="none"/>
+      <text x="-30" y="164" text-anchor="end" font-family="Newsreader, serif" font-size="20" fill="#65b9ff"><tspan font-style="italic">x</tspan><tspan dy="5" font-size="13">1</tspan><tspan dy="-5"></tspan></text>
+      <path d="M0 -18 H140 M0 -24 V-12 M140 -24 V-12" stroke="#ffb36b" stroke-width="2.5" fill="none"/>
+      <text x="70" y="-32" text-anchor="middle" font-family="Newsreader, serif" font-size="20" fill="#ffb36b"><tspan font-style="italic">x</tspan><tspan dy="5" font-size="13">2</tspan><tspan dy="-5"></tspan></text>
+      <path d="M322 110 V200 M316 110 H328 M316 200 H328" stroke="#6bd6ae" stroke-width="2.5" fill="none"/>
+      <text x="336" y="162" font-family="Newsreader, serif" font-size="20" fill="#6bd6ae"><tspan font-style="italic">x</tspan><tspan dy="5" font-size="13">3</tspan><tspan dy="-5"></tspan></text>
+      <path d="M0 240 H300 M0 234 V246 M300 234 V246" stroke="#8fa2ba" stroke-width="2.5" fill="none"/>
+      <text x="150" y="272" text-anchor="middle" font-family="Newsreader, serif" font-size="20" fill="#8fa2ba" font-style="italic">a</text>
+      <text x="-105" y="232" text-anchor="middle" font-family="Newsreader, Noto Serif SC, serif" font-size="19" fill="#8fa2ba">电子束</text>
+      <text x="-108" y="166" text-anchor="middle" font-family="Newsreader, Noto Serif SC, serif" font-size="19" fill="#8fa2ba">准直器</text>
+    </g>
+
+    <g id="geom2G">
+      <path d="M0 0 H180" stroke="rgba(180,205,235,.55)" stroke-width="3.5"/><path d="M0 0 V-130" stroke="rgba(180,205,235,.55)" stroke-width="3.5"/><path d="M180 0 L0 -130" stroke="#ffb36b" stroke-width="3.5"/>
+      <path d="M0 -22 H22 V0" stroke="rgba(180,205,235,.5)" stroke-width="2.5" fill="none"/>
+      <text x="90" y="32" text-anchor="middle" font-family="Newsreader, serif" font-size="24" fill="#8fa2ba"><tspan font-style="italic">x</tspan><tspan dy="5" font-size="15">2</tspan><tspan dy="-5"></tspan></text>
+      <text x="-16" y="-58" text-anchor="end" font-family="Newsreader, serif" font-size="24" fill="#8fa2ba"><tspan font-style="italic">b−R</tspan><tspan dy="5" font-size="15">2</tspan><tspan dy="-5"></tspan></text>
+      <text x="112" y="-72" font-family="Newsreader, serif" font-size="24" fill="#ffb36b"><tspan font-style="italic">R</tspan><tspan dy="5" font-size="15">2</tspan><tspan dy="-5"></tspan></text>
+    </g>
+
+    <g id="geom3G">
+      <path d="M0 0 H170" stroke="rgba(180,205,235,.55)" stroke-width="3.5"/><path d="M0 0 V-110" stroke="rgba(180,205,235,.55)" stroke-width="3.5"/><path d="M170 0 L0 -110" stroke="#6bd6ae" stroke-width="3.5"/>
+      <path d="M0 -22 H22 V0" stroke="rgba(180,205,235,.5)" stroke-width="2.5" fill="none"/>
+      <text x="85" y="32" text-anchor="middle" font-family="Newsreader, serif" font-size="24" fill="#8fa2ba" font-style="italic">a</text>
+      <text x="-16" y="-48" text-anchor="end" font-family="Newsreader, serif" font-size="24" fill="#8fa2ba"><tspan font-style="italic">R</tspan><tspan dy="5" font-size="15">3</tspan><tspan dy="-5">−</tspan><tspan font-style="italic">x</tspan><tspan dy="5" font-size="15">3</tspan><tspan dy="-5"></tspan></text>
+      <text x="104" y="-62" font-family="Newsreader, serif" font-size="24" fill="#6bd6ae"><tspan font-style="italic">R</tspan><tspan dy="5" font-size="15">3</tspan><tspan dy="-5"></tspan></text>
+    </g>
+  </defs>
+</svg>
+
+<div class="reveal">
+<div class="slides">
+
+<!-- ================= SLIDE 01 — COVER ================= -->
+<section data-transition="fade">
+  <div class="cover">
+    <div class="cover-content">
+      <div class="cover-copy">
+        <div class="cover-kicker rise"><span class="accent-rule"></span><span>PHYSICS · MAGNETIC SPECTROMETER</span></div>
+        <h1 class="cover-title rise d1">电子磁谱仪<br><span class="accent">落点几何与能量判定</span></h1>
+        <p class="cover-description rise d2">三个电子垂直射入匀强磁场，落在三面侧壁——一道多选题，练"几何定半径，物理给速度与时间"。</p>
+        <div class="cover-divider rule-anim d3"></div>
+        <div class="cover-meta rise d4"><span>洛伦兹力</span><span>圆周几何</span><span>多选判定</span></div>
+      </div>
+      <div class="cover-visual fade d2">
+        <svg viewBox="0 0 720 650" role="img" aria-label="电子磁谱仪俯视图">
+          <g class="orbit-ring"><circle cx="360" cy="300" r="185" fill="none" stroke="rgba(180,205,235,.12)" stroke-dasharray="4 14"/></g>
+          <circle cx="360" cy="300" r="252" fill="none" stroke="rgba(180,205,235,.08)"/>
+          <g transform="translate(213 170) scale(1.25)">
+            <use href="#spectroG"/>
+            <circle class="peak-pulse" cx="300" cy="110" r="11" fill="none" stroke="#6bd6ae" stroke-width="3"/>
+          </g>
+          <text x="360" y="628" text-anchor="middle" class="svg-small">三条圆弧 · 三个落点 · 一个共同内核</text>
+        </svg>
+      </div>
+    </div>
+    <div class="cover-bottom">
+      <span>物理习题讲解</span>
+      <span class="footer-credit">@Neking · lvshaomeng806@gmail.com</span>
+      <span>01 · RADIUS BRIDGE</span>
+    </div>
+    <div class="cover-hint">按 <kbd>→</kbd> 开始 · 按 <kbd>D</kbd> 打开批注</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 02 — QUESTION ================= -->
+<section data-transition="slide">
+  <div class="slide-frame">
+    <header class="slide-header">
+      <div class="header-left"><span class="chapter-index">01</span><span class="chapter-name">题目呈现</span></div>
+      <span class="header-meta">QUESTION · 多选</span>
+    </header>
+    <main class="slide-main">
+      <div class="question-layout">
+        <div class="question-text">
+          <div class="eyebrow rise">READ THE QUESTION</div>
+          <h2 class="question-heading rise d1">垂直射入，圆弧偏转</h2>
+          <p class="question-body rise d2">长方体电子磁谱仪内有<span class="emphasis">垂直底面向上</span>的匀强磁场 B，场区长 <span class="emphasis">a</span>、宽 <span class="emphasis">b</span>。三个电子经准直后垂直左侧面沿边缘射入，偏转后分别落在<span class="emphasis">三个侧面</span>，与边缘距离为 <span class="emphasis">x₁、x₂、x₃</span>。电子电荷量 −e、质量 m，不考虑相对论效应。</p>
+          <p class="question-body stack-20 rise d3">下列说法正确的有？（多选）</p>
+          <div class="question-options rise d4">
+            <div class="option"><span class="option-letter">A.</span><span>电子1动能大于电子3</span></div>
+            <div class="option"><span class="option-letter">B.</span><span>电子1运动时间 πm/eB</span></div>
+            <div class="option wide"><span class="option-letter">C.</span><span>电子2的动能为 e²B²(x₂²+b²)²/(8mb²)</span></div>
+            <div class="option wide"><span class="option-letter">D.</span><span>电子3的动量为 eB(x₃²+a²)/(2x₃)</span></div>
+          </div>
+        </div>
+        <div class="question-visual fade d2">
+          <div class="visual-caption"><span>物理情境</span><span>俯视图</span></div>
+          <svg viewBox="0 0 650 520" role="img" aria-label="电子磁谱仪俯视图">
+            <g transform="translate(189 112) scale(1.15)"><use href="#spectroG"/></g>
+            <text x="325" y="478" text-anchor="middle" class="svg-small">三个电子分别落在左、背、右三面侧壁</text>
+          </svg>
+        </div>
+      </div>
+    </main>
+    <footer class="slide-footer">
+      <span class="footer-topic">先看落点在哪个面</span>
+      <span class="footer-credit">@Neking · lvshaomeng806@gmail.com</span>
+      <span class="footer-page">02 / 08</span>
+    </footer>
+  </div>
+</section>
+
+<!-- ================= SLIDE 03 — PROCESS ================= -->
+<section data-transition="slide">
+  <div class="slide-frame">
+    <header class="slide-header">
+      <div class="header-left"><span class="chapter-index">02</span><span class="chapter-name">落点几何</span></div>
+      <span class="header-meta">TWO GEOMETRIES</span>
+    </header>
+    <main class="slide-main">
+      <div class="process-layout">
+        <div class="process-intro">
+          <div><div class="eyebrow rise">TWO GEOMETRIES</div><h2 class="process-title rise d1">落点不同，几何关系怎么列？</h2></div>
+          <span class="process-tag rise d2">勾股定半径</span>
+        </div>
+        <svg class="process-svg fade d2" viewBox="0 0 1400 500" role="img" aria-label="电子2与电子3的勾股几何">
+          <g transform="translate(70 0)">
+            <text x="0" y="55" class="svg-label">电子 2 · 落背壁</text>
+            <text x="0" y="92" class="svg-small">沿宽 b 方向偏折 x₂</text>
+            <rect x="0" y="130" width="520" height="270" rx="6" fill="rgba(255,179,107,.03)" stroke="rgba(180,205,235,.2)"/>
+            <use href="#geom2G" transform="translate(206 290) scale(1.15)"/>
+            <text x="260" y="352" text-anchor="middle" class="svg-label">(<tspan font-style="italic">b</tspan> − <tspan font-style="italic">R</tspan><tspan class="tsub" dy="5">2</tspan><tspan dy="-5">)² + </tspan><tspan font-style="italic">x</tspan><tspan class="tsub" dy="5">2</tspan><tspan dy="-5">² = </tspan><tspan font-style="italic">R</tspan><tspan class="tsub" dy="5">2</tspan><tspan dy="-5">²</tspan></text>
+            <text x="260" y="388" text-anchor="middle" class="svg-small"><tspan font-style="italic">R</tspan><tspan class="tsub" dy="5">2</tspan><tspan dy="-5"> = (</tspan><tspan font-style="italic">x</tspan><tspan class="tsub" dy="5">2</tspan><tspan dy="-5">² + </tspan><tspan font-style="italic">b</tspan><tspan dy="-5">²) / 2</tspan><tspan font-style="italic">b</tspan></text>
+          </g>
+          <g transform="translate(650 260)">
+            <path class="glow-blue" d="M-55 0 H100" stroke="#65b9ff" stroke-width="4" fill="none" marker-end="url(#arrowBlue)" stroke-linecap="round"/>
+            <text x="20" y="-32" text-anchor="middle" class="svg-small">同一招</text><text x="20" y="42" text-anchor="middle" class="svg-small">勾股求 R</text>
+          </g>
+          <g transform="translate(810 0)">
+            <text x="0" y="55" class="svg-label">电子 3 · 落右壁</text>
+            <text x="0" y="92" class="svg-small">沿长 a 方向偏折 x₃</text>
+            <rect x="0" y="130" width="520" height="270" rx="6" fill="rgba(107,214,174,.03)" stroke="rgba(180,205,235,.2)"/>
+            <use href="#geom3G" transform="translate(217 278) scale(1.15)"/>
+            <text x="260" y="352" text-anchor="middle" class="svg-label">(<tspan font-style="italic">R</tspan><tspan class="tsub" dy="5">3</tspan><tspan dy="-5"> − </tspan><tspan font-style="italic">x</tspan><tspan class="tsub" dy="5">3</tspan><tspan dy="-5">)² + </tspan><tspan font-style="italic">a</tspan><tspan dy="-5">² = </tspan><tspan font-style="italic">R</tspan><tspan class="tsub" dy="5">3</tspan><tspan dy="-5">²</tspan></text>
+            <text x="260" y="388" text-anchor="middle" class="svg-small"><tspan font-style="italic">R</tspan><tspan class="tsub" dy="5">3</tspan><tspan dy="-5"> = (</tspan><tspan font-style="italic">x</tspan><tspan class="tsub" dy="5">3</tspan><tspan dy="-5">² + </tspan><tspan font-style="italic">a</tspan><tspan dy="-5">²) / 2</tspan><tspan font-style="italic">x</tspan><tspan class="tsub" dy="5">3</tspan></text>
+          </g>
+        </svg>
+        <div class="process-note rise d3">
+          <span class="process-note-mark"></span>
+          <span>电子1 落回入口面：半圆轨迹，圆心角 180°，x₁ = 2R₁；由图知半径 R₁ &lt; R₂ &lt; R₃。</span>
+        </div>
+      </div>
+    </main>
+    <footer class="slide-footer">
+      <span class="footer-topic">两条勾股式，定出两个半径</span>
+      <span class="footer-credit">@Neking · lvshaomeng806@gmail.com</span>
+      <span class="footer-page">03 / 08</span>
+    </footer>
+  </div>
+</section>
+
+<!-- ================= SLIDE 04 — MODEL ================= -->
+<section data-transition="slide">
+  <div class="slide-frame">
+    <header class="slide-header">
+      <div class="header-left"><span class="chapter-index">03</span><span class="chapter-name">建立模型</span></div>
+      <span class="header-meta">RADIUS BRIDGE</span>
+    </header>
+    <main class="slide-main">
+      <div class="model-layout">
+        <div class="model-copy">
+          <div class="eyebrow rise">WHY RADIUS IS THE BRIDGE</div>
+          <h2 class="model-headline rise d1">洛伦兹力只改方向<br>不改速度大小</h2>
+          <p class="model-explanation rise d2">电子在匀强磁场中做<span class="blue">匀速圆周运动</span>：evB = mv²/r → v = eBr/m。<span class="orange">半径是唯一的桥</span>——几何给 r，物理给 v、Eₖ、p、t。</p>
+          <p class="model-explanation stack-24 rise d3">周期 T = 2πm/eB 与速度、半径都无关，所以时间只看圆心角；动能与动量则完全由半径决定。</p>
+        </div>
+        <div class="model-visual">
+          <div class="model-equation rise d2">
+            <div class="label">洛伦兹力提供向心力</div>
+            <div class="formula"><span class="var">evB</span> = <span class="var">mv</span>²/<span class="var">r</span> → <span class="var">v</span> = <span class="var">eBr</span>/<span class="var">m</span></div>
+            <div class="explain">速度与半径成正比：R 大则 v 大</div>
+          </div>
+          <div class="model-equation rise d3">
+            <div class="label">周期（与速度无关）</div>
+            <div class="formula"><span class="var">T</span> = 2π<span class="var">m</span> / <span class="var">eB</span></div>
+            <div class="explain">所有电子周期相同，时间只看圆心角</div>
+          </div>
+          <div class="model-equation rise d4">
+            <div class="label">动能与动量</div>
+            <div class="formula"><span class="var">E</span>ₖ = <span class="var">e</span>²<span class="var">B</span>²<span class="var">r</span>²/2<span class="var">m</span>，<span class="var">p</span> = <span class="var">eBr</span></div>
+            <div class="direction-line">
+              <span class="direction-tag">R₁ &lt; R₂ &lt; R₃</span>
+              <svg viewBox="0 0 500 84" role="img" aria-label="半径排序决定动能排序">
+                <path d="M30 42 H470" stroke="#ffb36b" stroke-width="4" fill="none" marker-end="url(#arrowOrange)" stroke-linecap="round"/>
+                <text x="30" y="25" class="svg-small">半径小</text>
+                <text x="470" y="25" text-anchor="end" class="svg-small">Eₖ 小：Eₖ₁ &lt; Eₖ₃</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <footer class="slide-footer">
+      <span class="footer-topic">几何给 r，磁场给其余一切</span>
+      <span class="footer-credit">@Neking · lvshaomeng806@gmail.com</span>
+      <span class="footer-page">04 / 08</span>
+    </footer>
+  </div>
+</section>
+
+<!-- ================= SLIDE 05 — DERIVATION ================= -->
+<section data-transition="slide">
+  <div class="slide-frame">
+    <header class="slide-header">
+      <div class="header-left"><span class="chapter-index">04</span><span class="chapter-name">推导关系</span></div>
+      <span class="header-meta">GEOMETRY TO PHYSICS</span>
+    </header>
+    <main class="slide-main">
+      <div class="derivation-layout">
+        <div class="derivation-copy">
+          <div class="eyebrow rise">FROM GEOMETRY TO PHYSICS</div>
+          <h2 class="derivation-heading rise d1">定半径<br>求速度与时间</h2>
+          <p class="derivation-description rise d2">三步走：先用勾股定出各电子的半径（见 03 页两条关系式），再代入 v = eBr/m 得能量与动量，最后由圆心角定时间。</p>
+          <p class="derivation-description stack-24 rise d3">每一步只做一件事：几何归几何，物理归物理。</p>
+        </div>
+        <div class="derivation-steps">
+          <div class="derivation-step rise d2">
+            <div class="derivation-step-label">STEP 01 / 几何定半径</div>
+            <div class="derivation-formula"><span class="var">R</span> = (<span class="var">x</span>² + 边长²) / 2边长</div>
+          </div>
+          <div class="derivation-step rise d3">
+            <div class="derivation-step-label">STEP 02 / 物理定能量动量</div>
+            <div class="derivation-formula"><span class="var">E</span>ₖ = <span class="var">e</span>²<span class="var">B</span>²<span class="var">r</span>²/2<span class="var">m</span>，<span class="var">p</span> = <span class="var">eBr</span></div>
+          </div>
+          <div class="derivation-step rise d4">
+            <div class="derivation-step-label">STEP 03 / 圆心角定时间</div>
+            <div class="derivation-formula"><span class="var">t</span> = <span class="var">θT</span>/360°，<span class="var">T</span> = 2π<span class="var">m</span>/<span class="var">eB</span></div>
+          </div>
+          <div class="derivation-insight rise d5">
+            <div class="derivation-insight-label">关键理解 / KEY INSIGHT</div>
+            <div class="derivation-insight-text">半径是唯一桥梁：几何给 r，磁场给 v、Eₖ、p、t</div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <footer class="slide-footer">
+      <span class="footer-topic">几何归几何，物理归物理</span>
+      <span class="footer-credit">@Neking · lvshaomeng806@gmail.com</span>
+      <span class="footer-page">05 / 08</span>
+    </footer>
+  </div>
+</section>
+
+<!-- ================= SLIDE 06 — CALCULATION ================= -->
+<section data-transition="slide">
+  <div class="slide-frame">
+    <header class="slide-header">
+      <div class="header-left"><span class="chapter-index">05</span><span class="chapter-name">数值代入</span></div>
+      <span class="header-meta">CALCULATION</span>
+    </header>
+    <main class="slide-main">
+      <div class="calculation-layout">
+        <div class="calculation-intro">
+          <div><div class="eyebrow rise">PLUG IN THE GEOMETRY</div><h2 class="calculation-title rise d1">代入几何，逐项核对</h2></div>
+          <span class="eyebrow rise d2">SYMBOLIC</span>
+        </div>
+        <div class="calculation-body">
+          <div class="calculation-formula">
+            <div class="calculation-line rise d2">电子2：<span class="var">R</span>₂ = (<span class="var">x</span>₂² + <span class="var">b</span>²)/2<span class="var">b</span></div>
+            <div class="calculation-line rise d3"><span class="var">E</span>ₖ₂ = <span class="var">e</span>²<span class="var">B</span>²(<span class="var">x</span>₂²+<span class="var">b</span>²)²/8<span class="var">mb</span>²</div>
+            <div class="calculation-line rise d4">电子3：<span class="var">p</span>₃ = <span class="var">mv</span>₃ = <span class="var">eB</span>(<span class="var">x</span>₃²+<span class="var">a</span>²)/2<span class="var">x</span>₃</div>
+            <div class="calculation-result rise d5">
+              <div class="calculation-result-label">电子1 的运动时间</div>
+              <div class="calculation-result-value">t = πm/eB</div>
+              <div class="calculation-result-note">半圆 180° → t = T/2；R₁ &lt; R₃ → Eₖ₁ &lt; Eₖ₃（A 错）</div>
+            </div>
+          </div>
+          <div class="calculation-visual fade d3">
+            <svg viewBox="0 0 650 430" role="img" aria-label="磁谱仪俯视图">
+              <g transform="translate(213 65) scale(0.95)"><use href="#spectroG"/></g>
+              <path class="glow-green" d="M120 398 H540" stroke="#6bd6ae" stroke-width="4" fill="none" marker-end="url(#arrowGreen)" stroke-linecap="round"/>
+              <text x="130" y="383" class="svg-label svg-green">B · C · D 三项正确</text>
+            </svg>
+          </div>
+        </div>
+        <div class="calculation-footnote rise d5">干扰项溯源：A 以为"偏转越小动能越大"，实际 R 小 → v 小 → Eₖ 小；B 的时间只由圆心角 180° 决定，<span class="orange">与速度大小无关</span>。</div>
+      </div>
+    </main>
+    <footer class="slide-footer">
+      <span class="footer-topic">代几何 → 得能量 → 判选项</span>
+      <span class="footer-credit">@Neking · lvshaomeng806@gmail.com</span>
+      <span class="footer-page">06 / 08</span>
+    </footer>
+  </div>
+</section>
+
+<!-- ================= SLIDE 07 — ANSWER ================= -->
+<section data-transition="fade">
+  <div class="slide-frame">
+    <header class="slide-header">
+      <div class="header-left"><span class="chapter-index">06</span><span class="chapter-name">答案揭晓</span></div>
+      <span class="header-meta">FINAL ANSWER</span>
+    </header>
+    <main class="slide-main">
+      <div class="answer-layout">
+        <div class="answer-main">
+          <div class="answer-kicker rise">CORRECT ANSWER · 多选</div>
+          <div class="answer-value rise d1">
+            <span class="answer-letter">BCD</span>
+            <span class="answer-unit">时间 · 动能 · 动量</span>
+          </div>
+          <p class="answer-direction rise d2">
+            B 对（180° 半圆，t = T/2 = πm/eB）；C 对（Eₖ₂ = e²B²(x₂²+b²)²/8mb²）；D 对（p₃ = eB(x₃²+a²)/2x₃）。<br>
+            A 错：R₁ &lt; R₃ ⇒ v₁ &lt; v₃ ⇒ Eₖ₁ &lt; Eₖ₃。
+          </p>
+        </div>
+        <div class="answer-visual">
+          <svg class="fade d2" viewBox="0 0 650 460" role="img" aria-label="磁谱仪结论示意">
+            <g transform="translate(201 83) scale(1.05)"><use href="#spectroG"/></g>
+            <path class="glow-green" d="M120 415 H540" stroke="#6bd6ae" stroke-width="4" fill="none" marker-end="url(#arrowGreen)" stroke-linecap="round"/>
+            <text x="130" y="400" class="svg-label svg-green">几何定半径 · 物理定速度</text>
+          </svg>
+          <div class="answer-summary rise d3">
+            <span class="green" style="font-weight:700;">多选策略</span>
+            逐项独立过：几何 → r → v、Eₖ、p；时间单独看圆心角。三个选项三套判据，互不干扰，不靠排除猜。
+          </div>
+        </div>
+      </div>
+    </main>
+    <footer class="slide-footer">
+      <span class="footer-topic">核心：evB = mv²/r，T = 2πm/eB</span>
+      <span class="footer-credit">@Neking · lvshaomeng806@gmail.com</span>
+      <span class="footer-page">07 / 08</span>
+    </footer>
+  </div>
+</section>
+
+<!-- ================= SLIDE 08 — ERROR ANALYSIS ================= -->
+<section data-transition="slide">
+  <div class="slide-frame">
+    <header class="slide-header">
+      <div class="header-left"><span class="chapter-index">07</span><span class="chapter-name">错题排查</span></div>
+      <span class="header-meta">ERROR ANALYSIS</span>
+    </header>
+    <main class="slide-main">
+      <div class="error-layout">
+        <div class="error-head">
+          <div><div class="eyebrow rise red">SPOT THE TRAPS</div><h2 class="slide-title rise d1">这道题最容易犯哪些错误？</h2></div>
+          <span class="process-tag rise d2">两个高频陷阱</span>
+        </div>
+        <div class="error-columns">
+          <div>
+            <div class="error-card rise d2">
+              <div class="error-title"><span class="error-num">ERROR 01</span>偏转越小，动能越大？（A）</div>
+              <div class="error-desc">恰好相反：由 <span class="calc-inline"><span class="var">v</span> = <span class="var">eBr</span>/<span class="var">m</span></span>，半径小速度就小。<span class="green">R₁ &lt; R₃ ⇒ v₁ &lt; v₃ ⇒ Eₖ₁ &lt; Eₖ₃</span>，电子1 动能最小，A 颠倒了因果。</div>
+            </div>
+            <div class="error-card rise d3">
+              <div class="error-title"><span class="error-num">ERROR 02</span>几何式与周期记混（B / C / D）</div>
+              <div class="error-desc">半径要靠勾股：<span class="calc-inline">(<span class="var">b</span>−<span class="var">R</span>₂)²+<span class="var">x</span>₂²=<span class="var">R</span>₂²</span>，别把 x₂ 直接当半径。周期 <span class="green">T = 2πm/eB 与速度无关</span>，时间只看圆心角（180° → t = πm/eB）。</div>
+            </div>
+          </div>
+          <div class="note-card rise d4">
+            <div class="note-title">学霸笔记</div>
+            <div class="note-body">
+              遇到"磁场偏转 / 磁谱仪"类问题，默念口诀：
+              <div class="note-motto">几何定半径，磁场给速度；<br>角度定时间，半径定能量。</div>
+              两条常识先行：洛伦兹力不做功、速率不变；T = 2πm/(eB) 与速度、半径无关，只由 m、B 决定。
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <footer class="slide-footer">
+      <span class="footer-topic">掌握磁场偏转的核心逻辑</span>
+      <span class="footer-credit">@Neking · lvshaomeng806@gmail.com</span>
+      <span class="footer-page">08 / 08</span>
+    </footer>
+  </div>
+</section>
+
+</div>
+</div>
+
+<!-- 批注层 -->
+<canvas class="anno-canvas" id="annoCanvas" aria-hidden="true"></canvas>
+<div class="brush-cursor" id="brushCursor" aria-hidden="true"></div>
+<div class="anno-dock" id="annoDock">
+  <button class="anno-fab" id="annoFab" data-tip="批注工具 · D" aria-expanded="false" aria-controls="annoRail" aria-label="批注工具">
+    <svg class="fab-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 14.5l5.2-5.2 3 3-5.2 5.2-3-3z"/><path d="M6.5 14.5l3 3-2.7 2.7H4.2l-.4-2.6 2.7-3.1z"/><path d="M13 20.2h7"/></svg>
+    <svg class="fab-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    <span class="fab-dot" id="fabDot"></span>
+  </button>
+  <div class="anno-rail" id="annoRail" role="toolbar" aria-label="荧光笔与书写工具">
+    <button class="anno-tool on" id="annoToggle" data-tip="暂停绘制 / 继续" aria-pressed="true" aria-label="暂停绘制"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 5v14M15 5v14"/></svg></button>
+    <div class="anno-sep-v"></div>
+    <button class="anno-tool mode active" data-mode="hl" data-tip="荧光笔 · H" aria-pressed="true" aria-label="荧光笔"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 14.5l5.2-5.2 3 3-5.2 5.2-3-3z"/><path d="M6.5 14.5l3 3-2.7 2.7H4.2l-.4-2.6 2.7-3.1z"/><path d="M13 20.2h7"/></svg></button>
+    <button class="anno-tool mode" data-mode="pen" data-tip="书写 · P" aria-pressed="false" aria-label="书写"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h8"/><path d="M15.5 4.5l4 4L8 20H4v-4L15.5 4.5z"/></svg></button>
+    <button class="anno-tool mode" data-mode="erase" data-tip="橡皮 · E" aria-pressed="false" aria-label="橡皮"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 20.2h12"/><path d="M13.5 4.5l6 6-7 7H8.2l-3.4-3.4a1.4 1.4 0 0 1 0-2z"/></svg></button>
+    <button class="anno-tool" id="annoSize" data-tip="笔刷粗细 · [  ]" aria-label="笔刷粗细"><span id="annoSizeLabel">M</span></button>
+    <div class="anno-sep-v"></div>
+    <div class="anno-colors" role="group" aria-label="颜色">
+      <button class="anno-swatch active" data-color="#ffe066" style="background:#ffe066" aria-label="黄色"></button>
+      <button class="anno-swatch" data-color="#7fe7ff" style="background:#7fe7ff" aria-label="青色"></button>
+      <button class="anno-swatch" data-color="#ff9ecd" style="background:#ff9ecd" aria-label="粉色"></button>
+      <button class="anno-swatch" data-color="#8ef0b4" style="background:#8ef0b4" aria-label="绿色"></button>
+    </div>
+    <div class="anno-sep-v"></div>
+    <button class="anno-tool" id="annoUndo" data-tip="撤销 · Ctrl+Z" aria-label="撤销" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h6"/><path d="M4 9l3-3M4 9l3 3"/><path d="M5.5 12.5a7.5 7.5 0 1 0 2.2-5.3"/></svg></button>
+    <button class="anno-tool" id="annoClear" data-tip="清除本页 · C / Delete" aria-label="清除本页"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14"/><path d="M9 7V5h6v2"/><path d="M7 7l1 12h8l1-12"/><path d="M10.5 10.5v5M13.5 10.5v5"/></svg></button>
+    <button class="anno-tool" id="annoClearAll" data-tip="清除全部 · Shift+C" aria-label="清除全部"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M6.5 7l1 12h9l1-12"/><path d="M12 4v3"/><path d="M4.5 3.5l15 15"/></svg></button>
+  </div>
+</div>
+<div class="viewport-tip" role="status">建议横屏或更大屏幕 · 以保持排版比例</div>
+<div class="grain" aria-hidden="true"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+<script>
+  /* ============ Reveal 初始化 ============ */
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  Reveal.initialize({
+    width: 1600, height: 900, margin: 0, minScale: 0.2, maxScale: 2.0,
+    hash: true, keyboard: true, controls: true, progress: true, slideNumber: false,
+    overview: true, center: false, disableLayout: false,
+    transition: prefersReducedMotion ? "none" : "slide",
+    transitionSpeed: "default",
+    backgroundTransition: prefersReducedMotion ? "none" : "fade",
+    fragments: false, touch: true, accessibility: { enabled: true }
+  });
+
+  /* ============ AUTO-FIT 自适应缩放（v2.3 核心） ============
+     原理：slide-main 有 overflow:hidden，内容超高被裁。
+     做法：测量所有 HTML 子元素（跳过 SVG 内部）的最深边界，
+          超出可用区就对 .slide-main > * 整体施加 transform: scale(k)。
+          k = min(1, availW/needW, availH/needH)。
+          溢出多少缩多少，不溢出不缩——图形该多大就多大。
+     时机：加载完成后（动画结束）+ 窗口/DPR/幻灯片变化（去抖）。 */
+  (function autoFit() {
+    const TOLERANCE = 4; // px 容差
+
+    function debounce(fn, ms) {
+      let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+    }
+
+    function contentExtent(main) {
+      // 临时禁用动画，取元素自然位置
+      main.classList.add('measuring');
+      const base = main.getBoundingClientRect();
+      let maxBottom = 0, maxRight = 0;
+      const walker = document.createTreeWalker(main, NodeFilter.SHOW_ELEMENT, {
+        acceptNode(node) {
+          return node.closest('svg') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+        }
+      });
+      let node;
+      while ((node = walker.nextNode())) {
+        const r = node.getBoundingClientRect();
+        if (r.width === 0 && r.height === 0) continue;
+        maxBottom = Math.max(maxBottom, r.bottom - base.top);
+        maxRight = Math.max(maxRight, r.right - base.left);
+      }
+      main.classList.remove('measuring');
+      return { h: maxBottom, w: maxRight };
+    }
+
+    function fitSlide(section) {
+      const main = section.querySelector('.slide-main');
+      if (!main) return;
+      const inner = main.firstElementChild;
+      if (!inner) return;
+
+      // 重置
+      inner.style.transform = '';
+      inner.style.transformOrigin = '';
+      inner.style.width = '';
+      inner.style.height = '';
+      delete inner.dataset.fit;
+
+      const availW = main.clientWidth;
+      const availH = main.clientHeight;
+      const ext = contentExtent(main);
+
+      const k = Math.min(
+        1,
+        (availW - TOLERANCE) / Math.max(ext.w, 1),
+        (availH - TOLERANCE) / Math.max(ext.h, 1)
+      );
+
+      if (k < 0.995) {
+        inner.style.transformOrigin = 'top left';
+        inner.style.transform = `scale(${k})`;
+        inner.style.width = `${availW / k}px`;
+        inner.style.height = `${availH / k}px`;
+        inner.dataset.fit = k.toFixed(3);
+      }
+    }
+
+    function fitAll() {
+      document.querySelectorAll('.reveal .slides section').forEach(fitSlide);
+    }
+
+    const fitDebounced = debounce(fitAll, 150);
+
+    // 时机 1：加载完成 + 动画结束后
+    if (document.readyState === 'complete') {
+      setTimeout(fitAll, 1800);
+    } else {
+      window.addEventListener('load', () => setTimeout(fitAll, 1800));
+    }
+
+    // 时机 2：各种缩放/换屏事件
+    window.addEventListener('resize', fitDebounced);
+    window.addEventListener('orientationchange', () => setTimeout(fitAll, 200));
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', fitDebounced);
+    }
+    Reveal.on('resize', fitDebounced);
+
+    // 时机 3：幻灯片切换（等动画走完再测）
+    Reveal.on('slidechanged', () => setTimeout(fitAll, 1200));
+
+    // 时机 4：DPR 变化（浏览器缩放/外接屏）
+    (function watchDpr() {
+      let dpr = window.devicePixelRatio;
+      setInterval(() => {
+        if (window.devicePixelRatio !== dpr) {
+          dpr = window.devicePixelRatio;
+          fitDebounced();
+        }
+      }, 800);
+    })();
+  })();
+
+  /* ============ 批注系统 v3 ============ */
+  (function () {
+    const DESIGN_W = 1600;
+    const canvas = document.getElementById('annoCanvas');
+    const ctx = canvas.getContext('2d');
+    const dock = document.getElementById('annoDock');
+    const fab = document.getElementById('annoFab');
+    const fabDot = document.getElementById('fabDot');
+    const brush = document.getElementById('brushCursor');
+    const toggleBtn = document.getElementById('annoToggle');
+    const sizeBtn = document.getElementById('annoSize');
+    const sizeLabel = document.getElementById('annoSizeLabel');
+    const undoBtn = document.getElementById('annoUndo');
+    const clearBtn = document.getElementById('annoClear');
+    const clearAllBtn = document.getElementById('annoClearAll');
+
+    const MODES = { hl: { width: 26, alpha: .30, erase: false }, pen: { width: 3.6, alpha: .92, erase: false }, erase: { width: 72, alpha: 1, erase: true } };
+    const SIZES = [.6, 1, 1.7];
+    const SIZE_TAGS = ['S', 'M', 'L'];
+
+    let open = false, paused = false, mode = 'hl', color = '#ffe066', sizeIdx = 1;
+    let drawing = false, activeId = null, current = null, rafPending = false;
+    const pages = {};
+
+    function pageKey() { const i = Reveal.getIndices(); return (i.h||0)+'-'+(i.v||0); }
+    function pageData() { const k = pageKey(); return pages[k] || (pages[k] = { strokes: [], redo: [] }); }
+    function slideBox() { const el = Reveal.getCurrentSlide(); return el ? el.getBoundingClientRect() : { left:0, top:0, width:innerWidth, height:innerHeight }; }
+    function scale() { return slideBox().width / DESIGN_W; }
+
+    function resize() {
+      const dpr = devicePixelRatio || 1;
+      canvas.width = Math.round(innerWidth * dpr); canvas.height = Math.round(innerHeight * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); setBrushStyle(); redraw();
+    }
+    function toNorm(cx, cy) { const r = slideBox(); return { x: (cx-r.left)/r.width, y: (cy-r.top)/r.height }; }
+
+    function strokePath(pts, W, H) {
+      if (pts.length === 1) { const p = pts[0]; ctx.beginPath(); ctx.arc(p.x*W, p.y*H, ctx.lineWidth/2, 0, Math.PI*2); ctx.fill(); return; }
+      ctx.beginPath(); ctx.moveTo(pts[0].x*W, pts[0].y*H);
+      if (pts.length === 2) ctx.lineTo(pts[1].x*W, pts[1].y*H);
+      else { for (let i=1; i<pts.length-1; i++) { const a=pts[i], b=pts[i+1]; ctx.quadraticCurveTo(a.x*W, a.y*H, (a.x+b.x)/2*W, (a.y+b.y)/2*H); } ctx.lineTo(pts[pts.length-1].x*W, pts[pts.length-1].y*H); }
+      ctx.stroke();
+    }
+    function drawStroke(s, r) {
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(.6, s.w*scale());
+      ctx.strokeStyle = s.color; ctx.fillStyle = s.color; ctx.globalAlpha = s.mode==='hl'?.30:.92;
+      strokePath(s.points, r.width, r.height); ctx.globalAlpha = 1;
+    }
+    function redraw() {
+      const r = slideBox(); ctx.clearRect(0, 0, innerWidth, innerHeight);
+      const pd = pageData(); for (const s of pd.strokes) drawStroke(s, r);
+      if (current) drawStroke(current, r);
+    }
+    function scheduleRedraw() { if (!rafPending) { rafPending = true; requestAnimationFrame(() => { rafPending = false; redraw(); }); } }
+
+    function brushWidthDesign() { return (mode==='erase'?MODES.erase.width:MODES[mode].width)*SIZES[sizeIdx]; }
+    function hexToRgba(hex, a) { const n = parseInt(hex.replace('#',''),16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; }
+    function setBrushStyle() {
+      const d = Math.max(9, brushWidthDesign()*scale());
+      brush.style.width = d+'px'; brush.style.height = d+'px';
+      if (mode==='erase') { brush.style.borderColor='rgba(255,133,133,.9)'; brush.style.background='rgba(255,133,133,.12)'; }
+      else { brush.style.borderColor=color; brush.style.background=hexToRgba(color,.14); }
+      fabDot.style.background = color;
+    }
+    function moveBrush(x, y) { brush.style.transform = `translate3d(${x}px,${y}px,0) translate(-50%,-50%)`; }
+    function showBrush() { document.body.classList.add('brush-visible'); }
+    function hideBrush() { document.body.classList.remove('brush-visible'); }
+    function drawingAllowed() { return open && !paused; }
+    function isUI(e) { return e.target.closest('.anno-dock, .reveal .controls, .reveal .progress, a, button, kbd, input, textarea'); }
+
+    document.addEventListener('pointerdown', e => {
+      if (!drawingAllowed() || isUI(e)) return;
+      e.preventDefault();
+      if (mode==='erase') { eraseAt(e); activeId=e.pointerId; return; }
+      if (activeId!==null) return;
+      activeId = e.pointerId; drawing = true;
+      const p = (e.pointerType==='pen'&&e.pressure>0)?(0.65+0.9*e.pressure):1;
+      current = { mode, color, w: brushWidthDesign()*p, points: [toNorm(e.clientX, e.clientY)] };
+      scheduleRedraw();
+    }, { passive: false });
+
+    document.addEventListener('pointermove', e => {
+      if (!open || paused) return;
+      moveBrush(e.clientX, e.clientY);
+      if (isUI(e)) hideBrush(); else showBrush();
+      if (mode==='erase') { if (activeId===e.pointerId&&(e.buttons||e.pressure>0)) eraseAt(e); return; }
+      if (!drawing || e.pointerId!==activeId || !current) return;
+      const p = toNorm(e.clientX, e.clientY), last = current.points[current.points.length-1], r = slideBox();
+      if (Math.hypot((p.x-last.x)*r.width, (p.y-last.y)*r.height) < 1.1) return;
+      current.points.push(p); scheduleRedraw();
+    });
+
+    function endStroke(e) {
+      if (e && e.pointerId!==activeId) return;
+      activeId = null; if (!drawing || !current) return;
+      drawing = false; const pd = pageData(); pd.strokes.push(current); pd.redo.length = 0;
+      current = null; updateUndoState(); scheduleRedraw();
+    }
+    document.addEventListener('pointerup', endStroke);
+    document.addEventListener('pointercancel', endStroke);
+    document.addEventListener('pointerleave', hideBrush);
+
+    function eraseAt(e) {
+      const r = slideBox(), nx=(e.clientX-r.left)/r.width, ny=(e.clientY-r.top)/r.height;
+      const rad=(MODES.erase.width*SIZES[sizeIdx])/2+6, k=r.width/DESIGN_W, pd=pageData();
+      let removed = false;
+      for (let i=pd.strokes.length-1; i>=0; i--) {
+        if (pd.strokes[i].points.some(p => Math.hypot((p.x-nx)*r.width, (p.y-ny)*r.height) < rad*k)) { pd.strokes.splice(i,1); removed=true; }
+      }
+      if (removed) { pd.redo.length=0; updateUndoState(); scheduleRedraw(); }
+    }
+
+    function undo() { const pd=pageData(); if (!pd.strokes.length) return; pd.redo.push(pd.strokes.pop()); updateUndoState(); scheduleRedraw(); }
+    function redo() { const pd=pageData(); if (!pd.redo.length) return; pd.strokes.push(pd.redo.pop()); updateUndoState(); scheduleRedraw(); }
+    function clearPage() { const pd=pageData(); pd.strokes.length=0; pd.redo.length=0; updateUndoState(); scheduleRedraw(); }
+    function clearAll() { for (const k in pages) { pages[k].strokes.length=0; pages[k].redo.length=0; } updateUndoState(); scheduleRedraw(); }
+    function updateUndoState() { undoBtn.disabled = !pageData().strokes.length; }
+
+    function setOpen(v) {
+      open = v; dock.classList.toggle('open', open); fab.setAttribute('aria-expanded', String(open));
+      if (!open) { paused=false; document.body.classList.remove('anno-on'); hideBrush(); current=null; drawing=false; activeId=null; }
+      else syncBody();
+      syncToggleBtn(); scheduleRedraw();
+    }
+    function setPaused(v) { paused=v; dock.classList.toggle('paused', paused); syncBody(); syncToggleBtn(); if (paused) { hideBrush(); current=null; drawing=false; activeId=null; } }
+    function syncBody() { document.body.classList.toggle('anno-on', open&&!paused); canvas.style.pointerEvents='none'; Reveal.configure({ touch: !(open&&!paused) }); }
+    function syncToggleBtn() { const a=open&&!paused; toggleBtn.classList.toggle('on', a); toggleBtn.setAttribute('aria-pressed', String(a)); }
+    function setMode(m) { mode=m; document.querySelectorAll('.anno-tool.mode').forEach(b => { const on=b.dataset.mode===m; b.classList.toggle('active',on); b.setAttribute('aria-pressed',String(on)); }); setBrushStyle(); }
+    function setSize(idx) { sizeIdx=Math.max(0,Math.min(SIZES.length-1,idx)); sizeLabel.textContent=SIZE_TAGS[sizeIdx]; setBrushStyle(); }
+    function pickColor(idx) { const sws=document.querySelectorAll('.anno-swatch'); const sw=sws[Math.max(0,Math.min(sws.length-1,idx))]; if (!sw) return; color=sw.dataset.color; sws.forEach(s=>s.classList.toggle('active',s===sw)); setBrushStyle(); }
+
+    fab.addEventListener('click', () => setOpen(!open));
+    toggleBtn.addEventListener('click', () => setPaused(!paused));
+    document.querySelectorAll('.anno-tool.mode').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+    document.querySelectorAll('.anno-swatch').forEach((sw,i) => sw.addEventListener('click', () => pickColor(i)));
+    sizeBtn.addEventListener('click', () => setSize((sizeIdx+1)%SIZES.length));
+    undoBtn.addEventListener('click', undo);
+    clearBtn.addEventListener('click', clearPage);
+    clearAllBtn.addEventListener('click', clearAll);
+    dock.addEventListener('pointerdown', e => e.stopPropagation());
+    dock.addEventListener('keydown', e => e.stopPropagation());
+    dock.addEventListener('mouseover', hideBrush);
+
+    function block(e) { e.preventDefault(); e.stopPropagation(); }
+    document.addEventListener('keydown', e => {
+      const tag=(e.target.tagName||'').toLowerCase();
+      if (tag==='input'||tag==='textarea') return;
+      if (e.ctrlKey||e.metaKey) { if (!open) return; const k=e.key.toLowerCase(); if (k==='z') { e.shiftKey?redo():undo(); block(e); } else if (k==='y') { redo(); block(e); } return; }
+      const k=e.key.toLowerCase();
+      if (k==='d') { setOpen(!open); block(e); return; }
+      if (!open) return;
+      switch (true) {
+        case e.key==='Escape': setOpen(false); block(e); break;
+        case e.key==='Delete': clearPage(); block(e); break;
+        case k==='h': setMode('hl'); block(e); break;
+        case k==='p': setMode('pen'); block(e); break;
+        case k==='e': setMode('erase'); block(e); break;
+        case k==='c'&&e.shiftKey: clearAll(); block(e); break;
+        case k==='c': clearPage(); block(e); break;
+        case e.key==='[': setSize(sizeIdx-1); block(e); break;
+        case e.key===']': setSize(sizeIdx+1); block(e); break;
+        case ['1','2','3','4'].includes(e.key): pickColor(+e.key-1); block(e); break;
+      }
+    }, true);
+
+    window.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', () => setTimeout(resize, 120));
+    if (window.visualViewport) { window.visualViewport.addEventListener('resize', resize); window.visualViewport.addEventListener('scroll', scheduleRedraw); }
+    Reveal.on('resize', resize);
+    Reveal.on('slidechanged', () => { updateUndoState(); scheduleRedraw(); });
+    (function watchDpr() { let dpr=devicePixelRatio; setInterval(() => { if (devicePixelRatio!==dpr) { dpr=devicePixelRatio; resize(); } }, 800); })();
+
+    setBrushStyle(); resize();
+  })();
+</script>
+</body>
+</html>
